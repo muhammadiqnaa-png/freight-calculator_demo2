@@ -54,7 +54,7 @@ def show_auth_forms():
                         st.session_state.user = data.get("email")
                         st.session_state.idToken = data.get("idToken")
                         st.success("Login berhasil ✅")
-                        st.experimental_rerun()
+                        st.rerun()
                     else:
                         # extract message if available
                         err = r.json().get("error", {}).get("message", r.text)
@@ -91,7 +91,7 @@ def main_app():
     if st.sidebar.button("Logout"):
         st.session_state.user = None
         st.session_state.idToken = None
-        st.experimental_rerun()
+        st.rerun()
 
     st.title("🚢 Freight Calculator")
     st.write("Masukkan parameter untuk menghitung biaya freight:")
@@ -130,3 +130,4 @@ if st.session_state.user:
     main_app()
 else:
     show_auth_forms()
+
