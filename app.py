@@ -1,133 +1,209 @@
 import streamlit as st
-import requests
-import pandas as pd
-import hashlib
-import os
+import math
+from fpdf import FPDF
+import pyrebase
 
-st.set_page_config(page_title="Freight Calculator (Firebase Auth)", layout="wide")
+# ===========================
+# KONFIGURASI FIREBASE
+# ===========================
+firebaseConfig = {
+    "apiKey": "GANTI_APIKEY_KAMU",
+    "authDomain": "freight-demo2.firebaseapp.com",
+    "projectId": "freight-demo2",
+    "storageBucket": "freight-demo2.appspot.com",
+    "messagingSenderId": "199645170835",
+    "appId": "GANTI_APPID_KAMU",
+    "databaseURL": ""
+}
+firebase = pyrebase.initialize_app(firebaseConfig)
+auth = firebase.auth()
 
-# --------------------------
-# FIREBASE REST endpoints
-# --------------------------
-API_KEY = st.secrets.get("FIREBASE_API_KEY", None)
-if not API_KEY:
-    st.error("FIREBASE_API_KEY belum diset di Streamlit Secrets. Stop.")
-    st.stop()
+# ===========================
+# KONFIGURASI STREAMLIT
+# ===========================
+st.set_page_config(page_title="Freight Calculator Barge", layout="wide")
 
-FIREBASE_SIGNUP_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={API_KEY}"
-FIREBASE_LOGIN_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={API_KEY}"
-
-# --------------------------
-# Helper: hash (optional local)
-# --------------------------
-def short_hash(s):
-    return hashlib.sha1(s.encode()).hexdigest()[:8]
-
-# --------------------------
-# Session defaults
-# --------------------------
+# ===========================
+# LOGIN STATE
+# ===========================
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 if "user" not in st.session_state:
     st.session_state.user = None
-if "idToken" not in st.session_state:
-    st.session_state.idToken = None
+if "show_register" not in st.session_state:
+    st.session_state.show_register = False
 
-# --------------------------
-# UI: Login / Register
-# --------------------------
-def show_auth_forms():
-    st.title("🔐 Login / Daftar — Freight Calculator")
+# ===========================
+# HALAMAN LOGIN
+# ===========================
+def login_page():
+    st.title("🔐 Login ke Freight Calculator Barge")
 
-    tab1, tab2 = st.tabs(["🔑 Login", "📝 Daftar Baru"])
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
 
-    with tab1:
-        email = st.text_input("Email", key="login_email")
-        password = st.text_input("Password", type="password", key="login_pw")
-        if st.button("Login"):
-            if not email or not password:
-                st.error("Isi email & password.")
-            else:
-                try:
-                    payload = {"email": email, "password": password, "returnSecureToken": True}
-                    r = requests.post(FIREBASE_LOGIN_URL, json=payload, timeout=10)
-                    if r.status_code == 200:
-                        data = r.json()
-                        st.session_state.user = data.get("email")
-                        st.session_state.idToken = data.get("idToken")
-                        st.success("Login berhasil ✅")
-                        st.rerun()
-                    else:
-                        # extract message if available
-                        err = r.json().get("error", {}).get("message", r.text)
-                        st.error(f"Login gagal: {err}")
-                except Exception as e:
-                    st.error(f"Gagal terhubung ke Firebase: {e}")
+    if st.button("Login"):
+        try:
+            user = auth.sign_in_with_email_and_password(email, password)
+            st.session_state.logged_in = True
+            st.session_state.user = email
+            st.success("Login berhasil ✅")
+            st.rerun()
+        except Exception as e:
+            st.error(f"Gagal login: {e}")
 
-    with tab2:
-        email_r = st.text_input("Email", key="reg_email")
-        pw_r = st.text_input("Password", type="password", key="reg_pw")
-        pw_r2 = st.text_input("Konfirmasi Password", type="password", key="reg_pw2")
-        if st.button("Daftar"):
-            if not email_r or not pw_r:
-                st.warning("Isi semua kolom dulu.")
-            elif pw_r != pw_r2:
-                st.warning("Password tidak cocok.")
-            else:
-                try:
-                    payload = {"email": email_r, "password": pw_r, "returnSecureToken": True}
-                    r = requests.post(FIREBASE_SIGNUP_URL, json=payload, timeout=10)
-                    if r.status_code == 200:
-                        st.success("Registrasi berhasil! Silakan login.")
-                    else:
-                        err = r.json().get("error", {}).get("message", r.text)
-                        st.error(f"Gagal registrasi: {err}")
-                except Exception as e:
-                    st.error(f"Gagal terhubung ke Firebase: {e}")
-
-# --------------------------
-# Main freight app (after login)
-# --------------------------
-def main_app():
-    st.sidebar.success(f"Login sebagai: {st.session_state.user}")
-    if st.sidebar.button("Logout"):
-        st.session_state.user = None
-        st.session_state.idToken = None
+    st.markdown("---")
+    if st.button("Belum punya akun? Daftar di sini"):
+        st.session_state.show_register = True
         st.rerun()
 
-    st.title("🚢 Freight Calculator")
-    st.write("Masukkan parameter untuk menghitung biaya freight:")
+# ===========================
+# HALAMAN REGISTER
+# ===========================
+def register_page():
+    st.title("📝 Daftar Akun Baru")
 
-    origin = st.text_input("Asal Pelabuhan")
-    destination = st.text_input("Tujuan Pelabuhan")
-    total_cargo = st.number_input("Total Cargo (MT)", value=7500.0)
-    jarak = st.number_input("Jarak (NM)", value=630.0)
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
+    confirm = st.text_input("Konfirmasi Password", type="password")
 
-    # contoh parameter default
-    speed_kosong = st.number_input("Speed Kosong (knot)", value=3.0)
-    speed_isi = st.number_input("Speed Isi (knot)", value=4.0)
-    consumption = st.number_input("Consumption (liter/jam)", value=120.0)
-    harga_bunker = st.number_input("Harga Bunker (Rp/liter)", value=12500.0)
-    port_stay = st.number_input("Port Stay (Hari)", value=10)
+    if st.button("Daftar"):
+        if password != confirm:
+            st.warning("Password tidak cocok!")
+        else:
+            try:
+                auth.create_user_with_email_and_password(email, password)
+                st.success("Akun berhasil dibuat ✅ Silakan login")
+                st.session_state.show_register = False
+            except Exception as e:
+                st.error(f"Gagal registrasi: {e}")
+
+    if st.button("Kembali ke Login"):
+        st.session_state.show_register = False
+        st.rerun()
+
+# ===========================
+# FUNGSI HITUNG & PDF
+# ===========================
+def hitung_freight(data):
+    sailing_time = (data["distance_pol_pod"] / data["speed_laden"]) + (data["distance_pod_pol"] / data["speed_ballast"])
+    total_voyage_days = (sailing_time / 24) + (data["port_stay_pol"] + data["port_stay_pod"])
+    total_consumption = (sailing_time * data["consumption_fuel"]) + ((data["port_stay_pol"] + data["port_stay_pod"]) * 120)
+
+    charter_cost = (data["charter_hire"] / 30) * total_voyage_days
+    bunker_cost = total_consumption * data["price_bunker"]
+    port_cost = data["port_cost_pol"] + data["port_cost_pod"]
+    premi_cost = data["distance_pol_pod"] * data["premi"]
+    crew_cost = (data["crew_cost"] / 30) * total_voyage_days
+    insurance_cost = (data["insurance"] / 30) * total_voyage_days
+    docking_saving = (data["docking"] / 30) * total_voyage_days
+    maintenance_cost = (data["maintenance"] / 30) * total_voyage_days
+
+    total_cost = sum([charter_cost, bunker_cost, crew_cost, port_cost, premi_cost,
+                      data["assist_tug"], insurance_cost, docking_saving, maintenance_cost])
+
+    freight_cost = total_cost / data["qty_cargo"]
+    return {
+        "sailing_time": sailing_time,
+        "total_voyage_days": total_voyage_days,
+        "total_consumption": total_consumption,
+        "total_cost": total_cost,
+        "freight_cost": freight_cost
+    }
+
+def generate_pdf(data, results, table_data):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(200, 10, "Freight Calculator Barge", ln=True, align="C")
+
+    pdf.set_font("Arial", size=11)
+    pdf.cell(200, 8, f"User: {st.session_state.user}", ln=True)
+    pdf.cell(200, 8, "", ln=True)
+
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(200, 8, "Hasil Perhitungan:", ln=True)
+    pdf.set_font("Arial", size=11)
+    for k, v in results.items():
+        pdf.cell(200, 8, f"{k.replace('_', ' ').title()}: {v:,.2f}", ln=True)
+
+    pdf.cell(200, 10, "", ln=True)
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(200, 8, "Simulasi Profit 0–50%:", ln=True)
+
+    pdf.set_font("Arial", size=11)
+    for row in table_data:
+        pdf.cell(200, 8, f"{row['Profit %']}% | Freight: {row['Freight']:,.0f} | Revenue: {row['Revenue']:,.0f} | Profit: {row['Profit']:,.0f}", ln=True)
+
+    pdf.set_y(-15)
+    pdf.set_font("Arial", "I", 8)
+    pdf.cell(0, 10, "Generated by Freight Calculator APP Iqna", 0, 0, "C")
+
+    pdf.output("freight_result.pdf")
+    return "freight_result.pdf"
+
+# ===========================
+# HALAMAN UTAMA
+# ===========================
+def main_app():
+    st.sidebar.success(f"👋 Login sebagai: {st.session_state.user}")
+    if st.sidebar.button("Logout"):
+        st.session_state.logged_in = False
+        st.session_state.user = None
+        st.rerun()
+
+    st.title("🚢 Freight Calculator Barge")
+
+    st.sidebar.header("Parameter (Bisa Diedit)")
+    data = {
+        "speed_laden": st.sidebar.number_input("Speed Laden (knot)", 0.0),
+        "speed_ballast": st.sidebar.number_input("Speed Ballast (knot)", 0.0),
+        "consumption_fuel": st.sidebar.number_input("Consumption Fuel (liter)", 0.0),
+        "price_bunker": st.sidebar.number_input("Price Bunker (Rp/liter)", 0.0),
+        "charter_hire": st.sidebar.number_input("Charter Hire/Month (Rp)", 0.0),
+        "crew_cost": st.sidebar.number_input("Crew Cost/Month (Rp)", 0.0),
+        "insurance": st.sidebar.number_input("Insurance/Month (Rp)", 0.0),
+        "docking": st.sidebar.number_input("Docking - Saving/Month (Rp)", 0.0),
+        "maintenance": st.sidebar.number_input("Maintenance/Month (Rp)", 0.0),
+        "port_cost_pol": st.sidebar.number_input("Port Cost POL (Rp)", 0.0),
+        "port_cost_pod": st.sidebar.number_input("Port Cost POD (Rp)", 0.0),
+        "assist_tug": st.sidebar.number_input("Assist Tug (Rp)", 0.0),
+        "premi": st.sidebar.number_input("Premi (Rp/NM)", 0.0),
+        "other_cost": st.sidebar.number_input("Other Cost (Rp)", 0.0),
+        "port_stay_pol": st.sidebar.number_input("Port Stay POL (Days)", 0.0),
+        "port_stay_pod": st.sidebar.number_input("Port Stay POD (Days)", 0.0),
+        "cargo_type": st.selectbox("Type Cargo", ["Pasir (M3)", "Split (MT)", "Coal (MT)", "Nickel (MT)"]),
+        "qty_cargo": st.number_input("QTY Cargo", 0.0),
+        "distance_pol_pod": st.number_input("Distance POL - POD (NM)", 0.0),
+        "distance_pod_pol": st.number_input("Distance POD - POL (NM)", 0.0),
+    }
 
     if st.button("Hitung Freight"):
-        sailing_time = (jarak / speed_kosong) + (jarak / speed_isi)
-        voyage_days = (sailing_time / 24) + port_stay
-        total_consumption = (sailing_time * consumption) + (port_stay * consumption)
-        biaya_bunker = total_consumption * harga_bunker
-        # contoh simple total cost
-        total_cost = biaya_bunker
-        cost_per_mt = total_cost / total_cargo if total_cargo else 0
+        results = hitung_freight(data)
+        st.success(f"Total Cost: Rp {results['total_cost']:,.0f}")
+        st.info(f"Freight Cost/MT: Rp {results['freight_cost']:,.0f}")
 
-        st.write(f"Sailing Time (jam): {sailing_time:,.2f}")
-        st.write(f"Total Voyage Days: {voyage_days:,.2f}")
-        st.write(f"Total Consumption (liter): {total_consumption:,.0f}")
-        st.write(f"TOTAL COST: Rp {total_cost:,.0f}")
-        st.write(f"FREIGHT: Rp {cost_per_mt:,.0f} / MT")
+        table_data = []
+        for p in range(0, 55, 5):
+            freight = results["freight_cost"] * (1 + p/100)
+            revenue = freight * data["qty_cargo"]
+            pph = revenue * 0.012
+            profit = revenue - results["total_cost"] - pph
+            table_data.append({"Profit %": p, "Freight": freight, "Revenue": revenue, "Profit": profit})
 
-# --------------------------
-# App entry
-# --------------------------
-if st.session_state.user:
+        st.dataframe(table_data)
+
+        pdf_path = generate_pdf(data, results, table_data)
+        with open(pdf_path, "rb") as f:
+            st.download_button("📄 Download PDF", f, file_name="Freight_Report.pdf")
+
+# ===========================
+# ROUTING APP
+# ===========================
+if st.session_state.logged_in:
     main_app()
 else:
-    show_auth_forms()
-
+    if st.session_state.show_register:
+        register_page()
+    else:
+        login_page()
