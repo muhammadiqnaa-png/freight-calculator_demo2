@@ -2,7 +2,6 @@ import streamlit as st
 
 st.set_page_config(page_title="Freight Calculator Barge", page_icon="⚓", layout="wide")
 
-# --- Redirect sederhana tanpa switch_page() ---
 if "page" not in st.session_state:
     st.session_state.page = "login"
 
@@ -17,3 +16,4 @@ elif st.session_state.page == "register":
 elif st.session_state.page == "freight":
     from pages.freight_calculator import freight_page
     freight_page()
+
