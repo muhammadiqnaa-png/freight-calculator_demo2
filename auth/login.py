@@ -11,11 +11,11 @@ def login_page():
         if email == "admin@gmail.com" and password == "123456":
             st.session_state["user"] = email
             st.session_state.page = "freight"
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.error("Email atau password salah!")
 
     st.write("---")
     if st.button("Belum punya akun? Daftar di sini"):
         st.session_state.page = "register"
-        st.experimental_rerun()
+        st.rerun()
