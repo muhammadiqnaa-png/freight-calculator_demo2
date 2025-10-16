@@ -4,6 +4,7 @@ from utils.pdf_generator import generate_pdf
 
 def freight_page():
     st.title("🚢 Freight Calculator Barge")
+    st.write("Halaman freight calculator aktif!")
     if "user" not in st.session_state or not st.session_state["user"]:
         st.warning("Silakan login terlebih dahulu.")
         st.stop()
