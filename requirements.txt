@@ -1,5 +1,4 @@
 streamlit
-pyrebase4
 pandas
-requests
-fpdf2
+reportlab
+pyrebase4
