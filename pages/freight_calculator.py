@@ -10,6 +10,8 @@ def freight_page():
         st.stop()
 
     st.sidebar.header("⚙️ Parameter (Bisa Diedit)")
+
+    # Sidebar parameters
     speed_laden = st.sidebar.number_input("Speed Laden (knot)", 0.0)
     speed_ballast = st.sidebar.number_input("Speed Ballast (knot)", 0.0)
     consumption = st.sidebar.number_input("Consumption Fuel (liter/jam)", 0.0)
@@ -35,7 +37,8 @@ def freight_page():
     dist_pod_pol = st.sidebar.number_input("Distance POD - POL (NM)", 0.0)
 
     if st.button("Hitung Freight Cost"):
-        sailing_time = (dist_pol_pod / speed_laden if speed_laden else 0) + (dist_pod_pol / speed_ballast if speed_ballast else 0)
+        # Perhitungan
+        sailing_time = (dist_pol_pod / speed_laden) + (dist_pod_pol / speed_ballast) if speed_laden and speed_ballast else 0
         total_days = (sailing_time / 24) + (port_stay_pol + port_stay_pod)
         total_consumption = (sailing_time * consumption) + ((port_stay_pol + port_stay_pod) * 120)
 
@@ -51,14 +54,16 @@ def freight_page():
         total_cost = charter_cost + bunker_cost + crew_cost_total + port_cost + premi_cost + tug + insurance_cost + docking_cost + maintenance_cost + other_cost
         freight_cost = total_cost / qty_cargo if qty_cargo else 0
 
+        # Tabel Profit 0-50%
         profit_data = []
         for p in range(0, 55, 5):
             revenue = freight_cost * (1 + p / 100) * qty_cargo
             pph = revenue * 0.012
-            profit = revenue - pph
+            profit = revenue - total_cost - pph
             profit_data.append([f"{p}%", round(freight_cost * (1 + p / 100), 2), round(revenue, 2), round(pph, 2), round(profit, 2)])
 
         df = pd.DataFrame(profit_data, columns=["Profit %", "Freight (Rp/MT)", "Revenue (Rp)", "PPH 1.2%", "Profit (Rp)"])
+
         st.subheader("📊 Hasil Perhitungan")
         st.dataframe(df, use_container_width=True)
 
