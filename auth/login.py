@@ -1,6 +1,6 @@
 import streamlit as st
 import pyrebase
-from .firebase_config import firebase_config  # relative import
+from .firebase_config import firebase_config
 
 firebase = pyrebase.initialize_app(firebase_config)
 auth = firebase.auth()
