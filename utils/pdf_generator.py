@@ -1,34 +1,20 @@
+import pandas as pd
 from io import BytesIO
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Spacer
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
-def generate_pdf(df, username):
+def generate_pdf(df: pd.DataFrame, user: str):
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
-    styles = getSampleStyleSheet()
-    elements = []
+    c = canvas.Canvas(buffer, pagesize=letter)
+    text = c.beginText(40, 750)
+    text.setFont("Helvetica", 12)
+    text.textLine(f"Freight Calculation Report for {user}")
+    text.textLine("")
 
-    elements.append(Paragraph("🚢 Freight Calculator Barge", styles["Title"]))
-    elements.append(Spacer(1, 12))
-
-    # Table data
-    data = [df.columns.tolist()] + df.values.tolist()
-    table = Table(data)
-    table.setStyle(TableStyle([
-        ("BACKGROUND", (0,0), (-1,0), colors.grey),
-        ("TEXTCOLOR", (0,0), (-1,0), colors.whitesmoke),
-        ("ALIGN", (0,0), (-1,-1), "CENTER"),
-        ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
-        ("GRID", (0,0), (-1,-1), 0.5, colors.black),
-    ]))
-    elements.append(table)
-    elements.append(Spacer(1, 20))
-
-    footer = f"Generated Freight Calculator By {username}"
-    elements.append(Paragraph(footer, styles["Normal"]))
-
-    doc.build(elements)
+    for col in df.columns:
+        text.textLine(f"{col} : {', '.join(map(str, df[col].tolist()))}")
+    c.drawText(text)
+    c.showPage()
+    c.save()
     buffer.seek(0)
     return buffer
