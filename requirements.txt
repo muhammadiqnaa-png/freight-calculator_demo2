@@ -1,7 +1,5 @@
 streamlit
-fastapi
-uvicorn
+pyrebase4
 pandas
 requests
-firebase-admin
-fpdf
+fpdf2
