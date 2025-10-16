@@ -1,7 +1,7 @@
 import streamlit as st
 import math
 from fpdf import FPDF
-import pyrebase
+import pyrebase4 as pyrebase
 
 # ===========================
 # KONFIGURASI FIREBASE
@@ -207,3 +207,4 @@ else:
         register_page()
     else:
         login_page()
+
