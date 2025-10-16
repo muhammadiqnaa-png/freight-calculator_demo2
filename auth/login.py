@@ -1,31 +1,25 @@
 import streamlit as st
-import pyrebase
-from .firebase_config import firebase_config
+from auth.firebase_config import auth
+from requests.exceptions import HTTPError
 
-firebase = pyrebase.initialize_app(firebase_config)
-auth = firebase.auth()
-
-def login_page():
-    st.title("🔑 Login")
+def login():
+    st.title("🔐 Login Freight Calculator")
 
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Login"):
-            if email and password:
-                try:
-                    user = auth.sign_in_with_email_and_password(email, password)
-                    st.session_state["user"] = email
-                    st.session_state.page = "freight"
-                    st.success(f"Login sukses: {email}")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Login gagal: {e}")
-            else:
-                st.warning("Isi email dan password")
-    with col2:
-        if st.button("Register"):
-            st.session_state.page = "register"
-            st.rerun()
+    if st.button("Login"):
+        try:
+            user = auth.sign_in_with_email_and_password(email, password)
+            st.session_state["user"] = user
+            st.success("Login berhasil ✅")
+            st.switch_page("pages/freight_calculator.py")
+        except HTTPError as e:
+            error_json = e.response.json()
+            error_message = error_json["error"]["message"]
+            st.error(f"Gagal login: {error_message}")
+
+    st.write("---")
+    st.write("Belum punya akun?")
+    if st.button("Daftar disini"):
+        st.switch_page("auth/register.py")
