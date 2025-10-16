@@ -15,9 +15,9 @@ def register_page():
         else:
             st.success("Akun berhasil dibuat! Silakan login.")
             st.session_state.page = "login"
-            st.experimental_rerun()
+            st.rerun()
 
     st.write("---")
     if st.button("Sudah punya akun? Login di sini"):
         st.session_state.page = "login"
-        st.experimental_rerun()
+        st.rerun()
