@@ -4,3 +4,4 @@ uvicorn
 pandas
 requests
 firebase-admin
+fpdf
