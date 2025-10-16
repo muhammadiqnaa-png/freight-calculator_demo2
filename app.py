@@ -16,4 +16,3 @@ elif st.session_state.page == "register":
 elif st.session_state.page == "freight":
     from pages.freight_calculator import freight_page
     freight_page()
-
