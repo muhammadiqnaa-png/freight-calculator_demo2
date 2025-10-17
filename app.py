@@ -11,42 +11,42 @@ st.set_page_config(page_title="Freight Calculator Barge", layout="wide")
 
 # ===== SIDEBAR =====
 st.sidebar.title("⚙️ Parameter (Bisa Diedit)")
-
 mode = st.sidebar.selectbox("Select Mode", ["Owner", "Charter"])
 
 # ===== COMMON PARAMETERS =====
-speed_laden = st.sidebar.number_input("Speed Laden (knot)", 0.0)
-speed_ballast = st.sidebar.number_input("Speed Ballast (knot)", 0.0)
-consumption = st.sidebar.number_input("Consumption Fuel (liter/jam)", 0)
-price_bunker = st.sidebar.number_input("Price Bunker (Rp/liter)", 0)
-premi_nm = st.sidebar.number_input("Premi (Rp/NM)", 0)
-port_cost_pol = st.sidebar.number_input("Port Cost POL (Rp)", 0)
-port_cost_pod = st.sidebar.number_input("Port Cost POD (Rp)", 0)
-asist_tug = st.sidebar.number_input("Asist Tug (Rp)", 0)
-other_cost = st.sidebar.number_input("Other Cost (Rp)", 0)
+with st.sidebar.expander("Common Parameters", expanded=True):
+    speed_laden = st.number_input("Speed Laden (knot)", 0.0)
+    speed_ballast = st.number_input("Speed Ballast (knot)", 0.0)
+    consumption = st.number_input("Consumption Fuel (liter/jam)", 0)
+    price_bunker = st.number_input("Price Bunker (Rp/liter)", 0)
+    premi_nm = st.number_input("Premi (Rp/NM)", 0)
+    port_cost_pol = st.number_input("Port Cost POL (Rp)", 0)
+    port_cost_pod = st.number_input("Port Cost POD (Rp)", 0)
+    asist_tug = st.number_input("Asist Tug (Rp)", 0)
+    other_cost = st.number_input("Other Cost (Rp)", 0)
 
 # ===== MODE SPECIFIC PARAMETERS =====
 if mode == "Owner":
-    angsuran = st.sidebar.number_input("Angsuran/Month (Rp)", 0)
-    crew = st.sidebar.number_input("Crew cost/Month (Rp)", 0)
-    insurance = st.sidebar.number_input("Insurance/Month (Rp)", 0)
-    docking = st.sidebar.number_input("Docking - Saving/Month (Rp)", 0)
-    maintenance = st.sidebar.number_input("Maintenance/Month (Rp)", 0)
-    port_stay_pol = st.sidebar.number_input("Port Stay POL (Hari)", 0)
-    port_stay_pod = st.sidebar.number_input("Port Stay POD (Hari)", 0)
-    port_stay_fuel = st.sidebar.number_input("Fuel Consumption during Port Stay (liter/jam)", 120)
+    with st.sidebar.expander("Owner Specific", expanded=False):
+        angsuran = st.number_input("Angsuran/Month (Rp)", 0)
+        crew = st.number_input("Crew cost/Month (Rp)", 0)
+        insurance = st.number_input("Insurance/Month (Rp)", 0)
+        docking = st.number_input("Docking - Saving/Month (Rp)", 0)
+        maintenance = st.number_input("Maintenance/Month (Rp)", 0)
+        port_stay_pol = st.number_input("Port Stay POL (Hari)", 0)
+        port_stay_pod = st.number_input("Port Stay POD (Hari)", 0)
+        port_stay_fuel = st.number_input("Fuel Consumption during Port Stay (liter/jam)", 120)
 else:
-    charter_hire = st.sidebar.number_input("Charter Hire (Rp)", 0)
+    with st.sidebar.expander("Charter Specific", expanded=False):
+        charter_hire = st.number_input("Charter Hire (Rp)", 0)
 
 # ===== MAIN PAGE INPUT =====
 st.title("🚢 Freight Calculator Barge")
 
 type_cargo = st.selectbox("Type Cargo", ["Pasir (M3)", "Split (MT)", "Coal (MT)", "Nickel (MT)"])
 qyt_cargo = st.number_input("QYT Cargo", 0.0)
-
 pol_name = st.text_input("Port Of Loading", "POL")
 pod_name = st.text_input("Port Of Discharge", "POD")
-
 distance_pol_pod = st.number_input("Distance POL - POD (NM)", 0.0)
 distance_pod_pol = st.number_input("Distance POD - POL (NM)", 0.0)
 
@@ -103,7 +103,7 @@ if st.button("Hitung Freight Cost"):
         st.write(f"**Total Cost (Rp)**: {total_cost:,.2f}")
         st.write(f"**Freight Cost (Rp/{type_cargo.split()[1]})**: {freight_cost_per_unit:,.2f}")
 
-        # ===== TABEL PROFIT =====
+        # ===== PROFIT TABLE =====
         data = []
         for p in range(0, 55, 5):
             freight_with_profit = freight_cost_per_unit * (1 + p / 100)
