@@ -15,22 +15,18 @@ firebase = pyrebase.initialize_app(firebaseConfig)
 auth = firebase.auth()
 
 def login_page():
-    st.title("🔐 Login Freight Calculator Barge")
+    st.title("🔐 Login Freight Calculator")
 
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")
-    login_btn = st.button("Login")
 
-    if login_btn:
+    if st.button("Login"):
         try:
             user = auth.sign_in_with_email_and_password(email, password)
-            st.session_state.logged_in = True
-            st.session_state.user = email.split("@")[0]  # ambil nama depan dari email
-            st.rerun()
+            st.session_state["user"] = email
+            st.success("Login berhasil!")
+            st.switch_page("pages/freight_calculator.py")
         except Exception as e:
-            st.error("Login gagal! Periksa email/password kamu.")
+            st.error(f"Gagal login: {e}")
 
-    st.markdown("---")
-    if st.button("Belum punya akun? Daftar di sini"):
-        st.session_state.show_register = True
-        st.rerun()
+    st.write("Belum punya akun? [Daftar di sini](register.py)")
