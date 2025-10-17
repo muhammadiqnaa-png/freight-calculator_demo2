@@ -1,5 +1,5 @@
 streamlit
-pyrebase4
+pyrebase4==4.7.1
 requests
 reportlab
 pandas
