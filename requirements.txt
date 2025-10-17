@@ -1,4 +1,4 @@
-streamlit==1.39.0
+streamlit
+pyrebase4
 pandas
-reportlab
 requests
