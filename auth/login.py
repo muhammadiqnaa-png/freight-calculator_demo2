@@ -1,21 +1,36 @@
 import streamlit as st
+import pyrebase
+
+firebaseConfig = {
+    "apiKey": "XXX",
+    "authDomain": "freight-demo2.firebaseapp.com",
+    "projectId": "freight-demo2",
+    "storageBucket": "freight-demo2.appspot.com",
+    "messagingSenderId": "199645170835",
+    "appId": "XXX",
+    "databaseURL": ""
+}
+
+firebase = pyrebase.initialize_app(firebaseConfig)
+auth = firebase.auth()
 
 def login_page():
-    st.title("🔐 Login Freight Calculator")
+    st.title("🔐 Login Freight Calculator Barge")
 
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")
+    login_btn = st.button("Login")
 
-    if st.button("Login"):
-        # sementara login dummy
-        if email == "admin@gmail.com" and password == "123456":
-            st.session_state["user"] = email
-            st.session_state.page = "freight"
+    if login_btn:
+        try:
+            user = auth.sign_in_with_email_and_password(email, password)
+            st.session_state.logged_in = True
+            st.session_state.user = email.split("@")[0]  # ambil nama depan dari email
             st.rerun()
-        else:
-            st.error("Email atau password salah!")
+        except Exception as e:
+            st.error("Login gagal! Periksa email/password kamu.")
 
-    st.write("---")
+    st.markdown("---")
     if st.button("Belum punya akun? Daftar di sini"):
-        st.session_state.page = "register"
+        st.session_state.show_register = True
         st.rerun()
