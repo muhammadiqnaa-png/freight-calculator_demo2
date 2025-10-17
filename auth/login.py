@@ -1,18 +1,22 @@
-# auth/firebase_auth.py
-import requests
 import streamlit as st
+from auth.firebase_config import auth
+from utils.footer import show_footer
 
-API_KEY = st.secrets.get("firebase_api_key")  # dari secrets.toml
+def login_page():
+    st.title("🔐 Login")
 
-FIREBASE_SIGNUP = f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={API_KEY}"
-FIREBASE_SIGNIN = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={API_KEY}"
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
 
-def firebase_register(email: str, password: str):
-    payload = {"email": email, "password": password, "returnSecureToken": True}
-    r = requests.post(FIREBASE_SIGNUP, json=payload, timeout=10)
-    return r
+    if st.button("Login"):
+        try:
+            user = auth.sign_in_with_email_and_password(email, password)
+            st.session_state["user"] = user
+            st.session_state["email"] = email
+            st.success("Login berhasil ✅")
+            st.rerun()
+        except Exception as e:
+            st.error("Email atau password salah!")
 
-def firebase_login(email: str, password: str):
-    payload = {"email": email, "password": password, "returnSecureToken": True}
-    r = requests.post(FIREBASE_SIGNIN, json=payload, timeout=10)
-    return r
+    st.markdown("Belum punya akun? [Daftar di sini](#)")
+    show_footer(st.session_state.get("email"))
