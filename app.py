@@ -1,22 +1,21 @@
+import sys, os
 import streamlit as st
+
+# Pastikan folder bisa diakses
+sys.path.append(os.path.dirname(__file__))
+
 from auth.login import login_page
-from auth.register import register_page
 from pages.freight_calculator import freight_page
 
-st.set_page_config(page_title="Freight Calculator", layout="centered")
+st.set_page_config(page_title="Freight Calculator Barge", layout="wide")
 
-if "user" not in st.session_state:
-    if "page" not in st.session_state:
-        st.session_state["page"] = "login"
+# Simpan session login
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "user_email" not in st.session_state:
+    st.session_state.user_email = ""
 
-    if st.session_state["page"] == "login":
-        login_page()
-        st.markdown(
-            '<a href="#" onclick="window.location.reload()">Daftar Akun</a>',
-            unsafe_allow_html=True
-        )
-    elif st.session_state["page"] == "register":
-        register_page()
-
+if not st.session_state.logged_in:
+    login_page()
 else:
     freight_page()
