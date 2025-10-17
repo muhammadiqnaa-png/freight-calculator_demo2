@@ -2,3 +2,4 @@ streamlit
 pandas
 reportlab
 pyrebase4
+firebase_admin
