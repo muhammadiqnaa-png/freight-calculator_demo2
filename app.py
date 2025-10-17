@@ -80,3 +80,4 @@ if st.button("Hitung"):
 
     pdf_file = generate_pdf(results)
     st.download_button("Download PDF", pdf_file, file_name="freight_result.pdf")
+
