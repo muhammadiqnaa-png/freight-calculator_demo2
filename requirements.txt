@@ -1,5 +1,5 @@
 streamlit
-pyrebase4
+firebase-admin
 requests
 pandas
 reportlab
