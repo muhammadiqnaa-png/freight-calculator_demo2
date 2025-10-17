@@ -3,21 +3,20 @@ from auth.login import login_page
 from auth.register import register_page
 from pages.freight_calculator import freight_page
 
-st.set_page_config(page_title="Freight Calculator Barge", layout="wide")
+st.set_page_config(page_title="Freight Calculator", layout="centered")
 
-# Session default
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
 if "user" not in st.session_state:
-    st.session_state.user = ""
-if "show_register" not in st.session_state:
-    st.session_state.show_register = False
+    if "page" not in st.session_state:
+        st.session_state["page"] = "login"
 
-# Routing manual
-if not st.session_state.logged_in:
-    if st.session_state.show_register:
-        register_page()
-    else:
+    if st.session_state["page"] == "login":
         login_page()
+        st.markdown(
+            '<a href="#" onclick="window.location.reload()">Daftar Akun</a>',
+            unsafe_allow_html=True
+        )
+    elif st.session_state["page"] == "register":
+        register_page()
+
 else:
     freight_page()
