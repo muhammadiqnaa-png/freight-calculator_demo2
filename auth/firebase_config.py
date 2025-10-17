@@ -1,6 +1,6 @@
 import pyrebase
 
-firebase_config = {
+firebaseConfig = {
     "apiKey": "AIzaSyDRxbw6-kJQsXXXr0vpnlDqhaUWKOjmQIU",
     "authDomain": "freight-demo2.firebaseapp.com",
     "projectId": "freight-demo2",
@@ -10,5 +10,5 @@ firebase_config = {
     "databaseURL": ""
 }
 
-firebase = pyrebase.initialize_app(firebase_config)
+firebase = pyrebase.initialize_app(firebaseConfig)
 auth = firebase.auth()
