@@ -13,32 +13,39 @@ st.set_page_config(page_title="Freight Calculator Barge", layout="wide")
 st.sidebar.title("⚙️ Parameter (Bisa Diedit)")
 mode = st.sidebar.selectbox("Select Mode", ["Owner", "Charter"])
 
-# ===== COMMON PARAMETERS =====
-with st.sidebar.expander("Common Parameters", expanded=True):
-    speed_laden = st.number_input("Speed Laden (knot)", 0.0)
-    speed_ballast = st.number_input("Speed Ballast (knot)", 0.0)
-    consumption = st.number_input("Consumption Fuel (liter/jam)", 0)
-    price_bunker = st.number_input("Price Bunker (Rp/liter)", 0)
-    premi_nm = st.number_input("Premi (Rp/NM)", 0)
-    port_cost_pol = st.number_input("Port Cost POL (Rp)", 0)
-    port_cost_pod = st.number_input("Port Cost POD (Rp)", 0)
-    asist_tug = st.number_input("Asist Tug (Rp)", 0)
-    other_cost = st.number_input("Other Cost (Rp)", 0)
-
-# ===== MODE SPECIFIC PARAMETERS =====
+# ===== PARAMETERS BASED ON MODE =====
 if mode == "Owner":
-    with st.sidebar.expander("Owner Specific", expanded=False):
-        angsuran = st.number_input("Angsuran/Month (Rp)", 0)
-        crew = st.number_input("Crew cost/Month (Rp)", 0)
-        insurance = st.number_input("Insurance/Month (Rp)", 0)
-        docking = st.number_input("Docking - Saving/Month (Rp)", 0)
-        maintenance = st.number_input("Maintenance/Month (Rp)", 0)
-        port_stay_pol = st.number_input("Port Stay POL (Hari)", 0)
-        port_stay_pod = st.number_input("Port Stay POD (Hari)", 0)
-        port_stay_fuel = st.number_input("Fuel Consumption during Port Stay (liter/jam)", 120)
-else:
-    with st.sidebar.expander("Charter Specific", expanded=False):
-        charter_hire = st.number_input("Charter Hire (Rp)", 0)
+    speed_laden = st.sidebar.number_input("Speed Laden (knot)", 0.0)
+    speed_ballast = st.sidebar.number_input("Speed Ballast (knot)", 0.0)
+    consumption = st.sidebar.number_input("Consumption Fuel (liter)", 0)
+    price_bunker = st.sidebar.number_input("Price Bunker (Rp/liter)", 0)
+    charter = st.sidebar.number_input("Charter hire/Month (Rp)", 0)
+    premi_nm = st.sidebar.number_input("Premi (NM)", 0)
+
+    crew = st.sidebar.number_input("Crew cost/Month (Rp)", 0)
+    insurance = st.sidebar.number_input("Insurance/Month (Rp)", 0)
+    docking = st.sidebar.number_input("Docking-Saving/Month (Rp)", 0)
+    maintenance = st.sidebar.number_input("Maintenance/Month (Rp)", 0)
+    port_cost_pol = st.sidebar.number_input("Port Cost POL (Rp)", 0)
+    port_cost_pod = st.sidebar.number_input("Port Cost POD (Rp)", 0)
+    asist_tug = st.sidebar.number_input("Asist Tug (Rp)", 0)
+
+    other_cost = st.sidebar.number_input("Other Cost (Rp)", 0)
+    port_stay_pol = st.sidebar.number_input("Port Stay POL (Day)", 0)
+    port_stay_pod = st.sidebar.number_input("Port Stay POD (Day)", 0)
+
+elif mode == "Charter":
+    speed_laden = st.sidebar.number_input("Speed Laden (knot)", 0.0)
+    speed_ballast = st.sidebar.number_input("Speed Ballast (knot)", 0.0)
+    consumption = st.sidebar.number_input("Consumption Fuel (liter)", 0)
+    price_bunker = st.sidebar.number_input("Price Bunker (Rp/liter)", 0)
+    charter = st.sidebar.number_input("Charter hire/Month (Rp)", 0)
+    premi_nm = st.sidebar.number_input("Premi (NM)", 0)
+
+    port_cost_pol = st.sidebar.number_input("Port Cost POL (Rp)", 0)
+    port_cost_pod = st.sidebar.number_input("Port Cost POD (Rp)", 0)
+    asist_tug = st.sidebar.number_input("Asist Tug (Rp)", 0)
+    other_cost = st.sidebar.number_input("Other Cost (Rp)", 0)
 
 # ===== MAIN PAGE INPUT =====
 st.title("🚢 Freight Calculator Barge")
@@ -66,9 +73,9 @@ if st.button("Hitung Freight Cost"):
 
         if mode == "Owner":
             total_voyage_days = (sailing_time / 24) + (port_stay_pol + port_stay_pod)
-            total_consumption = (sailing_time * consumption) + ((port_stay_pol + port_stay_pod) * port_stay_fuel)
+            total_consumption = (sailing_time * consumption) + ((port_stay_pol + port_stay_pod) * 120)
 
-            angsuran_cost = (angsuran / 30) * total_voyage_days
+            charter_cost = (charter / 30) * total_voyage_days
             bunker_cost = total_consumption * price_bunker
             port_cost = port_cost_pol + port_cost_pod
             premi_cost = distance_pol_pod * premi_nm
@@ -78,16 +85,16 @@ if st.button("Hitung Freight Cost"):
             maintenance_cost = (maintenance / 30) * total_voyage_days
 
             total_cost = (
-                angsuran_cost + bunker_cost + port_cost + premi_cost + crew_cost +
+                charter_cost + bunker_cost + port_cost + premi_cost + crew_cost +
                 asist_tug + insurance_cost + docking_cost + maintenance_cost + other_cost
             )
-        else:
+        else:  # Charter
             total_consumption = sailing_time * consumption
             bunker_cost = total_consumption * price_bunker
             port_cost = port_cost_pol + port_cost_pod
             premi_cost = distance_pol_pod * premi_nm
 
-            total_cost = charter_hire + bunker_cost + port_cost + premi_cost + asist_tug + other_cost
+            total_cost = charter + bunker_cost + port_cost + premi_cost + asist_tug + other_cost
 
         freight_cost_per_unit = total_cost / qyt_cargo
 
@@ -131,28 +138,38 @@ if st.button("Hitung Freight Cost"):
 
             # Parameter Table
             elements.append(Paragraph("<b>Parameter Input</b>", styles['Heading3']))
-            params = [
-                ["Speed Laden", f"{speed_laden} knot"],
-                ["Speed Ballast", f"{speed_ballast} knot"],
-                ["Consumption", f"{consumption} L/h"],
-                ["Price Bunker", f"Rp {price_bunker:,.0f}"],
-                ["Distance POL-POD", f"{distance_pol_pod} NM"],
-                ["Distance POD-POL", f"{distance_pod_pol} NM"],
-                ["QYT Cargo", f"{qyt_cargo} {type_cargo.split()[1]}"]
-            ]
             if mode == "Owner":
-                params += [
-                    ["Angsuran", f"Rp {angsuran:,.0f}"],
-                    ["Crew Cost", f"Rp {crew:,.0f}"],
-                    ["Insurance", f"Rp {insurance:,.0f}"],
-                    ["Docking", f"Rp {docking:,.0f}"],
-                    ["Maintenance", f"Rp {maintenance:,.0f}"],
-                    ["Port Stay POL (Hari)", f"{port_stay_pol}"],
-                    ["Port Stay POD (Hari)", f"{port_stay_pod}"],
-                    ["Fuel Port Stay", f"{port_stay_fuel} L/h"]
+                params = [
+                    ["Speed Laden", f"{speed_laden} knot"],
+                    ["Speed Ballast", f"{speed_ballast} knot"],
+                    ["Consumption Fuel", f"{consumption} L"],
+                    ["Price Bunker", f"Rp {price_bunker:,.0f}"],
+                    ["Charter hire/Month", f"Rp {charter:,.0f}"],
+                    ["Premi (NM)", f"Rp {premi_nm:,.0f}"],
+                    ["Crew cost/Month", f"Rp {crew:,.0f}"],
+                    ["Insurance/Month", f"Rp {insurance:,.0f}"],
+                    ["Docking-Saving/Month", f"Rp {docking:,.0f}"],
+                    ["Maintenance/Month", f"Rp {maintenance:,.0f}"],
+                    ["Port Cost POL", f"Rp {port_cost_pol:,.0f}"],
+                    ["Port Cost POD", f"Rp {port_cost_pod:,.0f}"],
+                    ["Asist Tug", f"Rp {asist_tug:,.0f}"],
+                    ["Other Cost", f"Rp {other_cost:,.0f}"],
+                    ["Port Stay POL (Day)", f"{port_stay_pol}"],
+                    ["Port Stay POD (Day)", f"{port_stay_pod}"]
                 ]
-            else:
-                params += [["Charter Hire", f"Rp {charter_hire:,.0f}"]]
+            else:  # Charter
+                params = [
+                    ["Speed Laden", f"{speed_laden} knot"],
+                    ["Speed Ballast", f"{speed_ballast} knot"],
+                    ["Consumption Fuel", f"{consumption} L"],
+                    ["Price Bunker", f"Rp {price_bunker:,.0f}"],
+                    ["Charter hire/Month", f"Rp {charter:,.0f}"],
+                    ["Premi (NM)", f"Rp {premi_nm:,.0f}"],
+                    ["Port Cost POL", f"Rp {port_cost_pol:,.0f}"],
+                    ["Port Cost POD", f"Rp {port_cost_pod:,.0f}"],
+                    ["Asist Tug", f"Rp {asist_tug:,.0f}"],
+                    ["Other Cost", f"Rp {other_cost:,.0f}"]
+                ]
 
             t = Table(params, hAlign='LEFT')
             t.setStyle(TableStyle([("GRID", (0,0), (-1,-1), 0.25, colors.grey)]))
@@ -182,20 +199,3 @@ if st.button("Hitung Freight Cost"):
                 ("BACKGROUND", (0,0), (-1,0), colors.lightgrey)
             ]))
             elements.append(t3)
-            elements.append(Spacer(1, 18))
-
-            elements.append(Paragraph("<i>Generated By Freight Calculator APP Iqna</i>", styles['Normal']))
-            doc.build(elements)
-            buffer.seek(0)
-            return buffer
-
-        pdf_buffer = create_pdf()
-        st.download_button(
-            label="📥 Download PDF Hasil",
-            data=pdf_buffer,
-            file_name="Freight_Calculator_Barge.pdf",
-            mime="application/pdf"
-        )
-
-    except Exception as e:
-        st.error(f"Terjadi kesalahan: {e}")
