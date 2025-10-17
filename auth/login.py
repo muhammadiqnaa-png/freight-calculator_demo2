@@ -1,32 +1,18 @@
+# auth/firebase_auth.py
+import requests
 import streamlit as st
-import pyrebase4 as pyrebase
 
-firebaseConfig = {
-    "apiKey": "AIzaSyDRxbw6-kJQsXXXr0vpnlDqhaUWKOjmQIU",
-    "authDomain": "freight-demo2.firebaseapp.com",
-    "projectId": "freight-demo2",
-    "storageBucket": "freight-demo2.appspot.com",
-    "messagingSenderId": "199645170835",
-    "appId": "1:199645170835:web:efa8ff8d5b85416eb71166",
-    "databaseURL": ""
-}
+API_KEY = st.secrets.get("firebase_api_key")  # dari secrets.toml
 
-firebase = pyrebase.initialize_app(firebaseConfig)
-auth = firebase.auth()
+FIREBASE_SIGNUP = f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={API_KEY}"
+FIREBASE_SIGNIN = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={API_KEY}"
 
-def login_page():
-    st.title("🔐 Login Freight Calculator")
+def firebase_register(email: str, password: str):
+    payload = {"email": email, "password": password, "returnSecureToken": True}
+    r = requests.post(FIREBASE_SIGNUP, json=payload, timeout=10)
+    return r
 
-    email = st.text_input("Email")
-    password = st.text_input("Password", type="password")
-
-    if st.button("Login"):
-        try:
-            user = auth.sign_in_with_email_and_password(email, password)
-            st.session_state["user"] = email
-            st.success("Login berhasil!")
-            st.switch_page("pages/freight_calculator.py")
-        except Exception as e:
-            st.error(f"Gagal login: {e}")
-
-    st.write("Belum punya akun? [Daftar di sini](register.py)")
+def firebase_login(email: str, password: str):
+    payload = {"email": email, "password": password, "returnSecureToken": True}
+    r = requests.post(FIREBASE_SIGNIN, json=payload, timeout=10)
+    return r
