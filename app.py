@@ -1,25 +1,25 @@
 import streamlit as st
+import pandas as pd
 from auth.login import login_page
 from auth.register import register_page
 from calculations.freight_calc import calculate_freight
 from utils.pdf_generator import generate_pdf
-import pandas as pd
 
-st.set_page_config(page_title="Freight Calculator Barge")
+st.set_page_config(page_title="Freight Calculator Barge", layout="wide")
 
-# Auth
-auth_choice = st.sidebar.selectbox("Login/Register", ["Login","Register"])
-if auth_choice=="Register":
+# --- Auth ---
+auth_choice = st.sidebar.selectbox("Login/Register", ["Login", "Register"])
+if auth_choice == "Register":
     register_page()
 else:
     logged_in = login_page()
     if not logged_in:
         st.stop()
 
-# Mode Owner / Charter
-mode = st.radio("Mode", ["Owner","Charter"])
+# --- Mode ---
+mode = st.radio("Mode", ["Owner", "Charter"])
 
-# Input Utama
+# --- Input Utama ---
 st.header("Input Utama")
 port_pol = st.text_input("Port Of Loading")
 port_pod = st.text_input("Port Of Discharge")
@@ -28,7 +28,7 @@ qty_cargo = st.number_input("QTY Cargo", value=0.0)
 distance_pol_pod = st.number_input("Distance POL - POD (NM)", value=0.0)
 distance_pod_pol = st.number_input("Distance POD - POL (NM)", value=0.0)
 
-# Sidebar Parameter
+# --- Sidebar Parameter ---
 st.sidebar.header("Parameter")
 speed_laden = st.sidebar.number_input("Speed Laden (knot)", value=0.0)
 speed_ballast = st.sidebar.number_input("Speed Ballast (knot)", value=0.0)
@@ -69,6 +69,7 @@ params = {
     "distance_pod_pol": distance_pod_pol
 }
 
+# --- Hitung & Tampilkan ---
 if st.button("Hitung"):
     results = calculate_freight(params, mode=mode)
     st.success(f"Total Cost: Rp {results['total_cost']:.2f}")
@@ -80,4 +81,3 @@ if st.button("Hitung"):
 
     pdf_file = generate_pdf(results)
     st.download_button("Download PDF", pdf_file, file_name="freight_result.pdf")
-
