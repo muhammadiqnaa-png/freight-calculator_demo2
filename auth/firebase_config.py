@@ -1,14 +1,21 @@
-import pyrebase4 as pyrebase
+import firebase_admin
+from firebase_admin import credentials, auth
 
-firebaseConfig = {
-    "apiKey": "AIzaSyDRxbw6-kJQsXXXr0vpnlDqhaUWKOjmQIU", 
-    "authDomain": "freight-demo2.firebaseapp.com",
-    "projectId": "freight-demo2",
-    "storageBucket": "freight-demo2.appspot.com",
-    "messagingSenderId": "199645170835",
-    "appId": "1:199645170835:web:efa8ff8d5b85416eb71166", 
-    "databaseURL": ""
-}
+# Gunakan file kredensial Firebase (service account)
+# atau langsung dari secrets.toml biar aman
+import streamlit as st
 
-firebase = pyrebase.initialize_app(firebaseConfig)
-auth = firebase.auth()
+if not firebase_admin._apps:
+    cred = credentials.Certificate({
+        "type": "service_account",
+        "project_id": "freight-demo2",
+        "private_key_id": st.secrets["firebase"]["private_key_id"],
+        "private_key": st.secrets["firebase"]["private_key"].replace('\\n', '\n'),
+        "client_email": st.secrets["firebase"]["client_email"],
+        "client_id": st.secrets["firebase"]["client_id"],
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        "client_x509_cert_url": st.secrets["firebase"]["client_x509_cert_url"]
+    })
+    firebase_admin.initialize_app(cred)
