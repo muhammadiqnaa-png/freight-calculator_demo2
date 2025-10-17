@@ -1,4 +1,5 @@
 streamlit
 pyrebase4
+firebase_admin
 pandas
 requests
