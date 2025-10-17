@@ -1,21 +1,9 @@
 import streamlit as st
-import pyrebase4 as pyrebase
-
-firebaseConfig = {
-    "apiKey": "AIzaSyDRxbw6-kJQsXXXr0vpnlDqhaUWKOjmQIU",
-    "authDomain": "freight-demo2.firebaseapp.com",
-    "projectId": "freight-demo2",
-    "storageBucket": "freight-demo2.appspot.com",
-    "messagingSenderId": "199645170835",
-    "appId": "1:199645170835:web:efa8ff8d5b85416eb71166",
-    "databaseURL": ""
-}
-
-firebase = pyrebase.initialize_app(firebaseConfig)
-auth = firebase.auth()
+from auth.firebase_config import auth
+from utils.footer import show_footer
 
 def register_page():
-    st.title("📝 Daftar Akun Freight Calculator")
+    st.title("📝 Daftar Akun")
 
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")
@@ -23,18 +11,15 @@ def register_page():
 
     if st.button("Daftar"):
         if password != confirm:
-            st.warning("Password tidak cocok!")
-        elif len(password) < 6:
-            st.warning("Password minimal 6 karakter.")
+            st.error("Password tidak cocok!")
         else:
             try:
-                auth.create_user_with_email_and_password(email, password)
-                st.success("Akun berhasil dibuat! Silakan login.")
-                st.session_state.show_register = False
+                user = auth.create_user_with_email_and_password(email, password)
+                st.success("Akun berhasil dibuat ✅ Silakan login.")
+                st.session_state["page"] = "login"
                 st.rerun()
-            except Exception as e:
-                st.error("Gagal registrasi. Mungkin email sudah terdaftar.")
+            except Exception:
+                st.error("Gagal membuat akun. Mungkin email sudah digunakan.")
 
-    if st.button("Kembali ke Login"):
-        st.session_state.show_register = False
-        st.rerun()
+    st.markdown("Sudah punya akun? [Login di sini](#)")
+    show_footer(None)
