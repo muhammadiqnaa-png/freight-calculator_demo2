@@ -6,12 +6,13 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 
+# ===== PAGE CONFIG =====
 st.set_page_config(page_title="Freight Calculator Barge", layout="wide")
 
-# ===== MODE SELECTION =====
-mode = st.sidebar.selectbox("Select Mode", ["Owner", "Charter"])
-
+# ===== SIDEBAR =====
 st.sidebar.title("⚙️ Parameter (Bisa Diedit)")
+
+mode = st.sidebar.selectbox("Select Mode", ["Owner", "Charter"])
 
 # ===== COMMON PARAMETERS =====
 speed_laden = st.sidebar.number_input("Speed Laden (knot)", 0.0)
@@ -24,7 +25,7 @@ port_cost_pod = st.sidebar.number_input("Port Cost POD (Rp)", 0)
 asist_tug = st.sidebar.number_input("Asist Tug (Rp)", 0)
 other_cost = st.sidebar.number_input("Other Cost (Rp)", 0)
 
-# ===== MODE SPECIFIC =====
+# ===== MODE SPECIFIC PARAMETERS =====
 if mode == "Owner":
     angsuran = st.sidebar.number_input("Angsuran/Month (Rp)", 0)
     crew = st.sidebar.number_input("Crew cost/Month (Rp)", 0)
@@ -34,16 +35,15 @@ if mode == "Owner":
     port_stay_pol = st.sidebar.number_input("Port Stay POL (Hari)", 0)
     port_stay_pod = st.sidebar.number_input("Port Stay POD (Hari)", 0)
     port_stay_fuel = st.sidebar.number_input("Fuel Consumption during Port Stay (liter/jam)", 120)
-else:  # Charter
+else:
     charter_hire = st.sidebar.number_input("Charter Hire (Rp)", 0)
 
-# ===== INPUT UTAMA =====
+# ===== MAIN PAGE INPUT =====
 st.title("🚢 Freight Calculator Barge")
 
 type_cargo = st.selectbox("Type Cargo", ["Pasir (M3)", "Split (MT)", "Coal (MT)", "Nickel (MT)"])
 qyt_cargo = st.number_input("QYT Cargo", 0.0)
 
-# Port of Loading / Discharge
 pol_name = st.text_input("Port Of Loading", "POL")
 pod_name = st.text_input("Port Of Discharge", "POD")
 
@@ -53,6 +53,7 @@ distance_pod_pol = st.number_input("Distance POD - POL (NM)", 0.0)
 # ===== HITUNG =====
 if st.button("Hitung Freight Cost"):
 
+    # VALIDASI INPUT
     if speed_laden <= 0 or speed_ballast <= 0:
         st.error("⚠️ Speed tidak boleh 0 atau negatif")
         st.stop()
@@ -61,7 +62,6 @@ if st.button("Hitung Freight Cost"):
         st.stop()
 
     try:
-        # Sailing time
         sailing_time = (distance_pol_pod / speed_laden) + (distance_pod_pol / speed_ballast)
 
         if mode == "Owner":
@@ -81,7 +81,7 @@ if st.button("Hitung Freight Cost"):
                 angsuran_cost + bunker_cost + port_cost + premi_cost + crew_cost +
                 asist_tug + insurance_cost + docking_cost + maintenance_cost + other_cost
             )
-        else:  # Charter
+        else:
             total_consumption = sailing_time * consumption
             bunker_cost = total_consumption * price_bunker
             port_cost = port_cost_pol + port_cost_pod
@@ -91,7 +91,7 @@ if st.button("Hitung Freight Cost"):
 
         freight_cost_per_unit = total_cost / qyt_cargo
 
-        # ===== TAMPILKAN =====
+        # ===== TAMPILKAN HASIL =====
         st.subheader("📋 Hasil Perhitungan")
         st.write(f"**Mode**: {mode}")
         st.write(f"**Port Loading**: {pol_name}")
@@ -103,7 +103,7 @@ if st.button("Hitung Freight Cost"):
         st.write(f"**Total Cost (Rp)**: {total_cost:,.2f}")
         st.write(f"**Freight Cost (Rp/{type_cargo.split()[1]})**: {freight_cost_per_unit:,.2f}")
 
-        # ===== PROFIT TABLE =====
+        # ===== TABEL PROFIT =====
         data = []
         for p in range(0, 55, 5):
             freight_with_profit = freight_cost_per_unit * (1 + p / 100)
@@ -124,7 +124,6 @@ if st.button("Hitung Freight Cost"):
 
             elements.append(Paragraph("<b>Freight Calculator Barge</b>", styles['Title']))
             elements.append(Spacer(1, 12))
-
             elements.append(Paragraph(f"<b>Mode: {mode}</b>", styles['Heading2']))
             elements.append(Paragraph(f"<b>Port Loading:</b> {pol_name}", styles['Normal']))
             elements.append(Paragraph(f"<b>Port Discharge:</b> {pod_name}", styles['Normal']))
@@ -141,7 +140,6 @@ if st.button("Hitung Freight Cost"):
                 ["Distance POD-POL", f"{distance_pod_pol} NM"],
                 ["QYT Cargo", f"{qyt_cargo} {type_cargo.split()[1]}"]
             ]
-
             if mode == "Owner":
                 params += [
                     ["Angsuran", f"Rp {angsuran:,.0f}"],
@@ -165,20 +163,17 @@ if st.button("Hitung Freight Cost"):
             elements.append(Paragraph("<b>Hasil Perhitungan</b>", styles['Heading3']))
             hasil = [["Sailing Time (Hour)", f"{sailing_time:,.2f}"]]
             if mode == "Owner":
-                hasil += [
-                    ["Total Voyage Days", f"{total_voyage_days:,.2f}"],
-                    ["Total Consumption (liter)", f"{total_consumption:,.2f}"]
-                ]
-            hasil += [
-                ["Total Cost (Rp)", f"{total_cost:,.2f}"],
-                [f"Freight Cost (Rp/{type_cargo.split()[1]})", f"{freight_cost_per_unit:,.2f}"]
-            ]
+                hasil += [["Total Voyage Days", f"{total_voyage_days:,.2f}"],
+                          ["Total Consumption (liter)", f"{total_consumption:,.2f}"]]
+            hasil += [["Total Cost (Rp)", f"{total_cost:,.2f}"],
+                      [f"Freight Cost (Rp/{type_cargo.split()[1]})", f"{freight_cost_per_unit:,.2f}"]]
+
             t2 = Table(hasil, hAlign='LEFT')
             t2.setStyle(TableStyle([("GRID", (0,0), (-1,-1), 0.25, colors.grey)]))
             elements.append(t2)
             elements.append(Spacer(1, 12))
 
-            # Profit Table
+            # Tabel Profit
             elements.append(Paragraph("<b>Tabel Profit 0% - 50%</b>", styles['Heading3']))
             profit_table = [["Profit %", "Freight (Rp)", "Revenue (Rp)", "PPH 1.2% (Rp)", "Profit (Rp)"]] + data
             t3 = Table(profit_table, hAlign='LEFT')
