@@ -10,7 +10,7 @@ import requests
 
 st.set_page_config(page_title="Freight Calculator Barge", layout="wide")
 
-# ====== FIREBASE AUTH (pakai secrets.toml) ======
+# ====== FIREBASE AUTH ======
 FIREBASE_API_KEY = st.secrets["FIREBASE_API_KEY"]
 AUTH_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FIREBASE_API_KEY}"
 REGISTER_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FIREBASE_API_KEY}"
@@ -75,14 +75,16 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ========== MODE OWNER ==========
+# ====== SIDEBAR PARAMETER ======
 if mode == "Owner":
     st.sidebar.subheader("🚢 Vessel Performance")
     speed_laden = st.sidebar.number_input("⚓ Speed Laden (knot)", 0.0)
     speed_ballast = st.sidebar.number_input("🌊 Speed Ballast (knot)", 0.0)
     consumption = st.sidebar.number_input("⛽ Consumption Fuel (liter/jam)", 0)
     price_fuel = st.sidebar.number_input("💸 Price Fuel (Rp/liter)", 0)
-
+    consumption_fw = st.sidebar.number_input("💧 Consumption Freshwater (Ton/Day)", 0.0)
+    price_fw = st.sidebar.number_input("💰 Price Freshwater (Rp/Ton)", 0)
+    
     st.sidebar.subheader("🏗️ Fixed Cost (Rp/Month)")
     charter = st.sidebar.number_input("📆 Angsuran (Rp/Month)", 0)
     crew = st.sidebar.number_input("👨‍✈️ Crew cost (Rp/Month)", 0)
@@ -98,33 +100,26 @@ if mode == "Owner":
     asist_tug = st.sidebar.number_input("🚤 Asist Tug (Rp)", 0)
     other_cost = st.sidebar.number_input("💼 Other Cost (Rp)", 0)
 
-    st.sidebar.subheader("💧 Freshwater")
-    price_fw = st.sidebar.number_input("Price Freshwater (Rp/Ton)", 0)
-    consumption_fw = st.sidebar.number_input("Consumption Freshwater (Ton/Day)", 0)
-
     st.sidebar.subheader("🕓 Port Stay (Days)")
     port_stay_pol = st.sidebar.number_input("🅿️ POL (Hari)", 0)
     port_stay_pod = st.sidebar.number_input("🅿️ POD (Hari)", 0)
 
-# ========== MODE CHARTER ==========
-else:
+else:  # Charter
     st.sidebar.subheader("🚢 Vessel Performance")
     speed_laden = st.sidebar.number_input("⚓ Speed Laden (knot)", 0.0)
     speed_ballast = st.sidebar.number_input("🌊 Speed Ballast (knot)", 0.0)
     consumption = st.sidebar.number_input("⛽ Consumption Fuel (liter/jam)", 0)
     price_fuel = st.sidebar.number_input("💸 Price Fuel (Rp/liter)", 0)
+    consumption_fw = st.sidebar.number_input("💧 Consumption Freshwater (Ton/Day)", 0.0)
+    price_fw = st.sidebar.number_input("💰 Price Freshwater (Rp/Ton)", 0)
 
     st.sidebar.subheader("📊 Voyage Cost")
-    charter = st.sidebar.number_input("🚢 Charter hire (Rp/Month)", 0)
+    charter = st.sidebar.number_input("🚢 Charter hire/Month (Rp)", 0)
     premi_nm = st.sidebar.number_input("📍 Premi (Rp/NM)", 0)
     port_cost_pol = st.sidebar.number_input("🏗️ Port Cost POL (Rp)", 0)
     port_cost_pod = st.sidebar.number_input("🏗️ Port Cost POD (Rp)", 0)
     asist_tug = st.sidebar.number_input("🚤 Asist Tug (Rp)", 0)
     other_cost = st.sidebar.number_input("💼 Other Cost (Rp)", 0)
-
-    st.sidebar.subheader("💧 Freshwater")
-    price_fw = st.sidebar.number_input("Price Freshwater (Rp/Ton)", 0)
-    consumption_fw = st.sidebar.number_input("Consumption Freshwater (Ton/Day)", 0)
 
     st.sidebar.subheader("🕓 Port Stay (Days)")
     port_stay_pol = st.sidebar.number_input("🅿️ POL (Hari)", 0)
@@ -132,7 +127,6 @@ else:
 
 # ===== INPUT UTAMA =====
 st.title("🚢 Freight Calculator Barge")
-
 col1, col2 = st.columns(2)
 with col1:
     port_pol = st.text_input("🏗️ Port of Loading (POL)")
@@ -147,18 +141,16 @@ distance_pod_pol = st.number_input("📍 Distance POD - POL (NM)", 0.0)
 # ===== PERHITUNGAN =====
 if st.button("Hitung Freight Cost 💸"):
     try:
+        # Sailing & consumption
         sailing_time = (distance_pol_pod / speed_laden) + (distance_pod_pol / speed_ballast)
         total_voyage_days = (sailing_time / 24) + (port_stay_pol + port_stay_pod)
         total_consumption = (sailing_time * consumption) + ((port_stay_pol + port_stay_pod) * 120)
-
-        # === Freshwater ===
-        total_consumption_fw = consumption_fw * total_voyage_days
-        total_consumption_fw = math.floor(total_consumption_fw) if total_consumption_fw % 1 < 0.5 else math.ceil(total_consumption_fw)
+        
+        # Freshwater
+        total_consumption_fw = round(total_voyage_days) * consumption_fw
         freshwater_cost = total_consumption_fw * price_fw
-
-        # === Certificate ===
-        certificate_cost = (certificate / 30) * total_voyage_days if mode == "Owner" else 0
-
+        
+        # Costs
         charter_cost = (charter / 30) * total_voyage_days
         bunker_cost = total_consumption * price_fuel
         port_cost = port_cost_pol + port_cost_pod
@@ -167,6 +159,7 @@ if st.button("Hitung Freight Cost 💸"):
         insurance_cost = (insurance / 30) * total_voyage_days if mode == "Owner" else 0
         docking_cost = (docking / 30) * total_voyage_days if mode == "Owner" else 0
         maintenance_cost = (maintenance / 30) * total_voyage_days if mode == "Owner" else 0
+        certificate_cost = (certificate / 30) * total_voyage_days if mode == "Owner" else 0
 
         total_cost = (
             charter_cost + bunker_cost + port_cost + premi_cost + asist_tug +
@@ -177,16 +170,16 @@ if st.button("Hitung Freight Cost 💸"):
         freight_cost_mt = total_cost / qyt_cargo if qyt_cargo > 0 else 0
 
         # ===== TAMPILKAN HASIL =====
-        st.subheader("📋 Hasil Perhitungan")
+        st.subheader("📋 Hasil Perhitungan Utama")
         st.write(f"**⏱️ Sailing Time (Hour)**: {sailing_time:,.2f}")
         st.write(f"**📆 Total Voyage Days**: {total_voyage_days:,.2f}")
-        st.write(f"**⛽ Total Consumption Fuel (liter)**: {total_consumption:,.2f}")
-        st.write(f"**💧 Total Consumption Freshwater (Ton)**: {total_consumption_fw:,.0f}")
+        st.write(f"**⛽ Total Fuel Consumption (liter)**: {total_consumption:,.2f}")
+        st.write(f"**💧 Total Freshwater Consumption (Ton)**: {total_consumption_fw:,.2f}")
+        st.write(f"**💰 Freshwater Cost (Rp)**: {freshwater_cost:,.2f}")
+        if mode == "Owner":
+            st.write(f"**📜 Certificate Cost (Rp)**: {certificate_cost:,.2f}")
         st.write(f"**💰 Total Cost (Rp)**: {total_cost:,.2f}")
         st.write(f"**💵 Freight Cost (Rp/{type_cargo.split()[1]})**: {freight_cost_mt:,.2f}")
-        st.write(f"**💧 Freshwater Cost (Rp)**: {freshwater_cost:,.2f}")
-        if mode == "Owner":
-            st.write(f"📜 Certificate Cost (Rp): {certificate_cost:,.2f}")
 
         # ===== TABEL PROFIT =====
         data = []
@@ -198,78 +191,8 @@ if st.button("Hitung Freight Cost 💸"):
             data.append([f"{p}%", f"{freight_persen:,.2f}", f"{revenue:,.2f}", f"{pph:,.2f}", f"{profit:,.2f}"])
 
         df_profit = pd.DataFrame(data, columns=["Profit %", "Freight (Rp)", "Revenue (Rp)", "PPH 1.2% (Rp)", "Profit (Rp)"])
+        st.subheader("📊 Tabel Profit 0% - 50%")
         st.dataframe(df_profit)
-
-        # ===== PDF GENERATOR =====
-        def create_pdf():
-            buffer = BytesIO()
-            doc = SimpleDocTemplate(buffer, pagesize=A4)
-            styles = getSampleStyleSheet()
-            elements = []
-
-            elements.append(Paragraph("<b>Freight Calculator Barge</b>", styles['Title']))
-            elements.append(Paragraph(f"<b>Mode:</b> {mode}", styles['Normal']))
-            elements.append(Paragraph(f"<b>Port:</b> {port_pol} ➜ {port_pod}", styles['Normal']))
-            elements.append(Spacer(1, 12))
-
-            elements.append(Paragraph("<b>Parameter Input</b>", styles['Heading3']))
-            params = [
-                ["Speed Laden", f"{speed_laden} knot"],
-                ["Speed Ballast", f"{speed_ballast} knot"],
-                ["Consumption Fuel", f"{consumption} L/h"],
-                ["Price Fuel", f"Rp {price_fuel:,.0f}"],
-                ["Distance POL-POD", f"{distance_pol_pod} NM"],
-                ["Distance POD-POL", f"{distance_pod_pol} NM"],
-                ["QYT Cargo", f"{qyt_cargo} {type_cargo.split()[1]}"],
-                ["Price Freshwater", f"Rp {price_fw:,.0f}/Ton"],
-                ["Consumption Freshwater", f"{consumption_fw} Ton/Day"]
-            ]
-            if mode == "Owner":
-                params.append(["Certificate", f"Rp {certificate:,.0f}/Month"])
-            t = Table(params, hAlign='LEFT')
-            t.setStyle(TableStyle([("GRID", (0,0), (-1,-1), 0.25, colors.grey)]))
-            elements.append(t)
-            elements.append(Spacer(1, 12))
-
-            elements.append(Paragraph("<b>Hasil Perhitungan</b>", styles['Heading3']))
-            hasil = [
-                ["Sailing Time (Hour)", f"{sailing_time:,.2f}"],
-                ["Total Voyage Days", f"{total_voyage_days:,.2f}"],
-                ["Total Cost (Rp)", f"{total_cost:,.2f}"],
-                ["Freight Cost (Rp/MT)", f"{freight_cost_mt:,.2f}"],
-                ["Total Consumption Freshwater (Ton)", f"{total_consumption_fw:,.0f}"],
-                ["Freshwater Cost (Rp)", f"{freshwater_cost:,.2f}"]
-            ]
-            if mode == "Owner":
-                hasil.append(["Certificate Cost (Rp)", f"{certificate_cost:,.2f}"])
-            t2 = Table(hasil, hAlign='LEFT')
-            t2.setStyle(TableStyle([("GRID", (0,0), (-1,-1), 0.25, colors.grey)]))
-            elements.append(t2)
-            elements.append(Spacer(1, 12))
-
-            elements.append(Paragraph("<b>Tabel Profit 0% - 50%</b>", styles['Heading3']))
-            profit_table = [df_profit.columns.to_list()] + df_profit.values.tolist()
-            t3 = Table(profit_table, hAlign='LEFT')
-            t3.setStyle(TableStyle([
-                ("GRID", (0,0), (-1,-1), 0.25, colors.black),
-                ("BACKGROUND", (0,0), (-1,0), colors.lightgrey)
-            ]))
-            elements.append(t3)
-            elements.append(Spacer(1, 18))
-
-            elements.append(Paragraph("<i>Generated By Freight Calculator APP Iqna</i>", styles['Normal']))
-
-            doc.build(elements)
-            buffer.seek(0)
-            return buffer
-
-        pdf_buffer = create_pdf()
-        st.download_button(
-            label="📥 Download PDF Hasil",
-            data=pdf_buffer,
-            file_name="Freight_Calculator_Barge.pdf",
-            mime="application/pdf"
-        )
 
     except Exception as e:
         st.error(f"Terjadi kesalahan: {e}")
