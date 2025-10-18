@@ -1,181 +1,179 @@
 import streamlit as st
-import firebase_admin
-from firebase_admin import credentials, auth
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
+import requests
 from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
 import tempfile
-import math
 
-# ===== FIREBASE SETUP =====
-if not firebase_admin._apps:
-    cred = credentials.Certificate("firebase_key.json")  # file key Firebase kamu
-    firebase_admin.initialize_app(cred)
+# ===== KONFIGURASI FIREBASE =====
+API_KEY = st.secrets["FIREBASE_API_KEY"]
+FIREBASE_URL_SIGNUP = f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={API_KEY}"
+FIREBASE_URL_LOGIN = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={API_KEY}"
 
-# ===== SESSION =====
-if "user" not in st.session_state:
-    st.session_state.user = None
+# ===== FUNGSI AUTH =====
+def login(email, password):
+    res = requests.post(FIREBASE_URL_LOGIN, data={"email": email, "password": password, "returnSecureToken": True})
+    return res.json() if res.status_code == 200 else None
 
-def logout():
-    st.session_state.user = None
-    st.experimental_rerun()
+def signup(email, password):
+    res = requests.post(FIREBASE_URL_SIGNUP, data={"email": email, "password": password, "returnSecureToken": True})
+    return res.json() if res.status_code == 200 else None
 
 # ===== LOGIN PAGE =====
 def login_page():
     st.title("🚢 Freight Calculator Login")
-    st.write("Masuk menggunakan akun Firebase kamu")
-
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")
 
     if st.button("Login"):
-        try:
-            user = auth.get_user_by_email(email)
-            st.session_state.user = email
+        user = login(email, password)
+        if user:
+            st.session_state.user = user["email"]
             st.success("Login berhasil ✅")
-            st.experimental_rerun()
-        except Exception as e:
-            st.error("Login gagal. Pastikan email terdaftar.")
+            st.rerun()
+        else:
+            st.error("Email atau password salah")
 
     st.write("---")
-    st.write("Belum punya akun?")
-    if st.button("Daftar"):
-        register_page()
+    if st.button("Daftar Akun Baru"):
+        st.session_state.page = "register"
+        st.rerun()
 
 # ===== REGISTER PAGE =====
 def register_page():
     st.title("📝 Daftar Akun Baru")
-    email = st.text_input("Email", key="reg_email")
-    password = st.text_input("Password", type="password", key="reg_pass")
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
 
-    if st.button("Buat Akun"):
-        try:
-            auth.create_user(email=email, password=password)
+    if st.button("Daftar"):
+        user = signup(email, password)
+        if user:
             st.success("Akun berhasil dibuat! Silakan login.")
-            st.experimental_rerun()
-        except Exception:
-            st.error("Gagal membuat akun. Mungkin email sudah digunakan.")
+            st.session_state.page = "login"
+            st.rerun()
+        else:
+            st.error("Gagal daftar. Mungkin email sudah digunakan.")
 
-# ===== PDF EXPORT =====
+    if st.button("⬅️ Kembali ke Login"):
+        st.session_state.page = "login"
+        st.rerun()
+
+# ===== EXPORT PDF =====
 def export_pdf(data):
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
     c = canvas.Canvas(tmp.name, pagesize=A4)
     width, height = A4
-
     c.setFont("Helvetica-Bold", 14)
-    c.drawString(100, height - 50, "🚢 Freight Profit Calculation Report")
+    c.drawString(100, height - 50, "🚢 Freight Calculator Report")
     c.setFont("Helvetica", 11)
-
     y = height - 100
     for key, val in data.items():
         c.drawString(80, y, f"{key}: {val}")
         y -= 20
-
     c.save()
     return tmp.name
 
 # ===== MAIN APP =====
 def main_app():
-    st.title("⚓ Freight Cost & Profit Dashboard")
-    st.markdown("Hitung biaya operasi kapal dan estimasi profit dengan cepat dan mudah 💼")
+    st.title("⚓ Freight Calculator Barge")
+    st.markdown(f"👋 **Logged in as:** {st.session_state.user}")
 
-    # ===== SIDEBAR =====
-    st.sidebar.markdown("<h2 style='text-align:center;'>⚙️ Parameter Input</h2>", unsafe_allow_html=True)
-    st.sidebar.markdown("---")
+    with st.sidebar:
+        st.markdown("## ⚙️ Input Parameter")
+        st.markdown("---")
+        mode = st.radio("Mode Operasi", ["Owner", "Charter"])
 
-    mode = st.sidebar.radio("Mode Operasi", ["Owner", "Charter"])
-    st.sidebar.markdown("### ⚓ Voyage Parameter")
-    speed_laden = st.sidebar.number_input("Speed Laden (knot)", 0.0)
-    speed_ballast = st.sidebar.number_input("Speed Ballast (knot)", 0.0)
-    distance_pol_pod = st.sidebar.number_input("Distance POL - POD (NM)", 0.0)
-    distance_pod_pol = st.sidebar.number_input("Distance POD - POL (NM)", 0.0)
+        st.markdown("### ⚡ Kecepatan & Konsumsi")
+        speed_laden = st.number_input("Speed Laden (knot)", 0.0)
+        speed_ballast = st.number_input("Speed Ballast (knot)", 0.0)
+        consumption = st.number_input("Fuel Consumption (liter/jam)", 0)
+        price_bunker = st.number_input("Harga Bunker (Rp/liter)", 0)
+        premi_nm = st.number_input("Premi (Rp/NM)", 0)
 
-    st.sidebar.markdown("### ⛽ Fuel & Bunker")
-    consumption = st.sidebar.number_input("Consumption Fuel (liter/jam)", 0)
-    price_bunker = st.sidebar.number_input("Price Bunker (Rp/liter)", 0)
-    premi_nm = st.sidebar.number_input("Premi (Rp/NM)", 0)
+        st.markdown("---")
+        st.markdown("### ⚓ Biaya Pelabuhan & Tambahan")
+        port_cost_pol = st.number_input("Port Cost POL (Rp)", 0)
+        port_cost_pod = st.number_input("Port Cost POD (Rp)", 0)
+        asist_tug = st.number_input("Asist Tug (Rp)", 0)
+        other_cost = st.number_input("Other Cost (Rp)", 0)
+        port_stay_pol = st.number_input("Port Stay POL (Hari)", 0)
+        port_stay_pod = st.number_input("Port Stay POD (Hari)", 0)
 
-    st.sidebar.markdown("### ⚓ Port Cost")
-    port_cost_pol = st.sidebar.number_input("Port Cost POL (Rp)", 0)
-    port_cost_pod = st.sidebar.number_input("Port Cost POD (Rp)", 0)
-    asist_tug = st.sidebar.number_input("Asist Tug (Rp)", 0)
-    other_cost = st.sidebar.number_input("Other Cost (Rp)", 0)
-    port_stay_pol = st.sidebar.number_input("Port Stay POL (Hari)", 0)
-    port_stay_pod = st.sidebar.number_input("Port Stay POD (Hari)", 0)
+        st.markdown("---")
+        if mode == "Owner":
+            st.markdown("### 👷‍♂️ Biaya Operasional (Owner)")
+            charter = st.number_input("Angsuran/Month (Rp)", 0)
+            crew = st.number_input("Crew/Month (Rp)", 0)
+            insurance = st.number_input("Insurance/Month (Rp)", 0)
+            docking = st.number_input("Docking-Saving/Month (Rp)", 0)
+            maintenance = st.number_input("Maintenance/Month (Rp)", 0)
+        else:
+            st.markdown("### 🚢 Charter Cost")
+            charter = st.number_input("Charter hire/Month (Rp)", 0)
+            crew = insurance = docking = maintenance = 0
 
-    # ===== MODE PARAMETER =====
-    if mode == "Owner":
-        st.sidebar.markdown("### 🧾 Fixed Cost (Owner Mode)")
-        charter = st.sidebar.number_input("Angsuran/Month (Rp)", 0)
-        crew = st.sidebar.number_input("Crew cost/Month (Rp)", 0)
-        insurance = st.sidebar.number_input("Insurance/Month (Rp)", 0)
-        docking = st.sidebar.number_input("Docking-Saving/Month (Rp)", 0)
-        maintenance = st.sidebar.number_input("Maintenance/Month (Rp)", 0)
-    else:
-        st.sidebar.markdown("### 🧾 Fixed Cost (Charter Mode)")
-        charter = st.sidebar.number_input("Charter hire/Month (Rp)", 0)
-        crew = insurance = docking = maintenance = 0
-
-    st.sidebar.markdown("---")
-    st.sidebar.button("Logout", on_click=logout)
-
-    # ===== CALCULATION =====
-    sea_time_laden = distance_pol_pod / (speed_laden * 24) if speed_laden > 0 else 0
-    sea_time_ballast = distance_pod_pol / (speed_ballast * 24) if speed_ballast > 0 else 0
-    total_port_stay = port_stay_pol + port_stay_pod
-    total_day = sea_time_laden + sea_time_ballast + total_port_stay
-
-    fuel_cost = (sea_time_laden + sea_time_ballast) * 24 * consumption * price_bunker
-    premi_cost = (distance_pol_pod + distance_pod_pol) * premi_nm
-    port_cost_total = port_cost_pol + port_cost_pod + asist_tug + other_cost
-    fix_cost_monthly = charter + crew + insurance + docking + maintenance
-    fix_cost_voy = fix_cost_monthly * (total_day / 30)
-    total_cost = fuel_cost + premi_cost + port_cost_total + fix_cost_voy
-
+    # --- Main Content
+    st.subheader("📦 Data Voyage")
+    distance_pol_pod = st.number_input("Distance POL - POD (NM)", 0.0)
+    distance_pod_pol = st.number_input("Distance POD - POL (NM)", 0.0)
+    qyt_cargo = st.number_input("QTY Cargo", 0.0)
     revenue = st.number_input("Revenue (Rp)", 0)
-    pph = 0.025 * revenue
-    profit = revenue - total_cost - pph
 
-    # ===== OUTPUT DASHBOARD =====
-    st.markdown("## 📊 Hasil Perhitungan")
-    col1, col2, col3 = st.columns(3)
+    if st.button("🚀 Hitung Freight"):
+        sailing_time = (distance_pol_pod / speed_laden) + (distance_pod_pol / speed_ballast)
+        total_voyage_days = (sailing_time / 24) + (port_stay_pol + port_stay_pod)
+        total_consumption = (sailing_time * consumption) + ((port_stay_pol + port_stay_pod) * 120)
 
-    with col1:
-        st.metric("Total Voyage (Hari)", f"{total_day:.2f}")
-        st.metric("Fuel Cost", f"Rp {fuel_cost:,.0f}")
-        st.metric("Premi", f"Rp {premi_cost:,.0f}")
+        charter_cost = (charter / 30) * total_voyage_days
+        bunker_cost = total_consumption * price_bunker
+        premi_cost = distance_pol_pod * premi_nm
+        port_cost = port_cost_pol + port_cost_pod
+        crew_cost = (crew / 30) * total_voyage_days
+        insurance_cost = (insurance / 30) * total_voyage_days
+        docking_cost = (docking / 30) * total_voyage_days
+        maintenance_cost = (maintenance / 30) * total_voyage_days
 
-    with col2:
-        st.metric("Port Cost", f"Rp {port_cost_total:,.0f}")
-        st.metric("Fixed Cost (Prorata)", f"Rp {fix_cost_voy:,.0f}")
-        st.metric("Total Cost", f"Rp {total_cost:,.0f}")
+        total_cost = (
+            charter_cost + bunker_cost + premi_cost + port_cost + asist_tug +
+            crew_cost + insurance_cost + docking_cost + maintenance_cost + other_cost
+        )
 
-    with col3:
-        st.metric("Revenue", f"Rp {revenue:,.0f}")
-        st.metric("PPh 2.5%", f"Rp {pph:,.0f}")
-        st.metric("💰 Profit", f"Rp {profit:,.0f}")
+        pph = 0.025 * revenue
+        profit = revenue - total_cost - pph
 
-    # ===== PDF EXPORT =====
-    data = {
-        "Mode": mode,
-        "Total Hari Voyage": f"{total_day:.2f}",
-        "Fuel Cost": f"Rp {fuel_cost:,.0f}",
-        "Premi": f"Rp {premi_cost:,.0f}",
-        "Port Cost": f"Rp {port_cost_total:,.0f}",
-        "Fixed Cost (Prorata)": f"Rp {fix_cost_voy:,.0f}",
-        "Total Cost": f"Rp {total_cost:,.0f}",
-        "Revenue": f"Rp {revenue:,.0f}",
-        "PPh 2.5%": f"Rp {pph:,.0f}",
-        "Profit": f"Rp {profit:,.0f}",
-    }
+        st.success("✅ Perhitungan selesai!")
+        st.markdown("### 📊 Hasil Perhitungan")
+        st.write(f"**Total Voyage Days:** {total_voyage_days:,.2f}")
+        st.write(f"**Total Cost (Rp):** {total_cost:,.2f}")
+        st.write(f"**PPH 2.5% (Rp):** {pph:,.2f}")
+        st.write(f"**💰 Profit (Rp):** {profit:,.2f}")
 
-    if st.button("📄 Download PDF Report"):
+        data = {
+            "Mode": mode,
+            "Total Voyage Days": f"{total_voyage_days:,.2f}",
+            "Total Cost": f"Rp {total_cost:,.2f}",
+            "PPH": f"Rp {pph:,.2f}",
+            "Profit": f"Rp {profit:,.2f}",
+        }
+
         pdf_path = export_pdf(data)
         with open(pdf_path, "rb") as f:
-            st.download_button("Download Sekarang", f, file_name="Freight_Report.pdf")
+            st.download_button("📄 Download PDF", f, file_name="Freight_Report.pdf")
+
+    st.sidebar.markdown("---")
+    if st.sidebar.button("🚪 Logout"):
+        st.session_state.clear()
+        st.rerun()
 
 # ===== MAIN CONTROL =====
-if st.session_state.user is None:
-    login_page()
-else:
+if "page" not in st.session_state:
+    st.session_state.page = "login"
+
+if "user" not in st.session_state:
+    st.session_state.user = None
+
+if st.session_state.user:
     main_app()
+elif st.session_state.page == "register":
+    register_page()
+else:
+    login_page()
