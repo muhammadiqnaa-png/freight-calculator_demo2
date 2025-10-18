@@ -56,7 +56,6 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ===== MAIN APP =====
-# Tombol logout di sidebar atas
 st.sidebar.markdown("### 👤 Akun")
 st.sidebar.write(f"Login sebagai: **{st.session_state.email}**")
 if st.sidebar.button("🚪 Log Out"):
@@ -97,6 +96,10 @@ if mode == "Owner":
     asist_tug = st.sidebar.number_input("🚤 Asist Tug (Rp)", 0)
     other_cost = st.sidebar.number_input("💼 Other Cost (Rp)", 0)
 
+    st.sidebar.subheader("💧 Freshwater")
+    consumption_freshwater = st.sidebar.number_input("Consumption Freshwater (Ton/Day)", 0.0)
+    price_freshwater = st.sidebar.number_input("Price Freshwater (Rp/Ton)", 0)
+
     st.sidebar.subheader("🕓 Port Stay (Days)")
     port_stay_pol = st.sidebar.number_input("🅿️ POL (Hari)", 0)
     port_stay_pod = st.sidebar.number_input("🅿️ POD (Hari)", 0)
@@ -116,6 +119,10 @@ else:
     port_cost_pod = st.sidebar.number_input("🏗️ Port Cost POD (Rp)", 0)
     asist_tug = st.sidebar.number_input("🚤 Asist Tug (Rp)", 0)
     other_cost = st.sidebar.number_input("💼 Other Cost (Rp)", 0)
+
+    st.sidebar.subheader("💧 Freshwater")
+    consumption_freshwater = st.sidebar.number_input("Consumption Freshwater (Ton/Day)", 0.0)
+    price_freshwater = st.sidebar.number_input("Price Freshwater (Rp/Ton)", 0)
 
     st.sidebar.subheader("🕓 Port Stay (Days)")
     port_stay_pol = st.sidebar.number_input("🅿️ POL (Hari)", 0)
@@ -142,6 +149,12 @@ if st.button("Hitung Freight Cost 💸"):
         total_voyage_days = (sailing_time / 24) + (port_stay_pol + port_stay_pod)
         total_consumption = (sailing_time * consumption) + ((port_stay_pol + port_stay_pod) * 120)
 
+        # Freshwater Calculation (pembulatan manual)
+        total_freshwater = int(consumption_freshwater * total_voyage_days)
+        if (consumption_freshwater * total_voyage_days) % 1 >= 0.5:
+            total_freshwater += 1
+        freshwater_cost = total_freshwater * price_freshwater
+
         charter_cost = (charter / 30) * total_voyage_days
         bunker_cost = total_consumption * price_bunker
         port_cost = port_cost_pol + port_cost_pod
@@ -153,7 +166,8 @@ if st.button("Hitung Freight Cost 💸"):
 
         total_cost = (
             charter_cost + bunker_cost + port_cost + premi_cost + asist_tug +
-            crew_cost + insurance_cost + docking_cost + maintenance_cost + other_cost
+            crew_cost + insurance_cost + docking_cost + maintenance_cost +
+            other_cost + freshwater_cost
         )
 
         freight_cost_mt = total_cost / qyt_cargo if qyt_cargo > 0 else 0
@@ -163,6 +177,8 @@ if st.button("Hitung Freight Cost 💸"):
         st.write(f"**⏱️ Sailing Time (Hour)**: {sailing_time:,.2f}")
         st.write(f"**📆 Total Voyage Days**: {total_voyage_days:,.2f}")
         st.write(f"**⛽ Total Consumption (liter)**: {total_consumption:,.2f}")
+        st.write(f"**💧 Total Consumption Freshwater (Ton)**: {total_freshwater:,.2f}")
+        st.write(f"**💰 Freshwater Cost (Rp)**: {freshwater_cost:,.2f}")
         st.write(f"**💰 Total Cost (Rp)**: {total_cost:,.2f}")
         st.write(f"**💵 Freight Cost (Rp/{type_cargo.split()[1]})**: {freight_cost_mt:,.2f}")
 
@@ -196,6 +212,8 @@ if st.button("Hitung Freight Cost 💸"):
                 ["Speed Ballast", f"{speed_ballast} knot"],
                 ["Consumption", f"{consumption} L/h"],
                 ["Price Bunker", f"Rp {price_bunker:,.0f}"],
+                ["Consumption Freshwater", f"{consumption_freshwater} Ton/Day"],
+                ["Price Freshwater", f"Rp {price_freshwater:,.0f}"],
                 ["Distance POL-POD", f"{distance_pol_pod} NM"],
                 ["Distance POD-POL", f"{distance_pod_pol} NM"],
                 ["QYT Cargo", f"{qyt_cargo} {type_cargo.split()[1]}"]
@@ -209,6 +227,8 @@ if st.button("Hitung Freight Cost 💸"):
             hasil = [
                 ["Sailing Time (Hour)", f"{sailing_time:,.2f}"],
                 ["Total Voyage Days", f"{total_voyage_days:,.2f}"],
+                ["Total Consumption Freshwater (Ton)", f"{total_freshwater:,.2f}"],
+                ["Freshwater Cost (Rp)", f"{freshwater_cost:,.2f}"],
                 ["Total Cost (Rp)", f"{total_cost:,.2f}"],
                 ["Freight Cost (Rp/MT)", f"{freight_cost_mt:,.2f}"]
             ]
