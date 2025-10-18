@@ -5,7 +5,6 @@ from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
-import plotly.graph_objects as go
 
 # ===== PAGE CONFIG =====
 st.set_page_config(page_title="Freight Calculator Barge", layout="wide")
@@ -158,33 +157,93 @@ if st.button("Hitung Freight Cost"):
         st.subheader("📈 Tabel Profit 0% - 50%")
         st.dataframe(df_profit)
 
-        # ===== GRAFIK FIXED vs VARIABLE COST =====
-        cost_labels = []
-        cost_values = []
+        # ===== PDF GENERATOR =====
+        def create_pdf():
+            buffer = BytesIO()
+            doc = SimpleDocTemplate(buffer, pagesize=A4)
+            styles = getSampleStyleSheet()
+            elements = []
 
-        if mode == "Owner":
-            cost_labels = ["Charter", "Crew", "Insurance", "Docking", "Maintenance",
-                           "Fuel/Bunker", "Port POL", "Port POD", "Premi", "Asist Tug", "Other Cost"]
-            cost_values = [charter_cost, crew_cost, insurance_cost, docking_cost, maintenance_cost,
-                           bunker_cost, port_cost_pol, port_cost_pod, premi_cost, asist_tug, other_cost]
-        else:
-            cost_labels = ["Charter", "Fuel/Bunker", "Port POL", "Port POD", "Premi", "Asist Tug", "Other Cost"]
-            cost_values = [charter, bunker_cost, port_cost_pol, port_cost_pod, premi_cost, asist_tug, other_cost]
+            elements.append(Paragraph("<b>Freight Calculator Barge</b>", styles['Title']))
+            elements.append(Spacer(1, 12))
+            elements.append(Paragraph(f"<b>Mode: {mode}</b>", styles['Heading2']))
+            elements.append(Paragraph(f"<b>Port Loading:</b> {pol_name}", styles['Normal']))
+            elements.append(Paragraph(f"<b>Port Discharge:</b> {pod_name}", styles['Normal']))
+            elements.append(Spacer(1, 12))
 
-        fig_cost = go.Figure(data=[go.Bar(x=cost_labels, y=cost_values, text=[f"Rp {v:,.0f}" for v in cost_values],
-                                          textposition='auto')])
-        fig_cost.update_layout(title="💰 Breakdown Fixed & Variable Cost", xaxis_title="Item", yaxis_title="Rp",
-                               xaxis_tickangle=-45)
-        st.plotly_chart(fig_cost, use_container_width=True)
+            # Fixed Cost Table
+            elements.append(Paragraph("<b>Fixed Cost</b>", styles['Heading3']))
+            fixed_params = []
+            if mode == "Owner":
+                fixed_params = [
+                    ["Charter", f"Rp {charter_cost:,.0f}"],
+                    ["Crew", f"Rp {crew_cost:,.0f}"],
+                    ["Insurance", f"Rp {insurance_cost:,.0f}"],
+                    ["Docking", f"Rp {docking_cost:,.0f}"],
+                    ["Maintenance", f"Rp {maintenance_cost:,.0f}"]
+                ]
+            else:
+                fixed_params = [["Charter", f"Rp {charter:,.0f}"]]
 
-        # ===== GRAFIK PROFIT vs PROFIT % =====
-        profit_percent = [int(row[0][:-1]) for row in data]
-        profit_values = [float(row[4].replace(",", "")) for row in data]
+            t_fixed = Table(fixed_params, hAlign='LEFT')
+            t_fixed.setStyle(TableStyle([("GRID", (0,0), (-1,-1), 0.25, colors.grey)]))
+            elements.append(t_fixed)
+            elements.append(Spacer(1, 12))
 
-        fig_profit = go.Figure(data=[go.Scatter(x=profit_percent, y=profit_values, mode='lines+markers',
-                                               text=[f"Rp {v:,.0f}" for v in profit_values], textposition="top center")])
-        fig_profit.update_layout(title="📈 Profit vs Profit %", xaxis_title="Profit %", yaxis_title="Profit (Rp)")
-        st.plotly_chart(fig_profit, use_container_width=True)
+            # Variable Cost Table
+            elements.append(Paragraph("<b>Variable Cost</b>", styles['Heading3']))
+            variable_params = [
+                ["Fuel / Bunker", f"Rp {bunker_cost:,.0f}"],
+                ["Port Cost POL", f"Rp {port_cost_pol:,.0f}"],
+                ["Port Cost POD", f"Rp {port_cost_pod:,.0f}"],
+                ["Premi", f"Rp {premi_cost:,.0f}"],
+                ["Asist Tug", f"Rp {asist_tug:,.0f}"],
+                ["Other Cost", f"Rp {other_cost:,.0f}"]
+            ]
+            t_var = Table(variable_params, hAlign='LEFT')
+            t_var.setStyle(TableStyle([("GRID", (0,0), (-1,-1), 0.25, colors.grey)]))
+            elements.append(t_var)
+            elements.append(Spacer(1, 12))
+
+            # Hasil Perhitungan
+            elements.append(Paragraph("<b>Hasil Perhitungan</b>", styles['Heading3']))
+            hasil = [["Sailing Time (Hour)", f"{sailing_time:,.2f}"]]
+            if mode == "Owner":
+                hasil += [["Total Voyage Days", f"{total_voyage_days:,.2f}"],
+                          ["Total Consumption (liter)", f"{total_consumption:,.2f}"]]
+            hasil += [["Total Fixed Cost (Rp)", f"{total_fixed_cost:,.2f}"],
+                      ["Total Variable Cost (Rp)", f"{total_variable_cost:,.2f}"],
+                      ["Total Cost (Rp)", f"{total_cost:,.2f}"],
+                      [f"Freight Cost (Rp/{type_cargo.split()[1]})", f"{freight_cost_per_unit:,.2f}"]]
+
+            t2 = Table(hasil, hAlign='LEFT')
+            t2.setStyle(TableStyle([("GRID", (0,0), (-1,-1), 0.25, colors.grey)]))
+            elements.append(t2)
+            elements.append(Spacer(1, 12))
+
+            # Profit Table
+            elements.append(Paragraph("<b>Tabel Profit 0% - 50%</b>", styles['Heading3']))
+            profit_table = [["Profit %", "Freight (Rp)", "Revenue (Rp)", "PPH 1.2% (Rp)", "Profit (Rp)"]] + data
+            t3 = Table(profit_table, hAlign='LEFT')
+            t3.setStyle(TableStyle([
+                ("GRID", (0,0), (-1,-1), 0.25, colors.black),
+                ("BACKGROUND", (0,0), (-1,0), colors.lightgrey)
+            ]))
+            elements.append(t3)
+            elements.append(Spacer(1, 18))
+            elements.append(Paragraph("<i>Generated By Freight Calculator APP Iqna</i>", styles['Normal']))
+
+            doc.build(elements)
+            buffer.seek(0)
+            return buffer
+
+        pdf_buffer = create_pdf()
+        st.download_button(
+            label="📥 Download PDF Hasil",
+            data=pdf_buffer,
+            file_name="Freight_Calculator_Barge.pdf",
+            mime="application/pdf"
+        )
 
     except Exception as e:
         st.error(f"Terjadi kesalahan: {e}")
