@@ -10,7 +10,7 @@ import requests
 
 st.set_page_config(page_title="Freight Calculator Barge", layout="wide")
 
-# ====== FIREBASE AUTH (pakai secrets.toml) ======
+# ====== FIREBASE AUTH ======
 FIREBASE_API_KEY = st.secrets["FIREBASE_API_KEY"]
 AUTH_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FIREBASE_API_KEY}"
 REGISTER_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FIREBASE_API_KEY}"
@@ -56,7 +56,7 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ===== MAIN APP =====
-# Tombol logout di sidebar atas
+# Tombol logout
 st.sidebar.markdown("### 👤 Akun")
 st.sidebar.write(f"Login sebagai: **{st.session_state.email}**")
 if st.sidebar.button("🚪 Log Out"):
@@ -75,40 +75,49 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ===== PARAMETER SIDEBAR =====
-with st.sidebar.expander("🚢 Vessel Performance", expanded=True):
-    speed_laden = st.number_input("⚓ Speed Laden (knot)", 0.0)
-    speed_ballast = st.number_input("🌊 Speed Ballast (knot)", 0.0)
+# ========== PARAMETER SIDEBAR ==========
+# 🚢 Speed
+st.sidebar.subheader("🚢 Speed")
+speed_laden = st.sidebar.number_input("⚓ Speed Laden (knot)", 0.0)
+speed_ballast = st.sidebar.number_input("🌊 Speed Ballast (knot)", 0.0)
 
-with st.sidebar.expander("⛽ Fuel", expanded=True):
-    consumption = st.number_input("⚙️ Consumption Fuel (liter/jam)", 0)
-    price_fuel = st.number_input("💸 Price Fuel (Rp/liter)", 0)
+# ⛽ Fuel
+st.sidebar.subheader("⛽ Fuel")
+consumption_fuel = st.sidebar.number_input("⛽ Consumption Fuel (liter/jam)", 0)
+price_fuel = st.sidebar.number_input("💸 Price Fuel (Rp/liter)", 0)
 
-with st.sidebar.expander("💧 Freshwater", expanded=True):
-    consumption_fw = st.number_input("⚙️ Consumption Freshwater (Ton/Day)", 0)
-    price_fw = st.number_input("💸 Price Freshwater (Rp/Ton)", 0)
+# 💧 Freshwater
+st.sidebar.subheader("💧 Freshwater")
+consumption_fw = st.sidebar.number_input("💧 Consumption Freshwater (Ton/Day)", 0.0)
+price_fw = st.sidebar.number_input("💧 Price Freshwater (Rp/Ton)", 0)
 
+# Owner / Charter Cost
 if mode == "Owner":
-    with st.sidebar.expander("🏗️ Fixed Cost", expanded=True):
-        charter = st.number_input("📆 Angsuran (Rp/Month)", 0)
-        crew = st.number_input("👨‍✈️ Crew cost (Rp/Month)", 0)
-        insurance = st.number_input("🛡️ Insurance (Rp/Month)", 0)
-        docking = st.number_input("⚓ Docking - Saving (Rp/Month)", 0)
-        maintenance = st.number_input("🧰 Maintenance (Rp/Month)", 0)
-        certificate = st.number_input("📄 Certificate (Rp/Month)", 0)
+    st.sidebar.subheader("🏗️ Owner Cost (Owner)")
+    charter = st.sidebar.number_input("📆 Angsuran (Rp/Month)", 0)
+    crew = st.sidebar.number_input("👨‍✈️ Crew (Rp/Month)", 0)
+    insurance = st.sidebar.number_input("🛡️ Insurance (Rp/Month)", 0)
+    docking = st.sidebar.number_input("⚓ Docking (Rp/Month)", 0)
+    maintenance = st.sidebar.number_input("🧰 Maintenance (Rp/Month)", 0)
+    certificate = st.sidebar.number_input("📜 Certificate (Rp/Month)", 0)
+    premi_nm = st.sidebar.number_input("📍 Premi (Rp/NM)", 0)
+    other_cost = st.sidebar.number_input("💼 Other Cost (Rp)", 0)
+else:
+    st.sidebar.subheader("🏗️ Charter Cost (Charter)")
+    charter = st.sidebar.number_input("🚢 Charter Hire (Rp/Month)", 0)
+    premi_nm = st.sidebar.number_input("📍 Premi (Rp/NM)", 0)
+    other_cost = st.sidebar.number_input("💼 Other Cost (Rp)", 0)
 
-with st.sidebar.expander("⚙️ Variable Cost", expanded=True):
-    premi_nm = st.number_input("📍 Premi (Rp/NM)", 0)
-    other_cost = st.number_input("💼 Other Cost (Rp)", 0)
+# ⚓ Port Cost
+st.sidebar.subheader("⚓ Port Cost")
+port_cost_pol = st.sidebar.number_input("🏗️ Port Cost POL (Rp)", 0)
+port_cost_pod = st.sidebar.number_input("🏗️ Port Cost POD (Rp)", 0)
+asist_tug = st.sidebar.number_input("🚤 Asist Tug (Rp)", 0)
 
-with st.sidebar.expander("⚓ Port Cost", expanded=True):
-    port_cost_pol = st.number_input("🏗️ Port Cost POL (Rp)", 0)
-    port_cost_pod = st.number_input("🏗️ Port Cost POD (Rp)", 0)
-    asist_tug = st.number_input("🚤 Asist Tug (Rp)", 0)
-
-with st.sidebar.expander("🕓 Port Stay (Days)", expanded=True):
-    port_stay_pol = st.number_input("🅿️ POL (Hari)", 0)
-    port_stay_pod = st.number_input("🅿️ POD (Hari)", 0)
+# 🕓 Port Stay
+st.sidebar.subheader("🕓 Port Stay")
+port_stay_pol = st.sidebar.number_input("🅿️ POL (Hari)", 0)
+port_stay_pod = st.sidebar.number_input("🅿️ POD (Hari)", 0)
 
 # ===== INPUT UTAMA =====
 st.title("🚢 Freight Calculator Barge")
@@ -127,43 +136,72 @@ distance_pod_pol = st.number_input("📍 Distance POD - POL (NM)", 0.0)
 # ===== PERHITUNGAN =====
 if st.button("Hitung Freight Cost 💸"):
     try:
-        # Waktu & konsumsi
+        # Sailing time & total voyage
         sailing_time = (distance_pol_pod / speed_laden) + (distance_pod_pol / speed_ballast)
         total_voyage_days = (sailing_time / 24) + (port_stay_pol + port_stay_pod)
-        total_voyage_days_round = math.floor(total_voyage_days) if total_voyage_days % 1 < 0.5 else math.ceil(total_voyage_days)
+        total_voyage_rounded = math.floor(total_voyage_days) if total_voyage_days % 1 < 0.5 else math.ceil(total_voyage_days)
 
-        total_consumption_fuel = (sailing_time * consumption) + ((port_stay_pol + port_stay_pod) * 120)
-        total_consumption_fw = consumption_fw * total_voyage_days_round
+        # Fuel & Freshwater
+        total_consumption_fuel = (sailing_time * consumption_fuel) + ((port_stay_pol + port_stay_pod) * 120)
+        total_consumption_fw = consumption_fw * total_voyage_rounded
+        fuel_cost = total_consumption_fuel * price_fuel
+        freshwater_cost = total_consumption_fw * price_fw
 
-        # Biaya
-        charter_cost = (charter / 30) * total_voyage_days if mode=="Owner" else (charter / 30) * total_voyage_days
+        # Charter/Owner Costs
+        charter_cost = (charter / 30) * total_voyage_days
+        premi_cost = distance_pol_pod * premi_nm
         crew_cost = (crew / 30) * total_voyage_days if mode=="Owner" else 0
         insurance_cost = (insurance / 30) * total_voyage_days if mode=="Owner" else 0
         docking_cost = (docking / 30) * total_voyage_days if mode=="Owner" else 0
         maintenance_cost = (maintenance / 30) * total_voyage_days if mode=="Owner" else 0
         certificate_cost = (certificate / 30) * total_voyage_days if mode=="Owner" else 0
 
-        bunker_cost = total_consumption_fuel * price_fuel
-        freshwater_cost = total_consumption_fw * price_fw
-        port_cost = port_cost_pol + port_cost_pod + asist_tug
+        # Port cost
+        port_cost_total = port_cost_pol + port_cost_pod + asist_tug
 
-        premi_cost = distance_pol_pod * premi_nm
-
-        total_cost = (
-            charter_cost + crew_cost + insurance_cost + docking_cost + maintenance_cost + certificate_cost +
-            bunker_cost + freshwater_cost + port_cost + premi_cost + other_cost
-        )
+        # Total Cost
+        total_cost = (charter_cost + premi_cost + crew_cost + insurance_cost +
+                      docking_cost + maintenance_cost + certificate_cost +
+                      other_cost + fuel_cost + freshwater_cost + port_cost_total)
 
         freight_cost_mt = total_cost / qyt_cargo if qyt_cargo > 0 else 0
 
-        # ===== TAMPILKAN HASIL =====
+        # ===== TAMPILKAN HASIL UTAMA =====
         st.subheader("📋 Hasil Perhitungan Utama")
-        st.write(f"**⏱️ Total Sailing Time (Hour)**: {sailing_time:,.2f}")
-        st.write(f"**📆 Total Voyage (Days)**: {total_voyage_days:,.2f} (dibulatkan: {total_voyage_days_round} hari)")
-        st.write(f"**⛽ Total Consumption Fuel (liter)**: {total_consumption_fuel:,.2f}")
-        st.write(f"💧 **Total Consumption Freshwater (Ton)**: {total_consumption_fw:,.2f}")
-        st.write(f"💰 **Total Cost (Rp)**: {total_cost:,.2f}")
-        st.write(f"💵 **Freight Cost (Rp/{type_cargo.split()[1]})**: {freight_cost_mt:,.2f}")
+
+        with st.expander("🔹 General Info"):
+            st.write(f"**Total Sailing Time (Hours):** {sailing_time:,.2f}")
+            st.write(f"**Total Voyage (Days):** {total_voyage_days:,.2f} (Pembulatan: {total_voyage_rounded})")
+
+        with st.expander("⛽ Fuel & 💧 Freshwater"):
+            st.write(f"**Total Consumption Fuel (liter):** {total_consumption_fuel:,.2f}")
+            st.write(f"**Fuel Cost (Rp):** {fuel_cost:,.2f}")
+            st.write(f"**Total Consumption Freshwater (Ton):** {total_consumption_fw:,.2f}")
+            st.write(f"**Freshwater Cost (Rp):** {freshwater_cost:,.2f}")
+
+        with st.expander("🏗️ Costs"):
+            if mode=="Owner":
+                st.write(f"Angsuran (Rp): {charter_cost:,.2f}")
+                st.write(f"Crew (Rp): {crew_cost:,.2f}")
+                st.write(f"Insurance (Rp): {insurance_cost:,.2f}")
+                st.write(f"Docking (Rp): {docking_cost:,.2f}")
+                st.write(f"Maintenance (Rp): {maintenance_cost:,.2f}")
+                st.write(f"Certificate (Rp): {certificate_cost:,.2f}")
+                st.write(f"Premi (Rp): {premi_cost:,.2f}")
+                st.write(f"Other Cost (Rp): {other_cost:,.2f}")
+            else:
+                st.write(f"Charter Hire (Rp): {charter_cost:,.2f}")
+                st.write(f"Premi (Rp): {premi_cost:,.2f}")
+                st.write(f"Other Cost (Rp): {other_cost:,.2f}")
+
+        with st.expander("⚓ Port Cost"):
+            st.write(f"Port Cost POL (Rp): {port_cost_pol:,.2f}")
+            st.write(f"Port Cost POD (Rp): {port_cost_pod:,.2f}")
+            st.write(f"Asist Tug (Rp): {asist_tug:,.2f}")
+            st.write(f"Total Port Cost (Rp): {port_cost_total:,.2f}")
+
+        st.subheader(f"💰 Total Cost (Rp): {total_cost:,.2f}")
+        st.subheader(f"💵 Freight Cost (Rp/{type_cargo.split()[1]}): {freight_cost_mt:,.2f}")
 
         # ===== TABEL PROFIT =====
         data = []
@@ -173,8 +211,8 @@ if st.button("Hitung Freight Cost 💸"):
             pph = revenue * 0.012
             profit = revenue - total_cost - pph
             data.append([f"{p}%", f"{freight_persen:,.2f}", f"{revenue:,.2f}", f"{pph:,.2f}", f"{profit:,.2f}"])
-
         df_profit = pd.DataFrame(data, columns=["Profit %", "Freight (Rp)", "Revenue (Rp)", "PPH 1.2% (Rp)", "Profit (Rp)"])
+        st.subheader("📊 Tabel Profit 0% - 50%")
         st.dataframe(df_profit)
 
         # ===== PDF GENERATOR =====
@@ -193,7 +231,7 @@ if st.button("Hitung Freight Cost 💸"):
             params = [
                 ["Speed Laden", f"{speed_laden} knot"],
                 ["Speed Ballast", f"{speed_ballast} knot"],
-                ["Consumption Fuel", f"{consumption} L/h"],
+                ["Consumption Fuel", f"{consumption_fuel} L/h"],
                 ["Price Fuel", f"Rp {price_fuel:,.0f}"],
                 ["Consumption Freshwater", f"{consumption_fw} Ton/Day"],
                 ["Price Freshwater", f"Rp {price_fw:,.0f}"],
@@ -204,21 +242,24 @@ if st.button("Hitung Freight Cost 💸"):
             t = Table(params, hAlign='LEFT')
             t.setStyle(TableStyle([("GRID", (0,0), (-1,-1), 0.25, colors.grey)]))
             elements.append(t)
-            elements.append(Spacer(1, 12))
+            elements.append(Spacer(1,12))
 
             elements.append(Paragraph("<b>Hasil Perhitungan</b>", styles['Heading3']))
             hasil = [
                 ["Total Sailing Time (Hour)", f"{sailing_time:,.2f}"],
-                ["Total Voyage (Days)", f"{total_voyage_days:,.2f}"],
+                ["Total Voyage Days", f"{total_voyage_days:,.2f}"],
+                ["Total Voyage Rounded (Days)", f"{total_voyage_rounded}"],
                 ["Total Consumption Fuel (liter)", f"{total_consumption_fuel:,.2f}"],
+                ["Fuel Cost (Rp)", f"{fuel_cost:,.2f}"],
                 ["Total Consumption Freshwater (Ton)", f"{total_consumption_fw:,.2f}"],
+                ["Freshwater Cost (Rp)", f"{freshwater_cost:,.2f}"],
                 ["Total Cost (Rp)", f"{total_cost:,.2f}"],
-                ["Freight Cost (Rp/MT)", f"{freight_cost_mt:,.2f}"]
+                ["Freight Cost (Rp/Unit)", f"{freight_cost_mt:,.2f}"]
             ]
             t2 = Table(hasil, hAlign='LEFT')
             t2.setStyle(TableStyle([("GRID", (0,0), (-1,-1), 0.25, colors.grey)]))
             elements.append(t2)
-            elements.append(Spacer(1, 12))
+            elements.append(Spacer(1,12))
 
             elements.append(Paragraph("<b>Tabel Profit 0% - 50%</b>", styles['Heading3']))
             profit_table = [df_profit.columns.to_list()] + df_profit.values.tolist()
@@ -228,8 +269,7 @@ if st.button("Hitung Freight Cost 💸"):
                 ("BACKGROUND", (0,0), (-1,0), colors.lightgrey)
             ]))
             elements.append(t3)
-            elements.append(Spacer(1, 18))
-
+            elements.append(Spacer(1,18))
             elements.append(Paragraph("<i>Generated By Freight Calculator APP Iqna</i>", styles['Normal']))
             doc.build(elements)
             buffer.seek(0)
