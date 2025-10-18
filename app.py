@@ -56,6 +56,14 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ===== MAIN APP =====
+# Tombol logout di sidebar atas
+st.sidebar.markdown("### 👤 Akun")
+st.sidebar.write(f"Login sebagai: **{st.session_state.email}**")
+if st.sidebar.button("🚪 Log Out"):
+    st.session_state.logged_in = False
+    st.success("Berhasil logout.")
+    st.rerun()
+
 st.sidebar.title("⚙️ Parameter Perhitungan")
 mode = st.sidebar.radio("Mode Operasi", ["Owner", "Charter"])
 
