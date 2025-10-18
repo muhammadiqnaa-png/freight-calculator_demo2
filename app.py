@@ -86,7 +86,7 @@ def auth_ui():
                     st.success("Login sukses.")
                     st.session_state.authenticated = True
                     st.session_state.user_email = email.strip()
-                    st.experimental_rerun()
+                    st.rerun()
                 else:
                     st.error(f"Login gagal: {resp}")
 
@@ -117,7 +117,7 @@ def auth_ui():
             if st.sidebar.button("Logout"):
                 st.session_state.authenticated = False
                 st.session_state.user_email = None
-                st.experimental_rerun()
+                st.rerun()
         else:
             st.write("Belum login.")
 
@@ -131,7 +131,7 @@ st.sidebar.title("⚙️ Pengaturan")
 if st.sidebar.button("Sign out"):
     st.session_state.authenticated = False
     st.session_state.user_email = None
-    st.experimental_rerun()
+    st.rerun()
 
 st.title("🚢 Freight Calculator Barge")
 st.markdown(f"Selamat datang, **{st.session_state.user_email}** — silakan pilih mode & input parameter di sidebar.")
@@ -392,3 +392,4 @@ if st.button("Hitung Freight Cost"):
 
     except Exception as e:
         st.error(f"Terjadi kesalahan saat perhitungan: {e}")
+
