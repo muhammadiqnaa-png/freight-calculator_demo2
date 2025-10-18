@@ -1,5 +1,6 @@
-# app.py
+# app.py (all-in-one: auth (firebase) + freight calculator + pdf)
 import streamlit as st
+import requests
 import pandas as pd
 from io import BytesIO
 from reportlab.lib.pagesizes import A4
@@ -7,61 +8,145 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 
-# import halaman auth (pastikan folder auth/ punya login.py & register.py)
-try:
-    from auth.login import login_page
-    from auth.register import register_page
-except Exception as e:
-    # Jika import gagal, kita buat fallback sederhana agar developer tahu
-    def login_page():
-        st.error("auth.login tidak ditemukan. Pastikan auth/login.py tersedia.")
-
-    def register_page():
-        st.error("auth.register tidak ditemukan. Pastikan auth/register.py tersedia.")
-
-# ---------- page config ----------
+# ---------- CONFIG ----------
 st.set_page_config(page_title="Freight Calculator Barge", layout="wide")
 
-# ---------- session init ----------
+# ---------- FIREBASE HELPERS ----------
+def get_firebase_api_key():
+    # try streamlit secrets first
+    try:
+        key = st.secrets["FIREBASE_API_KEY"]
+        if not key:
+            return None
+        return key
+    except Exception:
+        return None
+
+FIREBASE_API_KEY = get_firebase_api_key()
+
+def firebase_sign_up(email: str, password: str):
+    """Register new user via Firebase REST API (Identity Toolkit)"""
+    if not FIREBASE_API_KEY:
+        return False, "FIREBASE_API_KEY not found in secrets."
+    url = f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FIREBASE_API_KEY}"
+    payload = {"email": email, "password": password, "returnSecureToken": True}
+    try:
+        r = requests.post(url, json=payload, timeout=10)
+        j = r.json()
+        if r.status_code == 200:
+            return True, j
+        else:
+            # return readable message
+            msg = j.get("error", {}).get("message", str(j))
+            return False, msg
+    except Exception as e:
+        return False, str(e)
+
+def firebase_sign_in(email: str, password: str):
+    """Sign in existing user via Firebase REST API"""
+    if not FIREBASE_API_KEY:
+        return False, "FIREBASE_API_KEY not found in secrets."
+    url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FIREBASE_API_KEY}"
+    payload = {"email": email, "password": password, "returnSecureToken": True}
+    try:
+        r = requests.post(url, json=payload, timeout=10)
+        j = r.json()
+        if r.status_code == 200:
+            return True, j
+        else:
+            msg = j.get("error", {}).get("message", str(j))
+            return False, msg
+    except Exception as e:
+        return False, str(e)
+
+# ---------- SESSION INIT ----------
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
-if "user" not in st.session_state:
-    st.session_state.user = None
+if "user_email" not in st.session_state:
+    st.session_state.user_email = None
 
-# ---------- AUTH FLOW ----------
-if not st.session_state.authenticated:
-    # tampilkan login/register dari auth module
-    st.sidebar.title("🔐 Masuk / Daftar")
-    menu = st.sidebar.radio("Pilih", ["Login", "Register"])
+# ---------- AUTH UI ----------
+def auth_ui():
+    st.sidebar.title("🔐 Login atau Daftar")
+    if not FIREBASE_API_KEY:
+        st.sidebar.error("FIREBASE_API_KEY tidak ditemukan. Masukkan pada .streamlit/secrets.toml\nFIREBASE_API_KEY = \"YOUR_API_KEY\"")
+        st.stop()
+
+    menu = st.sidebar.selectbox("Pilih aksi", ["Login", "Register", "Info akun"])
     if menu == "Login":
-        login_page()
+        st.header("🔐 Login")
+        email = st.text_input("Email", key="login_email")
+        password = st.text_input("Password", type="password", key="login_password")
+        if st.button("Login"):
+            if not email or not password:
+                st.error("Isi email & password.")
+            else:
+                ok, resp = firebase_sign_in(email.strip(), password)
+                if ok:
+                    st.success("Login sukses.")
+                    st.session_state.authenticated = True
+                    st.session_state.user_email = email.strip()
+                    st.experimental_rerun()
+                else:
+                    st.error(f"Login gagal: {resp}")
+
+    elif menu == "Register":
+        st.header("📝 Daftar Akun Baru")
+        st.info("Daftar akan membuat akun di Firebase Authentication (email/password).")
+        new_email = st.text_input("Email", key="reg_email")
+        new_pass = st.text_input("Password (min 6 char)", type="password", key="reg_pass")
+        new_pass2 = st.text_input("Ulangi Password", type="password", key="reg_pass2")
+        if st.button("Daftar"):
+            if not new_email or not new_pass or not new_pass2:
+                st.error("Lengkapi semua field.")
+            elif new_pass != new_pass2:
+                st.error("Password tidak sama.")
+            elif len(new_pass) < 6:
+                st.error("Password minimal 6 karakter.")
+            else:
+                ok, resp = firebase_sign_up(new_email.strip(), new_pass)
+                if ok:
+                    st.success("Registrasi sukses. Silakan login.")
+                else:
+                    st.error(f"Registrasi gagal: {resp}")
+
     else:
-        register_page()
+        st.header("ℹ️ Info Akun")
+        if st.session_state.authenticated:
+            st.write(f"Anda login sebagai: **{st.session_state.user_email}**")
+            if st.sidebar.button("Logout"):
+                st.session_state.authenticated = False
+                st.session_state.user_email = None
+                st.experimental_rerun()
+        else:
+            st.write("Belum login.")
 
-    st.stop()  # stop agar user harus login dulu
-# jika sampai sini berarti sudah authenticated
+# ---------- IF NOT AUTHENTICATED, SHOW AUTH UI ----------
+if not st.session_state.authenticated:
+    auth_ui()
+    st.stop()
 
-# ---------- MAIN APP ----------
+# ---------- MAIN APP (Authenticated) ----------
 st.sidebar.title("⚙️ Pengaturan")
 if st.sidebar.button("Sign out"):
     st.session_state.authenticated = False
-    st.session_state.user = None
+    st.session_state.user_email = None
     st.experimental_rerun()
 
 st.title("🚢 Freight Calculator Barge")
-st.markdown("Selamat datang — Anda sudah login. Pilih mode dan input parameter di sidebar.")
+st.markdown(f"Selamat datang, **{st.session_state.user_email}** — silakan pilih mode & input parameter di sidebar.")
 
 # ----- Mode selection -----
 mode = st.sidebar.radio("Mode Perhitungan", ["Owner", "Charter"])
 
-# ----- Sidebar inputs (dinamis per mode) -----
 st.sidebar.markdown("---")
 st.sidebar.subheader("⚓ Input Parameter")
 
-# Default port stay values to avoid NameError later
+# set defaults to prevent NameError
 port_stay_pol = 0
 port_stay_pod = 0
 
+# ----- Sidebar inputs (dynamic) -----
 if mode == "Owner":
     speed_laden = st.sidebar.number_input("Speed Laden (knot)", 0.0, format="%.2f")
     speed_ballast = st.sidebar.number_input("Speed Ballast (knot)", 0.0, format="%.2f")
@@ -126,13 +211,12 @@ if st.button("Hitung Freight Cost"):
         sailing_time = (distance_pol_pod / speed_laden) + (distance_pod_pol / speed_ballast)
 
         # Total voyage days & consumption
-        # For Owner we include port stay fuel consumption (use 120 L/h as default)
         if mode == "Owner":
             total_voyage_days = (sailing_time / 24) + (port_stay_pol + port_stay_pod)
             total_consumption = (sailing_time * consumption) + ((port_stay_pol + port_stay_pod) * 120)
         else:
             total_voyage_days = (sailing_time / 24) + (port_stay_pol + port_stay_pod)
-            total_consumption = (sailing_time * consumption)  # charter: no extra port fuel by default
+            total_consumption = (sailing_time * consumption)
 
         bunker_cost = total_consumption * price_bunker
         premi_cost = distance_pol_pod * premi_nm
@@ -193,7 +277,7 @@ if st.button("Hitung Freight Cost"):
         st.write(f"**Total Cost (Rp)**: Rp {total_cost:,.2f}")
         st.write(f"**Freight Cost (Rp/{type_cargo.split()[1]})**: Rp {freight_cost_per_unit:,.2f}")
 
-        # Profit table
+        # ---------- PROFIT TABLE ----------
         st.markdown("### 💰 Tabel Profit (Revenue - Total Cost - PPH)")
         profit_rows = []
         for p in range(0, 55, 5):
