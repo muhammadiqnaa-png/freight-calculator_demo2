@@ -1,233 +1,181 @@
 import streamlit as st
-import requests
-import pandas as pd
-import math
-from io import BytesIO
+import firebase_admin
+from firebase_admin import credentials, auth
 from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.pdfgen import canvas
+import tempfile
+import math
 
-# ===== CONFIG =====
-st.set_page_config(page_title="Freight Calculator Barge", layout="wide")
-API_KEY = st.secrets["FIREBASE_API_KEY"]
+# ===== FIREBASE SETUP =====
+if not firebase_admin._apps:
+    cred = credentials.Certificate("firebase_key.json")  # file key Firebase kamu
+    firebase_admin.initialize_app(cred)
 
-# ===== FIREBASE AUTH =====
-def sign_up(email, password):
-    url = f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={API_KEY}"
-    payload = {"email": email, "password": password, "returnSecureToken": True}
-    res = requests.post(url, json=payload)
-    return res.json()
+# ===== SESSION =====
+if "user" not in st.session_state:
+    st.session_state.user = None
 
-def sign_in(email, password):
-    url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={API_KEY}"
-    payload = {"email": email, "password": password, "returnSecureToken": True}
-    res = requests.post(url, json=payload)
-    return res.json()
+def logout():
+    st.session_state.user = None
+    st.experimental_rerun()
 
 # ===== LOGIN PAGE =====
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+def login_page():
+    st.title("🚢 Freight Calculator Login")
+    st.write("Masuk menggunakan akun Firebase kamu")
 
-if not st.session_state.logged_in:
-    st.title("🔐 Freight Calculator Login")
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
 
-    tab_login, tab_signup = st.tabs(["Login", "Daftar Akun"])
+    if st.button("Login"):
+        try:
+            user = auth.get_user_by_email(email)
+            st.session_state.user = email
+            st.success("Login berhasil ✅")
+            st.experimental_rerun()
+        except Exception as e:
+            st.error("Login gagal. Pastikan email terdaftar.")
 
-    with tab_login:
-        email = st.text_input("Email", key="login_email")
-        password = st.text_input("Password", type="password", key="login_pass")
-        if st.button("Masuk"):
-            res = sign_in(email, password)
-            if "idToken" in res:
-                st.session_state.logged_in = True
-                st.session_state.user_email = res["email"]
-                st.success("Login berhasil!")
-                st.rerun()
-            else:
-                st.error(res.get("error", {}).get("message", "Login gagal."))
+    st.write("---")
+    st.write("Belum punya akun?")
+    if st.button("Daftar"):
+        register_page()
 
-    with tab_signup:
-        email_reg = st.text_input("Email", key="reg_email")
-        password_reg = st.text_input("Password", type="password", key="reg_pass")
-        if st.button("Daftar"):
-            res = sign_up(email_reg, password_reg)
-            if "idToken" in res:
-                st.success("Pendaftaran berhasil! Silakan login.")
-            else:
-                st.error(res.get("error", {}).get("message", "Gagal daftar."))
-    st.stop()
+# ===== REGISTER PAGE =====
+def register_page():
+    st.title("📝 Daftar Akun Baru")
+    email = st.text_input("Email", key="reg_email")
+    password = st.text_input("Password", type="password", key="reg_pass")
 
-# ===== USER INFO BAR =====
-col1, col2 = st.columns([6, 1])
-with col1:
-    st.markdown(f"👋 **Logged in as:** {st.session_state['user_email']}")
-with col2:
-    if st.button("Logout"):
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        st.rerun()
+    if st.button("Buat Akun"):
+        try:
+            auth.create_user(email=email, password=password)
+            st.success("Akun berhasil dibuat! Silakan login.")
+            st.experimental_rerun()
+        except Exception:
+            st.error("Gagal membuat akun. Mungkin email sudah digunakan.")
+
+# ===== PDF EXPORT =====
+def export_pdf(data):
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+    c = canvas.Canvas(tmp.name, pagesize=A4)
+    width, height = A4
+
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(100, height - 50, "🚢 Freight Profit Calculation Report")
+    c.setFont("Helvetica", 11)
+
+    y = height - 100
+    for key, val in data.items():
+        c.drawString(80, y, f"{key}: {val}")
+        y -= 20
+
+    c.save()
+    return tmp.name
 
 # ===== MAIN APP =====
-st.title("🚢 Freight Calculator Barge")
+def main_app():
+    st.title("⚓ Freight Cost & Profit Dashboard")
+    st.markdown("Hitung biaya operasi kapal dan estimasi profit dengan cepat dan mudah 💼")
 
-mode = st.radio("Pilih Mode:", ["Owner", "Charter"], horizontal=True)
+    # ===== SIDEBAR =====
+    st.sidebar.markdown("<h2 style='text-align:center;'>⚙️ Parameter Input</h2>", unsafe_allow_html=True)
+    st.sidebar.markdown("---")
 
-# ===== SIDEBAR =====
-st.sidebar.title("⚙️ Parameter (Bisa Diedit)")
+    mode = st.sidebar.radio("Mode Operasi", ["Owner", "Charter"])
+    st.sidebar.markdown("### ⚓ Voyage Parameter")
+    speed_laden = st.sidebar.number_input("Speed Laden (knot)", 0.0)
+    speed_ballast = st.sidebar.number_input("Speed Ballast (knot)", 0.0)
+    distance_pol_pod = st.sidebar.number_input("Distance POL - POD (NM)", 0.0)
+    distance_pod_pol = st.sidebar.number_input("Distance POD - POL (NM)", 0.0)
 
-speed_laden = st.sidebar.number_input("Speed Laden (knot)", 0.0)
-speed_ballast = st.sidebar.number_input("Speed Ballast (knot)", 0.0)
-consumption = st.sidebar.number_input("Consumption Fuel (liter/jam)", 0)
-price_bunker = st.sidebar.number_input("Price Bunker (Rp/liter)", 0)
-premi_nm = st.sidebar.number_input("Premi (Rp/NM)", 0)
-port_cost_pol = st.sidebar.number_input("Port Cost POL (Rp)", 0)
-port_cost_pod = st.sidebar.number_input("Port Cost POD (Rp)", 0)
-asist_tug = st.sidebar.number_input("Asist Tug (Rp)", 0)
-other_cost = st.sidebar.number_input("Other Cost (Rp)", 0)
-port_stay_pol = st.sidebar.number_input("Port Stay POL (Hari)", 0)
-port_stay_pod = st.sidebar.number_input("Port Stay POD (Hari)", 0)
+    st.sidebar.markdown("### ⛽ Fuel & Bunker")
+    consumption = st.sidebar.number_input("Consumption Fuel (liter/jam)", 0)
+    price_bunker = st.sidebar.number_input("Price Bunker (Rp/liter)", 0)
+    premi_nm = st.sidebar.number_input("Premi (Rp/NM)", 0)
 
-if mode == "Owner":
-    charter = st.sidebar.number_input("Angsuran/Month (Rp)", 0)
-    crew = st.sidebar.number_input("Crew cost/Month (Rp)", 0)
-    insurance = st.sidebar.number_input("Insurance/Month (Rp)", 0)
-    docking = st.sidebar.number_input("Docking-Saving/Month (Rp)", 0)
-    maintenance = st.sidebar.number_input("Maintenance/Month (Rp)", 0)
+    st.sidebar.markdown("### ⚓ Port Cost")
+    port_cost_pol = st.sidebar.number_input("Port Cost POL (Rp)", 0)
+    port_cost_pod = st.sidebar.number_input("Port Cost POD (Rp)", 0)
+    asist_tug = st.sidebar.number_input("Asist Tug (Rp)", 0)
+    other_cost = st.sidebar.number_input("Other Cost (Rp)", 0)
+    port_stay_pol = st.sidebar.number_input("Port Stay POL (Hari)", 0)
+    port_stay_pod = st.sidebar.number_input("Port Stay POD (Hari)", 0)
+
+    # ===== MODE PARAMETER =====
+    if mode == "Owner":
+        st.sidebar.markdown("### 🧾 Fixed Cost (Owner Mode)")
+        charter = st.sidebar.number_input("Angsuran/Month (Rp)", 0)
+        crew = st.sidebar.number_input("Crew cost/Month (Rp)", 0)
+        insurance = st.sidebar.number_input("Insurance/Month (Rp)", 0)
+        docking = st.sidebar.number_input("Docking-Saving/Month (Rp)", 0)
+        maintenance = st.sidebar.number_input("Maintenance/Month (Rp)", 0)
+    else:
+        st.sidebar.markdown("### 🧾 Fixed Cost (Charter Mode)")
+        charter = st.sidebar.number_input("Charter hire/Month (Rp)", 0)
+        crew = insurance = docking = maintenance = 0
+
+    st.sidebar.markdown("---")
+    st.sidebar.button("Logout", on_click=logout)
+
+    # ===== CALCULATION =====
+    sea_time_laden = distance_pol_pod / (speed_laden * 24) if speed_laden > 0 else 0
+    sea_time_ballast = distance_pod_pol / (speed_ballast * 24) if speed_ballast > 0 else 0
+    total_port_stay = port_stay_pol + port_stay_pod
+    total_day = sea_time_laden + sea_time_ballast + total_port_stay
+
+    fuel_cost = (sea_time_laden + sea_time_ballast) * 24 * consumption * price_bunker
+    premi_cost = (distance_pol_pod + distance_pod_pol) * premi_nm
+    port_cost_total = port_cost_pol + port_cost_pod + asist_tug + other_cost
+    fix_cost_monthly = charter + crew + insurance + docking + maintenance
+    fix_cost_voy = fix_cost_monthly * (total_day / 30)
+    total_cost = fuel_cost + premi_cost + port_cost_total + fix_cost_voy
+
+    revenue = st.number_input("Revenue (Rp)", 0)
+    pph = 0.025 * revenue
+    profit = revenue - total_cost - pph
+
+    # ===== OUTPUT DASHBOARD =====
+    st.markdown("## 📊 Hasil Perhitungan")
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric("Total Voyage (Hari)", f"{total_day:.2f}")
+        st.metric("Fuel Cost", f"Rp {fuel_cost:,.0f}")
+        st.metric("Premi", f"Rp {premi_cost:,.0f}")
+
+    with col2:
+        st.metric("Port Cost", f"Rp {port_cost_total:,.0f}")
+        st.metric("Fixed Cost (Prorata)", f"Rp {fix_cost_voy:,.0f}")
+        st.metric("Total Cost", f"Rp {total_cost:,.0f}")
+
+    with col3:
+        st.metric("Revenue", f"Rp {revenue:,.0f}")
+        st.metric("PPh 2.5%", f"Rp {pph:,.0f}")
+        st.metric("💰 Profit", f"Rp {profit:,.0f}")
+
+    # ===== PDF EXPORT =====
+    data = {
+        "Mode": mode,
+        "Total Hari Voyage": f"{total_day:.2f}",
+        "Fuel Cost": f"Rp {fuel_cost:,.0f}",
+        "Premi": f"Rp {premi_cost:,.0f}",
+        "Port Cost": f"Rp {port_cost_total:,.0f}",
+        "Fixed Cost (Prorata)": f"Rp {fix_cost_voy:,.0f}",
+        "Total Cost": f"Rp {total_cost:,.0f}",
+        "Revenue": f"Rp {revenue:,.0f}",
+        "PPh 2.5%": f"Rp {pph:,.0f}",
+        "Profit": f"Rp {profit:,.0f}",
+    }
+
+    if st.button("📄 Download PDF Report"):
+        pdf_path = export_pdf(data)
+        with open(pdf_path, "rb") as f:
+            st.download_button("Download Sekarang", f, file_name="Freight_Report.pdf")
+
+# ===== MAIN CONTROL =====
+if st.session_state.user is None:
+    login_page()
 else:
-    charter = st.sidebar.number_input("Charter hire/Month (Rp)", 0)
-    crew = insurance = docking = maintenance = 0
-
-# ===== INPUT UTAMA =====
-pol = st.text_input("Port of Loading (POL)")
-pod = st.text_input("Port of Discharge (POD)")
-type_cargo = st.selectbox("Type Cargo", ["Pasir (M3)", "Split (MT)", "Coal (MT)", "Nickel (MT)"])
-qyt_cargo = st.number_input("QYT Cargo", 0.0)
-distance_pol_pod = st.number_input("Distance POL - POD (NM)", 0.0)
-distance_pod_pol = st.number_input("Distance POD - POL (NM)", 0.0)
-
-# ===== PERHITUNGAN =====
-if st.button("Hitung Freight Cost"):
-    try:
-        sailing_time = (distance_pol_pod / speed_laden) + (distance_pod_pol / speed_ballast)
-        total_voyage_days = (sailing_time / 24) + (port_stay_pol + port_stay_pod)
-        total_consumption = (sailing_time * consumption) + ((port_stay_pol + port_stay_pod) * 120)
-
-        charter_cost = (charter / 30) * total_voyage_days
-        bunker_cost = total_consumption * price_bunker
-        port_cost = port_cost_pol + port_cost_pod
-        premi_cost = distance_pol_pod * premi_nm
-        crew_cost = (crew / 30) * total_voyage_days
-        insurance_cost = (insurance / 30) * total_voyage_days
-        docking_cost = (docking / 30) * total_voyage_days
-        maintenance_cost = (maintenance / 30) * total_voyage_days
-
-        total_cost = (
-            charter_cost + bunker_cost + port_cost + premi_cost + crew_cost +
-            asist_tug + insurance_cost + docking_cost + maintenance_cost + other_cost
-        )
-
-        freight_cost_mt = total_cost / qyt_cargo if qyt_cargo > 0 else 0
-
-        # ===== DETAIL COST =====
-        st.subheader("📋 Rincian Biaya")
-        st.write(f"**Sailing Time (Hour)**: {sailing_time:,.2f}")
-        st.write(f"**Total Voyage Days**: {total_voyage_days:,.2f}")
-        st.write(f"**Fuel Consumption (liter)**: {total_consumption:,.2f}")
-
-        st.write("### 💰 Variable Cost")
-        st.write(f"- Bunker Cost: Rp {bunker_cost:,.0f}")
-        st.write(f"- Port Cost: Rp {port_cost:,.0f}")
-        st.write(f"- Premi: Rp {premi_cost:,.0f}")
-        st.write(f"- Asist Tug: Rp {asist_tug:,.0f}")
-        st.write(f"- Other Cost: Rp {other_cost:,.0f}")
-
-        st.write("### 🧾 Fixed Cost")
-        st.write(f"- Charter/Angsuran: Rp {charter_cost:,.0f}")
-        st.write(f"- Crew: Rp {crew_cost:,.0f}")
-        st.write(f"- Insurance: Rp {insurance_cost:,.0f}")
-        st.write(f"- Docking: Rp {docking_cost:,.0f}")
-        st.write(f"- Maintenance: Rp {maintenance_cost:,.0f}")
-
-        st.write("### 💵 Total & Freight")
-        st.write(f"**Total Cost (Rp)**: {total_cost:,.2f}")
-        st.write(f"**Freight Cost (Rp/{type_cargo.split()[1]})**: {freight_cost_mt:,.2f}")
-
-        # ===== TABEL PROFIT =====
-        data = []
-        for p in range(0, 55, 5):
-            freight_persen = freight_cost_mt * (1 + p / 100)
-            revenue = freight_persen * qyt_cargo
-            pph = revenue * 0.012
-            profit = revenue - total_cost - pph
-            data.append([f"{p}%", f"{freight_persen:,.2f}", f"{revenue:,.2f}", f"{pph:,.2f}", f"{profit:,.2f}"])
-
-        df_profit = pd.DataFrame(data, columns=["Profit %", "Freight (Rp)", "Revenue (Rp)", "PPH 1.2% (Rp)", "Profit (Rp)"])
-        st.dataframe(df_profit, use_container_width=True)
-
-        # ===== PDF GENERATOR =====
-        def create_pdf():
-            buffer = BytesIO()
-            doc = SimpleDocTemplate(buffer, pagesize=A4)
-            styles = getSampleStyleSheet()
-            elements = []
-
-            elements.append(Paragraph("<b>Freight Calculator Barge</b>", styles['Title']))
-            elements.append(Spacer(1, 12))
-
-            elements.append(Paragraph(f"<b>POL:</b> {pol} | <b>POD:</b> {pod}", styles['Normal']))
-            elements.append(Spacer(1, 12))
-
-            elements.append(Paragraph("<b>Parameter Input</b>", styles['Heading3']))
-            params = [
-                ["Speed Laden", f"{speed_laden} knot"],
-                ["Speed Ballast", f"{speed_ballast} knot"],
-                ["Consumption", f"{consumption} L/h"],
-                ["Price Bunker", f"Rp {price_bunker:,.0f}"],
-                ["Distance POL-POD", f"{distance_pol_pod} NM"],
-                ["Distance POD-POL", f"{distance_pod_pol} NM"],
-                ["QYT Cargo", f"{qyt_cargo} {type_cargo.split()[1]}"]
-            ]
-            t = Table(params, hAlign='LEFT')
-            t.setStyle(TableStyle([("GRID", (0,0), (-1,-1), 0.25, colors.grey)]))
-            elements.append(t)
-            elements.append(Spacer(1, 12))
-
-            elements.append(Paragraph("<b>Hasil Perhitungan</b>", styles['Heading3']))
-            hasil = [
-                ["Sailing Time (Hour)", f"{sailing_time:,.2f}"],
-                ["Total Voyage Days", f"{total_voyage_days:,.2f}"],
-                ["Total Cost (Rp)", f"{total_cost:,.2f}"],
-                ["Freight Cost (Rp/MT)", f"{freight_cost_mt:,.2f}"]
-            ]
-            t2 = Table(hasil, hAlign='LEFT')
-            t2.setStyle(TableStyle([("GRID", (0,0), (-1,-1), 0.25, colors.grey)]))
-            elements.append(t2)
-            elements.append(Spacer(1, 12))
-
-            elements.append(Paragraph("<b>Tabel Profit 0% - 50%</b>", styles['Heading3']))
-            profit_table = [df_profit.columns.to_list()] + df_profit.values.tolist()
-            t3 = Table(profit_table, hAlign='LEFT')
-            t3.setStyle(TableStyle([
-                ("GRID", (0,0), (-1,-1), 0.25, colors.black),
-                ("BACKGROUND", (0,0), (-1,0), colors.lightgrey)
-            ]))
-            elements.append(t3)
-            elements.append(Spacer(1, 18))
-
-            elements.append(Paragraph("<i>Generated by Freight Calculator App - Iqna</i>", styles['Normal']))
-
-            doc.build(elements)
-            buffer.seek(0)
-            return buffer
-
-        pdf_buffer = create_pdf()
-        st.download_button(
-            label="📥 Download PDF Hasil",
-            data=pdf_buffer,
-            file_name="Freight_Calculator_Barge.pdf",
-            mime="application/pdf"
-        )
-
-    except Exception as e:
-        st.error(f"Terjadi kesalahan: {e}")
+    main_app()
