@@ -56,6 +56,7 @@ if not st.session_state.logged_in:
     st.stop()
 
 # ===== MAIN APP =====
+# Tombol logout di sidebar atas
 st.sidebar.markdown("### 👤 Akun")
 st.sidebar.write(f"Login sebagai: **{st.session_state.email}**")
 if st.sidebar.button("🚪 Log Out"):
@@ -80,14 +81,15 @@ if mode == "Owner":
     speed_laden = st.sidebar.number_input("⚓ Speed Laden (knot)", 0.0)
     speed_ballast = st.sidebar.number_input("🌊 Speed Ballast (knot)", 0.0)
     consumption = st.sidebar.number_input("⛽ Consumption Fuel (liter/jam)", 0)
-    price_bunker = st.sidebar.number_input("💸 Price Bunker (Rp/liter)", 0)
+    price_fuel = st.sidebar.number_input("💸 Price Fuel (Rp/liter)", 0)
 
-    st.sidebar.subheader("🏗️ Fixed Cost")
-    charter = st.sidebar.number_input("📆 Angsuran/Month (Rp)", 0)
-    crew = st.sidebar.number_input("👨‍✈️ Crew cost/Month (Rp)", 0)
-    insurance = st.sidebar.number_input("🛡️ Insurance/Month (Rp)", 0)
-    docking = st.sidebar.number_input("⚓ Docking - Saving/Month (Rp)", 0)
-    maintenance = st.sidebar.number_input("🧰 Maintenance/Month (Rp)", 0)
+    st.sidebar.subheader("🏗️ Fixed Cost (Rp/Month)")
+    charter = st.sidebar.number_input("📆 Angsuran (Rp/Month)", 0)
+    crew = st.sidebar.number_input("👨‍✈️ Crew cost (Rp/Month)", 0)
+    insurance = st.sidebar.number_input("🛡️ Insurance (Rp/Month)", 0)
+    docking = st.sidebar.number_input("⚓ Docking - Saving (Rp/Month)", 0)
+    maintenance = st.sidebar.number_input("🧰 Maintenance (Rp/Month)", 0)
+    certificate = st.sidebar.number_input("📜 Certificate (Rp/Month)", 0)
 
     st.sidebar.subheader("⚙️ Variable Cost")
     premi_nm = st.sidebar.number_input("📍 Premi (Rp/NM)", 0)
@@ -97,8 +99,8 @@ if mode == "Owner":
     other_cost = st.sidebar.number_input("💼 Other Cost (Rp)", 0)
 
     st.sidebar.subheader("💧 Freshwater")
-    consumption_freshwater = st.sidebar.number_input("Consumption Freshwater (Ton/Day)", 0.0)
-    price_freshwater = st.sidebar.number_input("Price Freshwater (Rp/Ton)", 0)
+    price_fw = st.sidebar.number_input("Price Freshwater (Rp/Ton)", 0)
+    consumption_fw = st.sidebar.number_input("Consumption Freshwater (Ton/Day)", 0)
 
     st.sidebar.subheader("🕓 Port Stay (Days)")
     port_stay_pol = st.sidebar.number_input("🅿️ POL (Hari)", 0)
@@ -110,10 +112,10 @@ else:
     speed_laden = st.sidebar.number_input("⚓ Speed Laden (knot)", 0.0)
     speed_ballast = st.sidebar.number_input("🌊 Speed Ballast (knot)", 0.0)
     consumption = st.sidebar.number_input("⛽ Consumption Fuel (liter/jam)", 0)
-    price_bunker = st.sidebar.number_input("💸 Price Bunker (Rp/liter)", 0)
+    price_fuel = st.sidebar.number_input("💸 Price Fuel (Rp/liter)", 0)
 
     st.sidebar.subheader("📊 Voyage Cost")
-    charter = st.sidebar.number_input("🚢 Charter hire/Month (Rp)", 0)
+    charter = st.sidebar.number_input("🚢 Charter hire (Rp/Month)", 0)
     premi_nm = st.sidebar.number_input("📍 Premi (Rp/NM)", 0)
     port_cost_pol = st.sidebar.number_input("🏗️ Port Cost POL (Rp)", 0)
     port_cost_pod = st.sidebar.number_input("🏗️ Port Cost POD (Rp)", 0)
@@ -121,8 +123,8 @@ else:
     other_cost = st.sidebar.number_input("💼 Other Cost (Rp)", 0)
 
     st.sidebar.subheader("💧 Freshwater")
-    consumption_freshwater = st.sidebar.number_input("Consumption Freshwater (Ton/Day)", 0.0)
-    price_freshwater = st.sidebar.number_input("Price Freshwater (Rp/Ton)", 0)
+    price_fw = st.sidebar.number_input("Price Freshwater (Rp/Ton)", 0)
+    consumption_fw = st.sidebar.number_input("Consumption Freshwater (Ton/Day)", 0)
 
     st.sidebar.subheader("🕓 Port Stay (Days)")
     port_stay_pol = st.sidebar.number_input("🅿️ POL (Hari)", 0)
@@ -149,14 +151,16 @@ if st.button("Hitung Freight Cost 💸"):
         total_voyage_days = (sailing_time / 24) + (port_stay_pol + port_stay_pod)
         total_consumption = (sailing_time * consumption) + ((port_stay_pol + port_stay_pod) * 120)
 
-        # Freshwater Calculation (pembulatan manual)
-        total_freshwater = int(consumption_freshwater * total_voyage_days)
-        if (consumption_freshwater * total_voyage_days) % 1 >= 0.5:
-            total_freshwater += 1
-        freshwater_cost = total_freshwater * price_freshwater
+        # === Freshwater ===
+        total_consumption_fw = consumption_fw * total_voyage_days
+        total_consumption_fw = math.floor(total_consumption_fw) if total_consumption_fw % 1 < 0.5 else math.ceil(total_consumption_fw)
+        freshwater_cost = total_consumption_fw * price_fw
+
+        # === Certificate ===
+        certificate_cost = (certificate / 30) * total_voyage_days if mode == "Owner" else 0
 
         charter_cost = (charter / 30) * total_voyage_days
-        bunker_cost = total_consumption * price_bunker
+        bunker_cost = total_consumption * price_fuel
         port_cost = port_cost_pol + port_cost_pod
         premi_cost = distance_pol_pod * premi_nm
         crew_cost = (crew / 30) * total_voyage_days if mode == "Owner" else 0
@@ -167,7 +171,7 @@ if st.button("Hitung Freight Cost 💸"):
         total_cost = (
             charter_cost + bunker_cost + port_cost + premi_cost + asist_tug +
             crew_cost + insurance_cost + docking_cost + maintenance_cost +
-            other_cost + freshwater_cost
+            certificate_cost + freshwater_cost + other_cost
         )
 
         freight_cost_mt = total_cost / qyt_cargo if qyt_cargo > 0 else 0
@@ -176,11 +180,13 @@ if st.button("Hitung Freight Cost 💸"):
         st.subheader("📋 Hasil Perhitungan")
         st.write(f"**⏱️ Sailing Time (Hour)**: {sailing_time:,.2f}")
         st.write(f"**📆 Total Voyage Days**: {total_voyage_days:,.2f}")
-        st.write(f"**⛽ Total Consumption (liter)**: {total_consumption:,.2f}")
-        st.write(f"**💧 Total Consumption Freshwater (Ton)**: {total_freshwater:,.2f}")
-        st.write(f"**💰 Freshwater Cost (Rp)**: {freshwater_cost:,.2f}")
+        st.write(f"**⛽ Total Consumption Fuel (liter)**: {total_consumption:,.2f}")
+        st.write(f"**💧 Total Consumption Freshwater (Ton)**: {total_consumption_fw:,.0f}")
         st.write(f"**💰 Total Cost (Rp)**: {total_cost:,.2f}")
         st.write(f"**💵 Freight Cost (Rp/{type_cargo.split()[1]})**: {freight_cost_mt:,.2f}")
+        st.write(f"**💧 Freshwater Cost (Rp)**: {freshwater_cost:,.2f}")
+        if mode == "Owner":
+            st.write(f"📜 Certificate Cost (Rp): {certificate_cost:,.2f}")
 
         # ===== TABEL PROFIT =====
         data = []
@@ -210,14 +216,16 @@ if st.button("Hitung Freight Cost 💸"):
             params = [
                 ["Speed Laden", f"{speed_laden} knot"],
                 ["Speed Ballast", f"{speed_ballast} knot"],
-                ["Consumption", f"{consumption} L/h"],
-                ["Price Bunker", f"Rp {price_bunker:,.0f}"],
-                ["Consumption Freshwater", f"{consumption_freshwater} Ton/Day"],
-                ["Price Freshwater", f"Rp {price_freshwater:,.0f}"],
+                ["Consumption Fuel", f"{consumption} L/h"],
+                ["Price Fuel", f"Rp {price_fuel:,.0f}"],
                 ["Distance POL-POD", f"{distance_pol_pod} NM"],
                 ["Distance POD-POL", f"{distance_pod_pol} NM"],
-                ["QYT Cargo", f"{qyt_cargo} {type_cargo.split()[1]}"]
+                ["QYT Cargo", f"{qyt_cargo} {type_cargo.split()[1]}"],
+                ["Price Freshwater", f"Rp {price_fw:,.0f}/Ton"],
+                ["Consumption Freshwater", f"{consumption_fw} Ton/Day"]
             ]
+            if mode == "Owner":
+                params.append(["Certificate", f"Rp {certificate:,.0f}/Month"])
             t = Table(params, hAlign='LEFT')
             t.setStyle(TableStyle([("GRID", (0,0), (-1,-1), 0.25, colors.grey)]))
             elements.append(t)
@@ -227,11 +235,13 @@ if st.button("Hitung Freight Cost 💸"):
             hasil = [
                 ["Sailing Time (Hour)", f"{sailing_time:,.2f}"],
                 ["Total Voyage Days", f"{total_voyage_days:,.2f}"],
-                ["Total Consumption Freshwater (Ton)", f"{total_freshwater:,.2f}"],
-                ["Freshwater Cost (Rp)", f"{freshwater_cost:,.2f}"],
                 ["Total Cost (Rp)", f"{total_cost:,.2f}"],
-                ["Freight Cost (Rp/MT)", f"{freight_cost_mt:,.2f}"]
+                ["Freight Cost (Rp/MT)", f"{freight_cost_mt:,.2f}"],
+                ["Total Consumption Freshwater (Ton)", f"{total_consumption_fw:,.0f}"],
+                ["Freshwater Cost (Rp)", f"{freshwater_cost:,.2f}"]
             ]
+            if mode == "Owner":
+                hasil.append(["Certificate Cost (Rp)", f"{certificate_cost:,.2f}"])
             t2 = Table(hasil, hAlign='LEFT')
             t2.setStyle(TableStyle([("GRID", (0,0), (-1,-1), 0.25, colors.grey)]))
             elements.append(t2)
