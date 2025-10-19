@@ -301,13 +301,18 @@ if st.button("Calculate Freight 💸"):
             return buffer
 
         pdf_buffer = create_pdf()
-        file_name = f"Freight_Report_{port_pol}_{port_pod}_{datetime.now():%Y%m%d}.pdf"
-        
+
+        # ===== Nama file otomatis: POL_POD_Tanggal =====
+        safe_pol = port_pol.replace(" ", "_") if port_pol else "POL"
+        safe_pod = port_pod.replace(" ", "_") if port_pod else "POD"
+        file_name = f"Freight_Report_{safe_pol}_{safe_pod}_{datetime.now():%Y%m%d}.pdf"
+
         st.download_button(
             label="📥 Download PDF Report",
             data=pdf_buffer,
             file_name=file_name,
             mime="application/pdf"
         )
+
     except Exception as e:
         st.error(f"Error: {e}")
