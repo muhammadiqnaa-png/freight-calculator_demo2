@@ -201,7 +201,7 @@ if st.button("Calculate Freight 💸"):
         st.markdown(f"**🧮 Freight Cost ({type_cargo.split()[1]}):** Rp {freight_cost_mt:,.0f}")
 
         # ===== FREIGHT PRICE CALCULATION DISPLAY =====
-     if freight_price_input > 0:
+   if freight_price_input > 0:
         st.subheader("💰 Freight Price Calculation User")
         st.markdown(f"""
 **Freight Price (Rp/MT):** Rp {freight_price_input:,.0f}  
@@ -268,7 +268,7 @@ if st.button("Calculate Freight 💸"):
             elements.append(Spacer(0.1,0))
 
             # Freight Price Calculation User
-         if freight_price_input > 0:
+       if freight_price_input > 0:
             elements.append(Paragraph("<b>Freight Price Calculation User</b>", styles['Heading3']))
             fpc_data = [
                 ["Freight Price (Rp/MT)", f"Rp {freight_price_input:,.0f}"],
@@ -308,6 +308,7 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 
 
 
