@@ -7,6 +7,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 import requests
+from datetime import datetime
 
 st.set_page_config(page_title="Freight Calculator Barge", layout="wide")
 
@@ -229,7 +230,7 @@ if st.button("Calculate Freight 💸"):
         # ===== PDF GENERATOR =====
         def create_pdf():
             buffer = BytesIO()
-            doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=20,leftMargin=20,topMargin=20,bottomMargin=20)
+            doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=15,leftMargin=15,topMargin=15,bottomMargin=15)
             styles = getSampleStyleSheet()
             elements = []
 
@@ -309,3 +310,4 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
