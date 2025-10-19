@@ -168,31 +168,40 @@ if st.button("Calculate Freight 💸"):
 **Freshwater Cost (Rp):** Rp {cost_fw:,.0f}  
 """)
 
-        if mode=="Owner":
-            st.markdown(f"""
-**Owner Costs (Rp):**  
-- Charter: Rp {charter_cost:,.0f}  
-- Crew: Rp {crew_cost:,.0f}  
-- Insurance: Rp {insurance_cost:,.0f}  
-- Docking: Rp {docking_cost:,.0f}  
-- Maintenance: Rp {maintenance_cost:,.0f}  
-- Certificate: Rp {certificate_cost:,.0f}  
-- Premi: Rp {premi_cost:,.0f}  
-- Port Costs: Rp {port_cost:,.0f}  
-- Other Costs: Rp {other_cost:,.0f}  
-**🧮Total Cost:** Rp {total_cost:,.0f}  
-**🧮Freight Cost ({type_cargo.split()[1]}):** Rp {freight_cost_mt:,.0f}
-""")
-        else:
-            st.markdown(f"""
-**Charter Costs (Rp):**  
-- Charter Hire: Rp {charter_cost:,.0f}  
-- Premi: Rp {premi_cost:,.0f}  
-- Port Costs: Rp {port_cost:,.0f}  
-- Other Costs: Rp {other_cost:,.0f}  
-**🧮Total Cost:** Rp {total_cost:,.0f}  
-**🧮Freight Cost ({type_cargo.split()[1]}):** Rp {freight_cost_mt:,.0f}
-""")
+if mode == "Owner":
+    st.markdown("### 🏗️ Owner Costs Summary")
+    owner_data = {
+        "Charter": charter_cost,
+        "Crew": crew_cost,
+        "Insurance": insurance_cost,
+        "Docking": docking_cost,
+        "Maintenance": maintenance_cost,
+        "Certificate": certificate_cost,
+        "Premi": premi_cost,
+        "Port Costs": port_cost,
+        "Other Costs": other_cost
+    }
+
+    for k, v in owner_data.items():
+        st.markdown(f"- {k}: Rp {v:,.0f}")
+
+    st.markdown(f"**🧮 Total Cost:** Rp {total_cost:,.0f}")
+    st.markdown(f"**🧮 Freight Cost ({type_cargo.split()[1]}):** Rp {freight_cost_mt:,.0f}")
+
+else:
+    st.markdown("### 🏗️ Charter Costs Summary")
+    charter_data = {
+        "Charter Hire": charter_cost,
+        "Premi": premi_cost,
+        "Port Costs": port_cost,
+        "Other Costs": other_cost
+    }
+
+    for k, v in charter_data.items():
+        st.markdown(f"- {k}: Rp {v:,.0f}")
+
+    st.markdown(f"**🧮 Total Cost:** Rp {total_cost:,.0f}")
+    st.markdown(f"**🧮 Freight Cost ({type_cargo.split()[1]}):** Rp {freight_cost_mt:,.0f}")
 
         # ===== PROFIT SCENARIO =====
         data = []
@@ -294,3 +303,4 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
