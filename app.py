@@ -266,7 +266,6 @@ if st.button("Calculate Freight 💸"):
             elements.append(Spacer(0.1,0))
 
             # Freight Price Calculation User
-            if freight_price_input > 0:
             elements.append(Paragraph("<b>Freight Price Calculation User</b>", styles['Heading3']))
             fpc_data = [
                 ["Freight Price (Rp/MT)", f"Rp {freight_price_input:,.0f}"],
@@ -306,26 +305,3 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
