@@ -277,7 +277,7 @@ if st.button("Calculate Freight 💸"):
             t_fpc = Table(fpc_data, hAlign='LEFT', colWidths=[180,120])
             t_fpc.setStyle(TableStyle([("GRID",(0,0),(-1,-1),0.25,colors.black)]))
             elements.append(t_fpc)
-            elements.append(Spacer(0.1,0))
+            elements.append(Spacer(0,0))
 
             # Profit Scenario
             elements.append(Paragraph("<b>Profit Scenario 0-50%</b>", styles['Heading3']))
@@ -305,6 +305,7 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 
 
 
