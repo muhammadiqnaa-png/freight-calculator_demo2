@@ -81,7 +81,7 @@ with st.sidebar.expander("💧 Freshwater"):
 
 if mode == "Owner":
     with st.sidebar.expander("🏗️ Owner Cost"):
-        angsuran = st.number_input("Angsuran (Rp/Month)", 0)
+        charter = st.number_input("Angsuran (Rp/Month)", 0)
         crew = st.number_input("Crew (Rp/Month)", 0)
         insurance = st.number_input("Insurance (Rp/Month)", 0)
         docking = st.number_input("Docking (Rp/Month)", 0)
@@ -119,7 +119,7 @@ type_cargo = st.selectbox("Type Cargo", ["Bauxite (M3)", "Sand (M3)", "Coal (MT)
 qyt_cargo = st.number_input("Cargo Quantity", 0.0)
 distance_pol_pod = st.number_input("Distance POL - POD (NM)", 0.0)
 distance_pod_pol = st.number_input("Distance POD - POL (NM)", 0.0)
-freight_price_input = st.number_input("Freight Price (Rp/MT or Rp/M3)", 0.0)
+freight_price_input = st.number_input("Freight Price (Rp/MT)", 0.0)
 
 # ===== PERHITUNGAN =====
 if st.button("Calculate Freight 💸"):
@@ -136,7 +136,7 @@ if st.button("Calculate Freight 💸"):
         cost_fuel = total_consumption_fuel * price_fuel
 
         # Costs
-        charter_cost = (angsuran / 30) * total_voyage_days if mode=="Owner" else (charter / 30) * total_voyage_days
+        charter_cost = (charter / 30) * total_voyage_days
         crew_cost = (crew /30) * total_voyage_days if mode=="Owner" else 0
         insurance_cost = (insurance /30)* total_voyage_days if mode=="Owner" else 0
         docking_cost = (docking /30)* total_voyage_days if mode=="Owner" else 0
@@ -152,11 +152,11 @@ if st.button("Calculate Freight 💸"):
 
         freight_cost_mt = total_cost / qyt_cargo if qyt_cargo>0 else 0
 
-        # Revenue, PPH, Profit based on user input Freight Price
-        revenue_input = freight_price_input * qyt_cargo
-        pph_input = revenue_input * 0.012
-        profit_input = revenue_input - total_cost - pph_input
-        profit_percent_input = (profit_input / total_cost * 100) if total_cost>0 else 0
+        # ===== CALC FREIGHT PRICE =====
+        revenue = freight_price_input * qyt_cargo
+        pph = revenue * 0.012
+        profit = revenue - total_cost - pph
+        profit_percent = (profit / total_cost * 100) if total_cost>0 else 0
 
         # ===== DISPLAY RESULTS =====
         st.subheader("📋 Calculation Results")
@@ -173,9 +173,15 @@ if st.button("Calculate Freight 💸"):
 **Total Consumption Freshwater (Ton):** {total_consumption_fw:,.0f}  
 **Fuel Cost (Rp):** Rp {cost_fuel:,.0f}  
 **Freshwater Cost (Rp):** Rp {cost_fw:,.0f}  
-**Revenue Based on Input Freight Price:** Rp {revenue_input:,.0f}  
-**PPH 1.2%:** Rp {pph_input:,.0f}  
-**Profit:** Rp {profit_input:,.0f} ({profit_percent_input:.2f}%)
+""")
+
+        st.subheader("💵 Freight Price Calculation")
+        st.markdown(f"""
+**Freight Price (Rp/MT):** Rp {freight_price_input:,.0f}  
+**Revenue:** Rp {revenue:,.0f}  
+**PPH 1.2%:** Rp {pph:,.0f}  
+**Profit:** Rp {profit:,.0f}  
+**Profit %:** {profit_percent:.2f} %
 """)
 
         # ===== DISPLAY COSTS =====
@@ -218,16 +224,16 @@ if st.button("Calculate Freight 💸"):
         data = []
         for p in range(0,55,5):
             freight_persen = freight_cost_mt*(1+p/100)
-            revenue = freight_persen*qyt_cargo
-            pph = revenue*0.012
-            profit = revenue - total_cost - pph
-            data.append([f"{p}%", f"Rp {freight_persen:,.0f}", f"Rp {revenue:,.0f}", f"Rp {pph:,.0f}", f"Rp {profit:,.0f}"])
+            revenue_s = freight_persen*qyt_cargo
+            pph_s = revenue_s*0.012
+            profit_s = revenue_s - total_cost - pph_s
+            data.append([f"{p}%", f"Rp {freight_persen:,.0f}", f"Rp {revenue_s:,.0f}", f"Rp {pph_s:,.0f}", f"Rp {profit_s:,.0f}"])
         df_profit = pd.DataFrame(data, columns=["Profit %","Freight (Rp)","Revenue (Rp)","PPH 1.2% (Rp)","Profit (Rp)"])
         st.subheader("💰 Profit Scenario 0-50%")
         st.dataframe(df_profit, use_container_width=True)
 
         # ===== PDF GENERATOR =====
-        def create_pdf():
+        def create_pdf_elegan():
             buffer = BytesIO()
             doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=20,leftMargin=20,topMargin=20,bottomMargin=20)
             styles = getSampleStyleSheet()
@@ -252,6 +258,20 @@ if st.button("Calculate Freight 💸"):
             elements.append(t_voyage)
             elements.append(Spacer(1,12))
 
+            # Freight Price Calculation
+            elements.append(Paragraph("<b>Freight Price Calculation</b>", styles['Heading3']))
+            freight_data = [
+                ["Freight Price (Rp/MT)", f"Rp {freight_price_input:,.0f}"],
+                ["Revenue", f"Rp {revenue:,.0f}"],
+                ["PPH 1.2%", f"Rp {pph:,.0f}"],
+                ["Profit", f"Rp {profit:,.0f}"],
+                ["Profit %", f"{profit_percent:.2f} %"]
+            ]
+            t_freight = Table(freight_data, hAlign='LEFT', colWidths=[180,150])
+            t_freight.setStyle(TableStyle([("GRID",(0,0),(-1,-1),0.25,colors.black)]))
+            elements.append(t_freight)
+            elements.append(Spacer(1,12))
+
             # Calculation Results
             elements.append(Paragraph("<b>Calculation Results</b>", styles['Heading3']))
             calc_data = [
@@ -259,10 +279,7 @@ if st.button("Calculate Freight 💸"):
                 ["Total Consumption Fuel (Ltr)", f"{total_consumption_fuel:,.0f} Ltr"],
                 ["Total Consumption Freshwater (Ton)", f"{total_consumption_fw:,.0f} Ton"],
                 ["Fuel Cost (Rp)", f"Rp {cost_fuel:,.0f}"],
-                ["Freshwater Cost (Rp)", f"Rp {cost_fw:,.0f}"],
-                ["Revenue Based on Input Freight Price", f"Rp {revenue_input:,.0f}"],
-                ["PPH 1.2%", f"Rp {pph_input:,.0f}"],
-                ["Profit", f"Rp {profit_input:,.0f} ({profit_percent_input:.2f}%)"]
+                ["Freshwater Cost (Rp)", f"Rp {cost_fw:,.0f}"]
             ]
             if mode=="Owner":
                 calc_data += [
@@ -307,7 +324,7 @@ if st.button("Calculate Freight 💸"):
             buffer.seek(0)
             return buffer
 
-        pdf_buffer = create_pdf()
+        pdf_buffer = create_pdf_elegan()
         st.download_button(
             label="📥 Download PDF Report",
             data=pdf_buffer,
