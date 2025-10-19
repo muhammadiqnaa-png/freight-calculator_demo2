@@ -206,93 +206,100 @@ if st.button("Calculate Freight 💸"):
         st.subheader("💰 Profit Scenario 0-50%")
         st.dataframe(df_profit, use_container_width=True)
 
-        # ===== PDF GENERATOR =====
-        def create_pdf():
-            buffer = BytesIO()
-            doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=20,leftMargin=20,topMargin=20,bottomMargin=20)
-            styles = getSampleStyleSheet()
-            elements = []
+       # ===== PDF GENERATOR =====
+def create_pdf():
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=30, rightMargin=30, topMargin=30, bottomMargin=30)
+    styles = getSampleStyleSheet()
+    elements = []
 
-            # Title
-            elements.append(Paragraph("<b>Freight Calculator Report</b>", styles['Title']))
-            elements.append(Spacer(1,12))
+    # ===== Title =====
+    elements.append(Paragraph("<b><font size=14>Freight Calculator Report</font></b>", styles['Title']))
+    elements.append(Spacer(1, 12))
 
-            # Voyage Information
-            elements.append(Paragraph("<b>Voyage Information</b>", styles['Heading3']))
-            voyage_data = [
-                ["Port Of Loading", port_pol],
-                ["Port Of Discharge", port_pod],
-                ["Next Port", next_port],
-                ["Cargo Quantity", f"{qyt_cargo:,.0f} {type_cargo.split()[1]}"],
-                ["Distance (NM)", f"{distance_pol_pod:,.0f}"],
-                ["Total Voyage (Days)", f"{total_voyage_days:.2f}"]
-            ]
-            t_voyage = Table(voyage_data, hAlign='LEFT')
-            t_voyage.setStyle(TableStyle([("GRID",(0,0),(-1,-1),0.25,colors.black)]))
-            elements.append(t_voyage)
-            elements.append(Spacer(1,12))
+    # ===== Voyage Information =====
+    elements.append(Paragraph("<b>Voyage Information</b>", styles['Heading3']))
+    voyage_info = [
+        ["Port of Loading", port_pol],
+        ["Port of Discharge", port_pod],
+        ["Next Port", ""],
+        ["Cargo Quantity", f"{qyt_cargo:,.0f} {type_cargo.split()[1]}"],
+        ["Distance (NM)", f"{distance_pol_pod:,.0f}"]
+    ]
+    t1 = Table(voyage_info, hAlign='LEFT', colWidths=[150, 200])
+    t1.setStyle(TableStyle([
+        ("GRID", (0,0), (-1,-1), 0.25, colors.black),
+        ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+        ("ALIGN", (1,0), (-1,-1), "RIGHT")
+    ]))
+    elements.append(t1)
+    elements.append(Spacer(1, 12))
 
-            # Calculation Results
-            elements.append(Paragraph("<b>Calculation Results</b>", styles['Heading3']))
-            calc_data = [
-                ["Total Sailing Time (Hour)", f"{sailing_time:.2f}"],
-                ["Total Consumption Fuel (Ltr)", f"{total_consumption_fuel:,.0f}"],
-                ["Total Consumption Freshwater (Ton)", f"{total_consumption_fw:,.0f}"],
-                ["Fuel Cost (Rp)", f"Rp {cost_fuel:,.0f}"],
-                ["Freshwater Cost (Rp)", f"Rp {cost_fw:,.0f}"]
-            ]
-            if mode=="Owner":
-                calc_data += [
-                    ["Charter (Rp)", f"Rp {charter_cost:,.0f}"],
-                    ["Crew (Rp)", f"Rp {crew_cost:,.0f}"],
-                    ["Insurance (Rp)", f"Rp {insurance_cost:,.0f}"],
-                    ["Docking (Rp)", f"Rp {docking_cost:,.0f}"],
-                    ["Maintenance (Rp)", f"Rp {maintenance_cost:,.0f}"],
-                    ["Certificate (Rp)", f"Rp {certificate_cost:,.0f}"],
-                    ["Premi (Rp)", f"Rp {premi_cost:,.0f}"],
-                    ["Port Costs (Rp)", f"Rp {port_cost:,.0f}"],
-                    ["Other Costs (Rp)", f"Rp {other_cost:,.0f}"],
-                    ["Total Cost (Rp)", f"Rp {total_cost:,.0f}"],
-                    [f"Freight Cost ({type_cargo.split()[1]})", f"Rp {freight_cost_mt:,.0f}"]
-                ]
-            else:
-                calc_data += [
-                    ["Charter Hire (Rp)", f"Rp {charter_cost:,.0f}"],
-                    ["Premi (Rp)", f"Rp {premi_cost:,.0f}"],
-                    ["Port Costs (Rp)", f"Rp {port_cost:,.0f}"],
-                    ["Other Costs (Rp)", f"Rp {other_cost:,.0f}"],
-                    ["Total Cost (Rp)", f"Rp {total_cost:,.0f}"],
-                    [f"Freight Cost ({type_cargo.split()[1]})", f"Rp {freight_cost_mt:,.0f}"]
-                ]
-            t_calc = Table(calc_data, hAlign='LEFT', colWidths=[180,120])
-            t_calc.setStyle(TableStyle([("GRID",(0,0),(-1,-1),0.25,colors.black)]))
-            elements.append(t_calc)
-            elements.append(Spacer(1,12))
+    # ===== Calculation Results =====
+    elements.append(Paragraph("<b>Calculation Results</b>", styles['Heading3']))
+    calc_results = [
+        ["Total Voyage (Days)", f"{total_voyage_days:,.0f}"],
+        ["Sailing Time (Hour)", f"{sailing_time:,.0f}"],
+        ["Total Consumption Fuel (Ltr)", f"{total_consumption:,.0f}"],
+        ["Total Consumption Freshwater (Ton)", f"{total_consumption_fw:,.0f}"],
+        ["Freshwater Cost (Rp)", f"{freshwater_cost:,.0f}"],
+        ["Charter Cost (Rp)", f"{charter_cost:,.0f}"] if mode=="Charter" else None,
+        ["Angsuran (Rp)", f"{charter_cost:,.0f}"] if mode=="Owner" else None,
+        ["Crew Cost (Rp)", f"{crew_cost:,.0f}"] if mode=="Owner" else None,
+        ["Insurance Cost (Rp)", f"{insurance_cost:,.0f}"] if mode=="Owner" else None,
+        ["Docking Cost (Rp)", f"{docking_cost:,.0f}"] if mode=="Owner" else None,
+        ["Maintenance Cost (Rp)", f"{maintenance_cost:,.0f}"] if mode=="Owner" else None,
+        ["Certificate (Rp)", f"{certificate_cost:,.0f}"] if mode=="Owner" else None,
+        ["Premium Cost (Rp)", f"{premi_cost:,.0f}"],
+        ["Port Cost POL (Rp)", f"{port_cost_pol:,.0f}"],
+        ["Port Cost POD (Rp)", f"{port_cost_pod:,.0f}"],
+        ["Asist Tug (Rp)", f"{asist_tug:,.0f}"],
+        ["Other Cost (Rp)", f"{other_cost:,.0f}"],
+        ["Total Cost (Rp)", f"<b>{total_cost:,.0f}</b>"],
+        [f"Freight Cost (Rp/{type_cargo.split()[1]})", f"<b>{freight_cost_mt:,.0f}</b>"]
+    ]
+    # Filter out None rows
+    calc_results = [row for row in calc_results if row]
+    t2 = Table(calc_results, hAlign='LEFT', colWidths=[200, 150])
+    t2.setStyle(TableStyle([
+        ("GRID", (0,0), (-1,-1), 0.25, colors.black),
+        ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+        ("ALIGN", (1,0), (-1,-1), "RIGHT")
+    ]))
+    elements.append(t2)
+    elements.append(Spacer(1, 12))
 
-            # Profit Scenario
-            elements.append(Paragraph("<b>Profit Scenario 0-50%</b>", styles['Heading3']))
-            profit_table = [df_profit.columns.to_list()] + df_profit.values.tolist()
-            t_profit = Table(profit_table, hAlign='LEFT', colWidths=[60,100,100,100,100])
-            t_profit.setStyle(TableStyle([("GRID",(0,0),(-1,-1),0.25,colors.black)]))
-            elements.append(t_profit)
-            elements.append(Spacer(1,12))
+    # ===== Profit Scenario =====
+    elements.append(Paragraph("<b>Profit Scenario 0-50%</b>", styles['Heading3']))
+    profit_table = [df_profit.columns.to_list()] + df_profit.values.tolist()
+    t3 = Table(profit_table, hAlign='LEFT', colWidths=[80, 100, 100, 100, 100])
+    t3.setStyle(TableStyle([
+        ("GRID", (0,0), (-1,-1), 0.25, colors.black),
+        ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+        ("ALIGN", (1,1), (-1,-1), "RIGHT"),
+        ("BACKGROUND", (0,0), (-1,0), colors.lightgrey)
+    ]))
+    elements.append(t3)
+    elements.append(Spacer(1, 18))
 
-            # Footer
-            elements.append(Paragraph("<i>Generated By: https://freight-calculatordemo2.streamlit.app/</i>", styles['Normal']))
+    # ===== Footer =====
+    elements.append(Paragraph("<i>Generated By: https://freight-calculatordemo2.streamlit.app/</i>", styles['Normal']))
 
-            doc.build(elements)
-            buffer.seek(0)
-            return buffer
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer
 
-        pdf_buffer = create_pdf()
-        st.download_button(
-            label="📥 Download PDF Report",
-            data=pdf_buffer,
-            file_name="Freight_Calculator_Report.pdf",
-            mime="application/pdf"
-        )
+# ===== Download PDF Button =====
+pdf_buffer = create_pdf()
+st.download_button(
+    label="📥 Download PDF Report",
+    data=pdf_buffer,
+    file_name="Freight_Calculator_Report.pdf",
+    mime="application/pdf"
+)
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 
 
