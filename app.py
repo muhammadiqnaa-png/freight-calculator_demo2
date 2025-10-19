@@ -288,7 +288,7 @@ if st.button("Calculate Freight 💸"):
             # Profit Scenario
             elements.append(Paragraph("<b>Profit Scenario 0-50%</b>", styles['Heading3']))
             profit_table = [df_profit.columns.to_list()] + df_profit.values.tolist()
-            t_profit = Table(profit_table, hAlign='LEFT', colWidths=[60,100,100,100,100])
+            t_profit = Table(profit_table, hAlign='LEFT', colWidths=[100,100,100,100,100])
             t_profit.setStyle(TableStyle([("GRID",(0,0),(-1,-1),0.25,colors.black)]))
             elements.append(t_profit)
             elements.append(Spacer(1,2))
@@ -311,6 +311,7 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 
 
 
