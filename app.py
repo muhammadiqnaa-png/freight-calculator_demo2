@@ -303,9 +303,49 @@ if st.button("Calculate Freight 💸"):
             file_name=file_name,
             mime="application/pdf"
         )
+        # ===== IMAGE GENERATOR =====
+        def create_image():
+            fig, ax = plt.subplots(figsize=(8, 6))
+            ax.axis('tight')
+            ax.axis('off')
 
+            img_data = [
+                ["Port Of Loading", port_pol],
+                ["Port Of Discharge", port_pod],
+                ["Next Port", next_port],
+                ["Cargo Quantity", f"{qyt_cargo:,.0f} {type_cargo.split()[1]}"],
+                ["Total Cost (Rp)", f"Rp {total_cost:,.0f}"],
+                [f"Freight Cost ({type_cargo.split()[1]})", f"Rp {freight_cost_mt:,.0f}"],
+                ["Freight Price (Rp/MT)", f"Rp {freight_price_input:,.0f}"],
+                ["Revenue", f"Rp {revenue_user:,.0f}"],
+                ["PPH 1.2%", f"Rp {pph_user:,.0f}"],
+                ["Profit", f"Rp {profit_user:,.0f}"],
+                ["Profit %", f"{profit_percent_user:.2f} %"]
+            ]
+
+            table = ax.table(cellText=img_data, colLabels=None, loc='center', cellLoc='left')
+            table.auto_set_font_size(False)
+            table.set_fontsize(12)
+            table.auto_set_column_width([0,1])
+
+            img_buffer = BytesIO()
+            plt.savefig(img_buffer, format='png', bbox_inches='tight')
+            img_buffer.seek(0)
+            plt.close(fig)
+            return img_buffer
+
+        img_buffer = create_image()
+        st.image(img_buffer, caption="📊 Freight Calculation Summary", use_column_width=True)
+        st.download_button(
+            label=f"📥 Download Image Report {port_pol}-{port_pod}",
+            data=img_buffer,
+            file_name=f"Freight_Report_{port_pol}_{port_pod}.png",
+            mime="image/png"
+        )
+    
     except Exception as e:
         st.error(f"Error: {e}")
+
 
 
 
