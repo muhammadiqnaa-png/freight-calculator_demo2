@@ -180,8 +180,8 @@ if st.button("Calculate Freight 💸"):
 - Premi: Rp {premi_cost:,.0f}  
 - Port Costs: Rp {port_cost:,.0f}  
 - Other Costs: Rp {other_cost:,.0f}  
-**Total Cost:** Rp {total_cost:,.0f}  
-**Freight Cost ({type_cargo.split()[1]}):** Rp {freight_cost_mt:,.0f}
+**🧮Total Cost:** Rp {total_cost:,.0f}  
+**🧮Freight Cost ({type_cargo.split()[1]}):** Rp {freight_cost_mt:,.0f}
 """)
         else:
             st.markdown(f"""
@@ -190,8 +190,8 @@ if st.button("Calculate Freight 💸"):
 - Premi: Rp {premi_cost:,.0f}  
 - Port Costs: Rp {port_cost:,.0f}  
 - Other Costs: Rp {other_cost:,.0f}  
-**Total Cost:** Rp {total_cost:,.0f}  
-**Freight Cost ({type_cargo.split()[1]}):** Rp {freight_cost_mt:,.0f}
+**🧮Total Cost:** Rp {total_cost:,.0f}  
+**🧮Freight Cost ({type_cargo.split()[1]}):** Rp {freight_cost_mt:,.0f}
 """)
 
         # ===== PROFIT SCENARIO =====
@@ -294,3 +294,4 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
