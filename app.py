@@ -81,7 +81,7 @@ with st.sidebar.expander("💧 Freshwater"):
 
 if mode == "Owner":
     with st.sidebar.expander("🏗️ Owner Cost"):
-        charter = st.number_input("Angsuran (Rp/Month)", 0)
+        angsuran = st.number_input("Angsuran (Rp/Month)", 0)
         crew = st.number_input("Crew (Rp/Month)", 0)
         insurance = st.number_input("Insurance (Rp/Month)", 0)
         docking = st.number_input("Docking (Rp/Month)", 0)
@@ -119,9 +119,7 @@ type_cargo = st.selectbox("Type Cargo", ["Bauxite (M3)", "Sand (M3)", "Coal (MT)
 qyt_cargo = st.number_input("Cargo Quantity", 0.0)
 distance_pol_pod = st.number_input("Distance POL - POD (NM)", 0.0)
 distance_pod_pol = st.number_input("Distance POD - POL (NM)", 0.0)
-
-# ===== Optional Freight Price Input =====
-freight_input = st.number_input("Optional Freight Price (Rp/MT)", min_value=0.0, value=0.0)
+freight_price_input = st.number_input("Freight Price (Rp/MT or Rp/M3)", 0.0)
 
 # ===== PERHITUNGAN =====
 if st.button("Calculate Freight 💸"):
@@ -138,7 +136,7 @@ if st.button("Calculate Freight 💸"):
         cost_fuel = total_consumption_fuel * price_fuel
 
         # Costs
-        charter_cost = (charter / 30) * total_voyage_days
+        charter_cost = (angsuran / 30) * total_voyage_days if mode=="Owner" else (charter / 30) * total_voyage_days
         crew_cost = (crew /30) * total_voyage_days if mode=="Owner" else 0
         insurance_cost = (insurance /30)* total_voyage_days if mode=="Owner" else 0
         docking_cost = (docking /30)* total_voyage_days if mode=="Owner" else 0
@@ -153,6 +151,12 @@ if st.button("Calculate Freight 💸"):
         ])
 
         freight_cost_mt = total_cost / qyt_cargo if qyt_cargo>0 else 0
+
+        # Revenue, PPH, Profit based on user input Freight Price
+        revenue_input = freight_price_input * qyt_cargo
+        pph_input = revenue_input * 0.012
+        profit_input = revenue_input - total_cost - pph_input
+        profit_percent_input = (profit_input / total_cost * 100) if total_cost>0 else 0
 
         # ===== DISPLAY RESULTS =====
         st.subheader("📋 Calculation Results")
@@ -169,13 +173,16 @@ if st.button("Calculate Freight 💸"):
 **Total Consumption Freshwater (Ton):** {total_consumption_fw:,.0f}  
 **Fuel Cost (Rp):** Rp {cost_fuel:,.0f}  
 **Freshwater Cost (Rp):** Rp {cost_fw:,.0f}  
+**Revenue Based on Input Freight Price:** Rp {revenue_input:,.0f}  
+**PPH 1.2%:** Rp {pph_input:,.0f}  
+**Profit:** Rp {profit_input:,.0f} ({profit_percent_input:.2f}%)
 """)
 
         # ===== DISPLAY COSTS =====
         if mode == "Owner":
             st.markdown("### 🏗️ Owner Costs Summary")
             owner_data = {
-                "Charter": charter_cost,
+                "Angsuran": charter_cost,
                 "Crew": crew_cost,
                 "Insurance": insurance_cost,
                 "Docking": docking_cost,
@@ -207,23 +214,7 @@ if st.button("Calculate Freight 💸"):
             st.markdown(f"**🧮 Total Cost:** Rp {total_cost:,.0f}")
             st.markdown(f"**🧮 Freight Cost ({type_cargo.split()[1]}):** Rp {freight_cost_mt:,.0f}")
 
-        # ===== Optional Freight Price Scenario =====
-        if freight_input > 0 and qyt_cargo > 0:
-            revenue_input = freight_input * qyt_cargo
-            pph_input = revenue_input * 0.012
-            profit_input = revenue_input - total_cost - pph_input
-            profit_percent_input = (profit_input / total_cost) * 100 if total_cost > 0 else 0
-
-            st.subheader("💰 Freight Price Scenario (Based on Input)")
-            st.markdown(f"""
-**Input Freight Price:** Rp {freight_input:,.0f}/MT  
-**Revenue:** Rp {revenue_input:,.0f}  
-**PPH 1.2%:** Rp {pph_input:,.0f}  
-**Profit:** Rp {profit_input:,.0f}  
-**Profit %:** {profit_percent_input:.2f}%
-""")
-
-        # ===== PROFIT SCENARIO 0-50% =====
+        # ===== PROFIT SCENARIO =====
         data = []
         for p in range(0,55,5):
             freight_persen = freight_cost_mt*(1+p/100)
@@ -268,11 +259,14 @@ if st.button("Calculate Freight 💸"):
                 ["Total Consumption Fuel (Ltr)", f"{total_consumption_fuel:,.0f} Ltr"],
                 ["Total Consumption Freshwater (Ton)", f"{total_consumption_fw:,.0f} Ton"],
                 ["Fuel Cost (Rp)", f"Rp {cost_fuel:,.0f}"],
-                ["Freshwater Cost (Rp)", f"Rp {cost_fw:,.0f}"]
+                ["Freshwater Cost (Rp)", f"Rp {cost_fw:,.0f}"],
+                ["Revenue Based on Input Freight Price", f"Rp {revenue_input:,.0f}"],
+                ["PPH 1.2%", f"Rp {pph_input:,.0f}"],
+                ["Profit", f"Rp {profit_input:,.0f} ({profit_percent_input:.2f}%)"]
             ]
             if mode=="Owner":
                 calc_data += [
-                    ["Charter (Rp)", f"Rp {charter_cost:,.0f}"],
+                    ["Angsuran (Rp)", f"Rp {charter_cost:,.0f}"],
                     ["Crew (Rp)", f"Rp {crew_cost:,.0f}"],
                     ["Insurance (Rp)", f"Rp {insurance_cost:,.0f}"],
                     ["Docking (Rp)", f"Rp {docking_cost:,.0f}"],
@@ -297,21 +291,6 @@ if st.button("Calculate Freight 💸"):
             t_calc.setStyle(TableStyle([("GRID",(0,0),(-1,-1),0.25,colors.black)]))
             elements.append(t_calc)
             elements.append(Spacer(1,12))
-
-            # Optional Freight Price Scenario in PDF
-            if freight_input > 0 and qyt_cargo > 0:
-                elements.append(Paragraph("<b>Freight Price Scenario (Based on Input)</b>", styles['Heading3']))
-                price_data = [
-                    ["Input Freight Price (Rp/MT)", f"Rp {freight_input:,.0f}"],
-                    ["Revenue (Rp)", f"Rp {revenue_input:,.0f}"],
-                    ["PPH 1.2% (Rp)", f"Rp {pph_input:,.0f}"],
-                    ["Profit (Rp)", f"Rp {profit_input:,.0f}"],
-                    ["Profit %", f"{profit_percent_input:.2f}%"]
-                ]
-                t_price = Table(price_data, hAlign='LEFT', colWidths=[180,120])
-                t_price.setStyle(TableStyle([("GRID",(0,0),(-1,-1),0.25,colors.black)]))
-                elements.append(t_price)
-                elements.append(Spacer(1,12))
 
             # Profit Scenario
             elements.append(Paragraph("<b>Profit Scenario 0-50%</b>", styles['Heading3']))
