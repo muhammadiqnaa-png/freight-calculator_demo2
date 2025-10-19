@@ -230,7 +230,7 @@ if st.button("Calculate Freight 💸"):
         # ===== PDF GENERATOR =====
         def create_pdf():
             buffer = BytesIO()
-            doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=15,leftMargin=15,topMargin=15,bottomMargin=15)
+            doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=10,leftMargin=10,topMargin=10,bottomMargin=10)
             styles = getSampleStyleSheet()
             elements = []
 
@@ -311,5 +311,6 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 
 
