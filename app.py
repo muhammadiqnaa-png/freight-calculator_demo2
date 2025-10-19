@@ -119,9 +119,7 @@ type_cargo = st.selectbox("Type Cargo", ["Bauxite (M3)", "Sand (M3)", "Coal (MT)
 qyt_cargo = st.number_input("Cargo Quantity", 0.0)
 distance_pol_pod = st.number_input("Distance POL - POD (NM)", 0.0)
 distance_pod_pol = st.number_input("Distance POD - POL (NM)", 0.0)
-
-# ===== Freight Price Input =====
-freight_price_input = st.number_input("Freight Price (Rp/MT)", 0.0)
+freight_price_input = st.number_input("Freight Price (Rp/MT)", 0)
 
 # ===== PERHITUNGAN =====
 if st.button("Calculate Freight 💸"):
@@ -154,21 +152,11 @@ if st.button("Calculate Freight 💸"):
 
         freight_cost_mt = total_cost / qyt_cargo if qyt_cargo>0 else 0
 
-        # ===== Freight Price Calculation =====
+        # ===== FREIGHT PRICE CALCULATION =====
         revenue_user = freight_price_input * qyt_cargo
         pph_user = revenue_user * 0.012
         profit_user = revenue_user - total_cost - pph_user
         profit_percent_user = (profit_user / total_cost * 100) if total_cost>0 else 0
-
-        # ===== PROFIT SCENARIO =====
-        data = []
-        for p in range(0,55,5):
-            freight_persen = freight_cost_mt*(1+p/100)
-            revenue = freight_persen*qyt_cargo
-            pph = revenue*0.012
-            profit = revenue - total_cost - pph
-            data.append([f"{p}%", f"Rp {freight_persen:,.0f}", f"Rp {revenue:,.0f}", f"Rp {pph:,.0f}", f"Rp {profit:,.0f}"])
-        df_profit = pd.DataFrame(data, columns=["Profit %","Freight (Rp)","Revenue (Rp)","PPH 1.2% (Rp)","Profit (Rp)"])
 
         # ===== DISPLAY RESULTS =====
         st.subheader("📋 Calculation Results")
@@ -185,14 +173,57 @@ if st.button("Calculate Freight 💸"):
 **Total Consumption Freshwater (Ton):** {total_consumption_fw:,.0f}  
 **Fuel Cost (Rp):** Rp {cost_fuel:,.0f}  
 **Freshwater Cost (Rp):** Rp {cost_fw:,.0f}  
-**Revenue (User Freight Price):** Rp {revenue_user:,.0f}  
+""")
+
+        # Costs summary
+        if mode == "Owner":
+            st.markdown("### 🏗️ Owner Costs Summary")
+            owner_data = {
+                "Angsuran": charter_cost,
+                "Crew": crew_cost,
+                "Insurance": insurance_cost,
+                "Docking": docking_cost,
+                "Maintenance": maintenance_cost,
+                "Certificate": certificate_cost,
+                "Premi": premi_cost,
+                "Port Costs": port_cost,
+                "Other Costs": other_cost
+            }
+        else:
+            st.markdown("### 🏗️ Charter Costs Summary")
+            owner_data = {
+                "Charter Hire": charter_cost,
+                "Premi": premi_cost,
+                "Port Costs": port_cost,
+                "Other Costs": other_cost
+            }
+
+        for k, v in owner_data.items():
+            st.markdown(f"- {k}: Rp {v:,.0f}")
+
+        st.markdown(f"**🧮 Total Cost:** Rp {total_cost:,.0f}")
+        st.markdown(f"**🧮 Freight Cost ({type_cargo.split()[1]}):** Rp {freight_cost_mt:,.0f}")
+
+        # ===== FREIGHT PRICE CALCULATION DISPLAY =====
+        st.subheader("💰 Freight Price Calculation User")
+        st.markdown(f"""
+**Freight Price (Rp/MT):** Rp {freight_price_input:,.0f}  
+**Revenue:** Rp {revenue_user:,.0f}  
 **PPH 1.2%:** Rp {pph_user:,.0f}  
 **Profit:** Rp {profit_user:,.0f}  
 **Profit %:** {profit_percent_user:.2f} %
 """)
 
-        # ===== DISPLAY PROFIT SCENARIO =====
-        st.subheader("💰 Profit Scenario 0-50%")
+        # ===== PROFIT SCENARIO =====
+        data = []
+        for p in range(0,55,5):
+            freight_persen = freight_cost_mt*(1+p/100)
+            revenue = freight_persen*qyt_cargo
+            pph = revenue*0.012
+            profit = revenue - total_cost - pph
+            data.append([f"{p}%", f"Rp {freight_persen:,.0f}", f"Rp {revenue:,.0f}", f"Rp {pph:,.0f}", f"Rp {profit:,.0f}"])
+        df_profit = pd.DataFrame(data, columns=["Profit %","Freight (Rp)","Revenue (Rp)","PPH 1.2% (Rp)","Profit (Rp)"])
+        st.subheader("💹 Profit Scenario 0-50%")
         st.dataframe(df_profit, use_container_width=True)
 
         # ===== PDF GENERATOR =====
@@ -202,9 +233,12 @@ if st.button("Calculate Freight 💸"):
             styles = getSampleStyleSheet()
             elements = []
 
+            # Title
             elements.append(Paragraph("<b>Freight Calculator Report</b>", styles['Title']))
             elements.append(Spacer(1,12))
 
+            # Voyage Information
+            elements.append(Paragraph("<b>Voyage Information</b>", styles['Heading3']))
             voyage_data = [
                 ["Port Of Loading", port_pol],
                 ["Port Of Discharge", port_pod],
@@ -218,6 +252,8 @@ if st.button("Calculate Freight 💸"):
             elements.append(t_voyage)
             elements.append(Spacer(1,12))
 
+            # Calculation Results
+            elements.append(Paragraph("<b>Calculation Results</b>", styles['Heading3']))
             calc_data = [
                 ["Total Sailing Time (Hour)", f"{sailing_time:.2f}"],
                 ["Total Consumption Fuel (Ltr)", f"{total_consumption_fuel:,.0f} Ltr"],
@@ -225,27 +261,6 @@ if st.button("Calculate Freight 💸"):
                 ["Fuel Cost (Rp)", f"Rp {cost_fuel:,.0f}"],
                 ["Freshwater Cost (Rp)", f"Rp {cost_fw:,.0f}"]
             ]
-
-            if mode=="Owner":
-                owner_data = {
-                    "Angsuran": charter_cost,
-                    "Crew": crew_cost,
-                    "Insurance": insurance_cost,
-                    "Docking": docking_cost,
-                    "Maintenance": maintenance_cost,
-                    "Certificate": certificate_cost,
-                    "Premi": premi_cost,
-                    "Port Costs": port_cost,
-                    "Other Costs": other_cost
-                }
-            else:
-                owner_data = {
-                    "Charter Hire": charter_cost,
-                    "Premi": premi_cost,
-                    "Port Costs": port_cost,
-                    "Other Costs": other_cost
-                }
-
             for k, v in owner_data.items():
                 calc_data.append([k, f"Rp {v:,.0f}"])
             calc_data.append(["Total Cost (Rp)", f"Rp {total_cost:,.0f}"])
@@ -255,6 +270,8 @@ if st.button("Calculate Freight 💸"):
             elements.append(t_calc)
             elements.append(Spacer(1,12))
 
+            # Freight Price Calculation User
+            elements.append(Paragraph("<b>Freight Price Calculation User</b>", styles['Heading3']))
             fpc_data = [
                 ["Freight Price (Rp/MT)", f"Rp {freight_price_input:,.0f}"],
                 ["Revenue", f"Rp {revenue_user:,.0f}"],
@@ -267,12 +284,15 @@ if st.button("Calculate Freight 💸"):
             elements.append(t_fpc)
             elements.append(Spacer(1,12))
 
+            # Profit Scenario
+            elements.append(Paragraph("<b>Profit Scenario 0-50%</b>", styles['Heading3']))
             profit_table = [df_profit.columns.to_list()] + df_profit.values.tolist()
             t_profit = Table(profit_table, hAlign='LEFT', colWidths=[60,100,100,100,100])
             t_profit.setStyle(TableStyle([("GRID",(0,0),(-1,-1),0.25,colors.black)]))
             elements.append(t_profit)
             elements.append(Spacer(1,12))
 
+            # Footer
             elements.append(Paragraph("<i>Generated By: https://freight-calculatordemo2.streamlit.app/</i>", styles['Normal']))
 
             doc.build(elements)
@@ -281,9 +301,9 @@ if st.button("Calculate Freight 💸"):
 
         pdf_buffer = create_pdf()
         st.download_button(
-            label=f"📥 Download PDF Report {port_pol}-{port_pod}",
+            label="📥 Download PDF Report",
             data=pdf_buffer,
-            file_name=f"Freight_Report_{port_pol}_{port_pod}.pdf",
+            file_name="Freight_Calculator_Report.pdf",
             mime="application/pdf"
         )
 
