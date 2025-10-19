@@ -299,14 +299,15 @@ if st.button("Calculate Freight 💸"):
             buffer.seek(0)
             return buffer
 
+        file_name = f"Freight_Report_{port_pol}_{port_pod}.pdf"
+
         pdf_buffer = create_pdf()
         st.download_button(
             label="📥 Download PDF Report",
             data=pdf_buffer,
-            file_name="Freight_Calculator_Report.pdf",
+            file_name=file_name,
             mime="application/pdf"
         )
 
     except Exception as e:
         st.error(f"Error: {e}")
-
