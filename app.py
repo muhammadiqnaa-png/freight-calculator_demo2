@@ -7,6 +7,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 import requests
+from datetime import datetime
 
 st.set_page_config(page_title="Freight Calculator Barge", layout="wide")
 
@@ -300,9 +301,9 @@ if st.button("Calculate Freight 💸"):
             return buffer
 
         pdf_buffer = create_pdf()
+        file_name = f"Freight_Report_{port_pol}_{port_pod}_{datetime.now():%Y%m%d}.pdf"
+        
         st.download_button(
-        from datetime import datetime
-        file_name = f"Freight_Report_{port_pol}_{port_pod}_{datetime.now():%Y%m%d}.pdf
             label="📥 Download PDF Report",
             data=pdf_buffer,
             file_name=file_name,
@@ -311,3 +312,4 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
