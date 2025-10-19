@@ -236,8 +236,8 @@ if st.button("Calculate Freight 💸"):
             elements.append(Paragraph("<b>Calculation Results</b>", styles['Heading3']))
             calc_data = [
                 ["Total Sailing Time (Hour)", f"{sailing_time:.2f}"],
-                ["Total Consumption Fuel (Ltr)", f"Rp {total_consumption_fuel:,.0f}"],
-                ["Total Consumption Freshwater (Ton)", f"Rp {total_consumption_fw:,.0f}"],
+                ["Total Consumption Fuel (Ltr)", f"{total_consumption_fuel:,.0f}"],
+                ["Total Consumption Freshwater (Ton)", f"{total_consumption_fw:,.0f}"],
                 ["Fuel Cost (Rp)", f"Rp {cost_fuel:,.0f}"],
                 ["Freshwater Cost (Rp)", f"Rp {cost_fw:,.0f}"]
             ]
@@ -294,4 +294,5 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 
