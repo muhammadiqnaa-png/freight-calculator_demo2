@@ -120,6 +120,9 @@ qyt_cargo = st.number_input("Cargo Quantity", 0.0)
 distance_pol_pod = st.number_input("Distance POL - POD (NM)", 0.0)
 distance_pod_pol = st.number_input("Distance POD - POL (NM)", 0.0)
 
+# ===== Optional Freight Price Input =====
+freight_input = st.number_input("Optional Freight Price (Rp/MT)", min_value=0.0, value=0.0)
+
 # ===== PERHITUNGAN =====
 if st.button("Calculate Freight 💸"):
     try:
@@ -204,7 +207,23 @@ if st.button("Calculate Freight 💸"):
             st.markdown(f"**🧮 Total Cost:** Rp {total_cost:,.0f}")
             st.markdown(f"**🧮 Freight Cost ({type_cargo.split()[1]}):** Rp {freight_cost_mt:,.0f}")
 
-        # ===== PROFIT SCENARIO =====
+        # ===== Optional Freight Price Scenario =====
+        if freight_input > 0 and qyt_cargo > 0:
+            revenue_input = freight_input * qyt_cargo
+            pph_input = revenue_input * 0.012
+            profit_input = revenue_input - total_cost - pph_input
+            profit_percent_input = (profit_input / total_cost) * 100 if total_cost > 0 else 0
+
+            st.subheader("💰 Freight Price Scenario (Based on Input)")
+            st.markdown(f"""
+**Input Freight Price:** Rp {freight_input:,.0f}/MT  
+**Revenue:** Rp {revenue_input:,.0f}  
+**PPH 1.2%:** Rp {pph_input:,.0f}  
+**Profit:** Rp {profit_input:,.0f}  
+**Profit %:** {profit_percent_input:.2f}%
+""")
+
+        # ===== PROFIT SCENARIO 0-50% =====
         data = []
         for p in range(0,55,5):
             freight_persen = freight_cost_mt*(1+p/100)
@@ -279,6 +298,21 @@ if st.button("Calculate Freight 💸"):
             elements.append(t_calc)
             elements.append(Spacer(1,12))
 
+            # Optional Freight Price Scenario in PDF
+            if freight_input > 0 and qyt_cargo > 0:
+                elements.append(Paragraph("<b>Freight Price Scenario (Based on Input)</b>", styles['Heading3']))
+                price_data = [
+                    ["Input Freight Price (Rp/MT)", f"Rp {freight_input:,.0f}"],
+                    ["Revenue (Rp)", f"Rp {revenue_input:,.0f}"],
+                    ["PPH 1.2% (Rp)", f"Rp {pph_input:,.0f}"],
+                    ["Profit (Rp)", f"Rp {profit_input:,.0f}"],
+                    ["Profit %", f"{profit_percent_input:.2f}%"]
+                ]
+                t_price = Table(price_data, hAlign='LEFT', colWidths=[180,120])
+                t_price.setStyle(TableStyle([("GRID",(0,0),(-1,-1),0.25,colors.black)]))
+                elements.append(t_price)
+                elements.append(Spacer(1,12))
+
             # Profit Scenario
             elements.append(Paragraph("<b>Profit Scenario 0-50%</b>", styles['Heading3']))
             profit_table = [df_profit.columns.to_list()] + df_profit.values.tolist()
@@ -304,4 +338,3 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
-
