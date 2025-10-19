@@ -162,41 +162,35 @@ if st.button("Calculate Freight 💸"):
         # ===== DISPLAY RESULTS =====
         st.subheader("📋 Calculation Results")
         st.markdown(f"""
-**Port Of Loading:** {port_pol}  
-**Port Of Discharge:** {port_pod}  
-**Next Port:** {next_port}  
-**Type Cargo:** {type_cargo}  
-**Cargo Quantity:** {qyt_cargo:,.0f} {type_cargo.split()[1]}  
-**Distance (NM):** {distance_pol_pod:,.0f}  
-**Total Voyage (Days):** {total_voyage_days:.2f}  
-**Total Sailing Time (Hour):** {sailing_time:.2f}  
-**Total Consumption Fuel (Ltr):** {total_consumption_fuel:,.0f}  
-**Total Consumption Freshwater (Ton):** {total_consumption_fw:,.0f}  
-**Fuel Cost (Rp):** Rp {cost_fuel:,.0f}  
-**Freshwater Cost (Rp):** Rp {cost_fw:,.0f}  
+**Total Voyage (Days) :** {total_voyage_days:.2f}  
+**Total Sailing Time (Hour) :** {sailing_time:.2f}  
+**Total Consumption Fuel (Ltr) :** {total_consumption_fuel:,.0f}  
+**Total Consumption Freshwater (Ton) :** {total_consumption_fw:,.0f}  
+**Fuel Cost (Rp) :** Rp {cost_fuel:,.0f}  
+**Freshwater Cost (Rp) :** Rp {cost_fw:,.0f}  
 """)
 
         # Costs summary
         if mode == "Owner":
             st.markdown("### 🏗️ Owner Costs Summary")
             owner_data = {
-                "Angsuran": charter_cost,
-                "Crew": crew_cost,
-                "Insurance": insurance_cost,
-                "Docking": docking_cost,
-                "Maintenance": maintenance_cost,
-                "Certificate": certificate_cost,
-                "Premi": premi_cost,
-                "Port Costs": port_cost,
-                "Other Costs": other_cost
+                "Angsuran" : charter_cost,
+                "Crew" : crew_cost,
+                "Insurance" : insurance_cost,
+                "Docking" : docking_cost,
+                "Maintenance" : maintenance_cost,
+                "Certificate" : certificate_cost,
+                "Premi" : premi_cost,
+                "Port Costs" : port_cost,
+                "Other Costs" : other_cost
             }
         else:
             st.markdown("### 🏗️ Charter Costs Summary")
             owner_data = {
-                "Charter Hire": charter_cost,
-                "Premi": premi_cost,
-                "Port Costs": port_cost,
-                "Other Costs": other_cost
+                "Charter Hire" : charter_cost,
+                "Premi" : premi_cost,
+                "Port Costs" : port_cost,
+                "Other Costs" : other_cost
             }
 
         for k, v in owner_data.items():
@@ -311,6 +305,7 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 
 
 
