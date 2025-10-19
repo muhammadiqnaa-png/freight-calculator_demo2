@@ -299,11 +299,10 @@ if st.button("Calculate Freight 💸"):
             buffer.seek(0)
             return buffer
 
-        from datetime import datetime
-        file_name = f"Freight_Report_{port_pol}_{port_pod}_{datetime.now():%Y%m%d}.pdf"
-
         pdf_buffer = create_pdf()
         st.download_button(
+        from datetime import datetime
+        file_name = f"Freight_Report_{port_pol}_{port_pod}_{datetime.now():%Y%m%d}.pdf
             label="📥 Download PDF Report",
             data=pdf_buffer,
             file_name=file_name,
@@ -312,4 +311,3 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
-
