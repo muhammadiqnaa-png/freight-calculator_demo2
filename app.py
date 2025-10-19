@@ -8,7 +8,6 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 import requests
 from datetime import datetime
-import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="Freight Calculator Barge", layout="wide")
 
@@ -306,6 +305,7 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 
 
 
