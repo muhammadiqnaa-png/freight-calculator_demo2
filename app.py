@@ -97,7 +97,7 @@ if not st.session_state.logged_in:
                 st.session_state.idToken = data.get("idToken")
                 st.session_state.localId = data.get("localId")
                 st.success("Login successful!")
-                st.experimental_rerun()
+                st.rerun()
             else:
                 err = data.get("error", {}).get("message", "") if isinstance(data, dict) else data
                 st.error(f"Email or password incorrect! {err}")
@@ -123,7 +123,7 @@ if st.sidebar.button("🚪 Log Out"):
     st.session_state.pop("idToken", None)
     st.session_state.pop("localId", None)
     st.success("Successfully logged out.")
-    st.experimental_rerun()
+    st.rerun()
 
 # ===== MODE =====
 mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
@@ -279,7 +279,7 @@ with colL:
                         except Exception:
                             # ignore keys that don't map to inputs
                             pass
-                    st.experimental_rerun()
+                    st.rerun()
 
 with colR:
     if st.button("🗑️ Delete Parameter"):
@@ -294,7 +294,7 @@ with colR:
                 ok, msg = delete_preset_from_fb(email, idt, sel_preset)
                 if ok:
                     st.sidebar.success(f"Preset '{sel_preset}' deleted.")
-                    st.experimental_rerun()
+                    st.rerun()
                 else:
                     st.sidebar.error(f"Failed to delete preset: {msg}")
 
@@ -487,3 +487,4 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
