@@ -129,6 +129,17 @@ if st.sidebar.button("🚪 Log Out"):
 mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
 
 # ===== SIDEBAR PARAMETERS =====
+# ---- IMPORTANT FIX: initialize owner-only variables to avoid NameError when mode == "Charter" ----
+# These default initializations are the only change. Everything else kept exactly the same.
+charter = 0
+crew = 0
+insurance = 0
+docking = 0
+maintenance = 0
+certificate = 0
+premi_nm = 0
+other_cost = 0
+
 with st.sidebar.expander("🚢 Speed"):
     speed_laden = st.number_input("Speed Laden (knot)", 0.0, key="speed_laden")
     speed_ballast = st.number_input("Speed Ballast (knot)", 0.0, key="speed_ballast")
@@ -487,4 +498,3 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
-
