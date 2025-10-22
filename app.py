@@ -221,14 +221,14 @@ if st.button("Calculate Freight 💸"):
                 if subtype == "Day":
                     val = cons * total_voyage_days * price
                 elif subtype == "Hour":
-                    # sailing_time is in hours, so use sailing_time
-                    val = cons * sailing_time * price
+                    # total voyage is in hours, so use sailing_time
+                    val = cons * (total_voyage_days*24) * price
             # Ton: per Day or per Hour (hour uses sailing_time)
             elif unit == "Ton":
                 if subtype == "Day":
                     val = cons * total_voyage_days * price
                 elif subtype == "Hour":
-                    val = cons * sailing_time * price
+                    val = cons * (total_voyage_days*24) * price
             # Month: dibagi 30 lalu dikali total_voyage_days
             elif unit == "Month":
                 val = (price / 30) * total_voyage_days
@@ -427,3 +427,4 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
