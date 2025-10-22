@@ -123,6 +123,9 @@ with st.sidebar.expander("➕ Additional Cost"):
         })
 
     updated_costs = []
+    # daftar unit sekarang termasuk "Day"
+    unit_options = ["Ltr", "Ton", "Month", "Voyage", "MT", "M3", "Day"]
+
     for i, cost in enumerate(st.session_state.additional_costs):
         st.markdown(f"**Additional Cost {i+1}**")
         col1, col2 = st.columns(2)
@@ -130,10 +133,11 @@ with st.sidebar.expander("➕ Additional Cost"):
             name = st.text_input(f"Name {i+1}", cost.get("name", ""), key=f"name_{i}")
             price = st.number_input(f"Price {i+1} (Rp)", cost.get("price", 0), key=f"price_{i}")
         with col2:
+            # update selectbox options to include "Day"
             unit = st.selectbox(
                 f"Unit {i+1}",
-                ["Ltr", "Ton", "Month", "Voyage", "MT", "M3"],
-                index=["Ltr", "Ton", "Month", "Voyage", "MT", "M3"].index(cost.get("unit", "Ltr")),
+                unit_options,
+                index=unit_options.index(cost.get("unit", "Ltr")) if cost.get("unit", "Ltr") in unit_options else 0,
                 key=f"unit_{i}"
             )
             subtype = "Day"
@@ -182,9 +186,9 @@ freight_price_input = st.number_input("Freight Price (Rp/MT)", 0)
 # ===== PERHITUNGAN =====
 if st.button("Calculate Freight 💸"):
     try:
-        # Waktu sailing (hour)
+        # Waktu sailing (hour) based on speed inputs (hours)
         sailing_time = (distance_pol_pod / speed_laden) + (distance_pod_pol / speed_ballast)
-        # total voyage in days
+        # total voyage in days (sailing hours converted to days + port stays)
         total_voyage_days = (sailing_time / 24) + (port_stay_pol + port_stay_pod)
         total_voyage_days_round = int(total_voyage_days) if total_voyage_days % 1 < 0.5 else int(total_voyage_days) + 1
 
@@ -216,19 +220,18 @@ if st.button("Calculate Freight 💸"):
             cons = cost.get("consumption", 0)
 
             val = 0
-            # Ltr: bisa per Day atau per Hour
+            # Ltr: bisa per Day atau per Hour (Hour uses total_voyage_days * 24)
             if unit == "Ltr":
                 if subtype == "Day":
                     val = cons * total_voyage_days * price
                 elif subtype == "Hour":
-                    # total voyage is in hours, so use sailing_time
-                    val = cons * (total_voyage_days*24) * price
-            # Ton: per Day or per Hour (hour uses sailing_time)
+                    val = cons * (total_voyage_days * 24) * price
+            # Ton: per Day atau per Hour (Hour uses total_voyage_days * 24)
             elif unit == "Ton":
                 if subtype == "Day":
                     val = cons * total_voyage_days * price
                 elif subtype == "Hour":
-                    val = cons * (total_voyage_days*24) * price
+                    val = cons * (total_voyage_days * 24) * price
             # Month: dibagi 30 lalu dikali total_voyage_days
             elif unit == "Month":
                 val = (price / 30) * total_voyage_days
@@ -238,6 +241,9 @@ if st.button("Calculate Freight 💸"):
             # MT / M3: dikalikan total cargo
             elif unit in ["MT", "M3"]:
                 val = price * qyt_cargo
+            # Day: baru — flat per day (harga x total_voyage_days)
+            elif unit == "Day":
+                val = price * total_voyage_days
 
             # kalau nilai > 0, masukkan ke breakdown
             if val and val > 0:
@@ -427,4 +433,3 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
-
