@@ -105,15 +105,15 @@ with st.sidebar.expander("🕓 Port Stay"):
     port_stay_pol = st.number_input("POL (Days)", 0)
     port_stay_pod = st.number_input("POD (Days)", 0)
 
-# ========================
-# START ADDITIONAL COST FEATURE
-# ========================
+# ===== ADDITIONAL COST =====
 with st.sidebar.expander("➕ Additional Cost"):
     if "additional_costs" not in st.session_state:
         st.session_state.additional_costs = []
 
-    # Button untuk tambah baris baru (beri key agar stabil)
-    if st.button("➕ Add Additional Cost", key="add_additional_cost"):
+    # Button untuk tambah baris baru
+    add_new = st.button("➕ Add Additional Cost")
+
+    if add_new:
         st.session_state.additional_costs.append({
             "name": "",
             "price": 0,
@@ -123,79 +123,48 @@ with st.sidebar.expander("➕ Additional Cost"):
         })
 
     updated_costs = []
+    # daftar unit sekarang termasuk "Day"
     unit_options = ["Ltr", "Ton", "Month", "Voyage", "MT", "M3", "Day"]
 
-    # Loop dan tampilkan masing-masing additional cost secara horizontal compact
     for i, cost in enumerate(st.session_state.additional_costs):
-        # Row 1: Name | Unit | Type (Type hanya untuk Ltr/Ton)
-        c1, c2, c3 = st.columns([2, 1, 1])
-        with c1:
-            name = st.text_input(f"Name {i+1}", cost.get("name", ""), key=f"ac_name_{i}")
-        with c2:
+        st.markdown(f"**Additional Cost {i+1}**")
+        col1, col2 = st.columns(2)
+        with col1:
+            name = st.text_input(f"Name {i+1}", cost.get("name", ""), key=f"name_{i}")
+            price = st.number_input(f"Price {i+1} (Rp)", cost.get("price", 0), key=f"price_{i}")
+        with col2:
+            # update selectbox options to include "Day"
             unit = st.selectbox(
                 f"Unit {i+1}",
                 unit_options,
                 index=unit_options.index(cost.get("unit", "Ltr")) if cost.get("unit", "Ltr") in unit_options else 0,
-                key=f"ac_unit_{i}"
+                key=f"unit_{i}"
             )
-        with c3:
-            # Type only when unit is Ltr or Ton
+            subtype = "Day"
             if unit in ["Ltr", "Ton"]:
                 subtype = st.selectbox(
                     f"Type {i+1}",
                     ["Day", "Hour"],
                     index=["Day", "Hour"].index(cost.get("subtype", "Day")),
-                    key=f"ac_subtype_{i}"
+                    key=f"subtype_{i}"
                 )
-            else:
-                subtype = ""  # not applicable
-
-        # Row 2: Price label (dinamis) | Consumption (dinamis) | Remove button
-        p1, p2, p3 = st.columns([2, 1, 0.5])
-        # Determine dynamic labels
-        if unit in ["Ltr", "Ton"]:
-            # subtype always set (should be "Day" by default)
-            price_label = f"Price {i+1} (Rp/{unit}/{subtype})"
-            cons_label = f"Consumption {i+1} ({unit}/{subtype})"
-        elif unit == "Month":
-            price_label = f"Price {i+1} (Rp/Month)"
-            cons_label = f"Consumption {i+1} (per Month)"
-        elif unit == "Voyage":
-            price_label = f"Price {i+1} (Rp/Voyage)"
-            cons_label = f"Consumption {i+1} (per Voyage)"
-        elif unit == "Day":
-            price_label = f"Price {i+1} (Rp/Day)"
-            cons_label = f"Consumption {i+1} (per Day)"
-        else:  # MT, M3
-            price_label = f"Price {i+1} (Rp/{unit})"
-            cons_label = f"Consumption {i+1} ({unit})"
-
-        with p1:
-            price = st.number_input(price_label, value=cost.get("price", 0), min_value=0.0, key=f"ac_price_{i}")
-        with p2:
-            # Show consumption input only for Ltr/Ton (and allow if user wants for others it's optional)
+            consumption = 0
             if unit in ["Ltr", "Ton"]:
-                consumption = st.number_input(cons_label, value=cost.get("consumption", 0), min_value=0.0, key=f"ac_cons_{i}")
-            else:
-                # For units without a meaningful consumption, keep 0 by default
-                consumption = cost.get("consumption", 0)
-        with p3:
-            remove = st.button("❌ Remove", key=f"ac_remove_{i}")
-
-        # Jika tidak dihapus, simpan ke updated_costs
+                consumption = st.number_input(
+                    f"Consumption {i+1} ({unit}/{subtype})",
+                    cost.get("consumption", 0),
+                    key=f"consumption_{i}"
+                )
+        remove = st.button(f"❌ Remove {i+1}", key=f"remove_{i}")
         if not remove:
             updated_costs.append({
                 "name": name,
                 "price": price,
                 "unit": unit,
-                "subtype": subtype if subtype else "Day",
+                "subtype": subtype,
                 "consumption": consumption
             })
-    # replace session state list with updated (after possible removes)
     st.session_state.additional_costs = updated_costs
-# ========================
-# END ADDITIONAL COST FEATURE
-# ========================
 
 # ===== MAIN INPUT =====
 st.title("🚢 Freight Calculator Barge")
