@@ -342,7 +342,7 @@ if st.button("Calculate Freight 💸"):
             data.append([f"{p}%", f"Rp {freight_persen:,.0f}", f"Rp {revenue:,.0f}", f"Rp {pph:,.0f}", f"Rp {profit:,.0f}"])
         df_profit = pd.DataFrame(data, columns=["Profit %", "Freight (Rp)", "Revenue (Rp)", "PPH 1.2% (Rp)", "Profit (Rp)"])
 
-        st.subheader("💹 Profit Scenario 0–50%")
+        st.subheader("💹 Profit Scenario 0–75%")
         st.dataframe(df_profit, use_container_width=True)
 
         # ===== PDF GENERATOR =====
@@ -433,4 +433,5 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 
