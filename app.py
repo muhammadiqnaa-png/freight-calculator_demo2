@@ -334,7 +334,7 @@ if st.button("Calculate Freight 💸"):
 
         # ===== PROFIT SCENARIO =====
         data = []
-        for p in range(0, 55, 5):
+        for p in range(0, 80, 5):
             freight_persen = freight_cost_mt * (1 + p / 100)
             revenue = freight_persen * qyt_cargo
             pph = revenue * 0.012
@@ -433,5 +433,6 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 
 
