@@ -3,13 +3,46 @@ import math
 import pandas as pd
 from io import BytesIO
 from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
 from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import cm
 from datetime import datetime
 import requests
+import json
+import os
 
-st.set_page_config(page_title="Freight Calculator Barge", layout="wide")
+# ==========================================================
+# ⚙️ Page Config (WAJIB paling atas!)
+# ==========================================================
+st.set_page_config(
+    page_title="Freight Calculator Barge",
+    page_icon="https://raw.githubusercontent.com/muhammadiqnaa-png/freight-calculator/main/icon-512x512.png",
+    layout="wide"
+)
+
+# ==========================================================
+# 🔧 PWA Support — biar bisa di-install di HP
+# ==========================================================
+st.markdown("""
+<link rel="manifest" href="https://raw.githubusercontent.com/muhammadiqnaa-png/freight-calculator/main/manifest.json">
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('https://raw.githubusercontent.com/muhammadiqnaa-png/freight-calculator/main/service-worker.js')
+    .then(reg => console.log("Service worker registered:", reg))
+    .catch(err => console.log("Service worker failed:", err));
+}
+</script>
+""", unsafe_allow_html=True)
+
+# ==========================================================
+# 🍎 iPhone (Safari) Support — tambahan meta
+# ==========================================================
+st.markdown("""
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FreightCalc">
+""", unsafe_allow_html=True)
 
 # ====== FIREBASE AUTH ======
 FIREBASE_API_KEY = st.secrets["FIREBASE_API_KEY"]
@@ -64,55 +97,157 @@ if st.sidebar.button("🚪 Log Out"):
     st.success("Successfully logged out.")
     st.rerun()
 
+# ==========================================================
+# ⚙️ PARAMETER OTOMATIS KAPAL (Tambah di atas sidebar lain)
+# ==========================================================
+st.sidebar.markdown("### ⚙️ Parameter Otomatis Kapal")
+
+# Preset lengkap sesuai request user (default values)
+preset_params = {
+    "270 ft": {
+        "speed_laden": 3, "speed_ballast": 4,
+        "consumption": 85, "price_fuel": 13500,
+        "consumption_fw": 2, "price_fw": 120000,
+        "charter": 0, "crew": 60000000, "insurance": 40000000,
+        "docking": 40000000, "maintenance": 40000000,
+        "certificate": 40000000, "premi_nm": 50000, "other_cost": 10000000,
+        "port_cost_pol": 35000000, "port_cost_pod": 35000000, "asist_tug": 0,
+        "port_stay_pol": 4, "port_stay_pod": 4
+    },
+    "300 ft": {
+        "speed_laden": 3, "speed_ballast": 4,
+        "consumption": 115, "price_fuel": 13500,
+        "consumption_fw": 2, "price_fw": 120000,
+        "charter": 0, "crew": 60000000, "insurance": 50000000,
+        "docking": 50000000, "maintenance": 50000000,
+        "certificate": 45000000, "premi_nm": 50000, "other_cost": 15000000,
+        "port_cost_pol": 35000000, "port_cost_pod": 35000000, "asist_tug": 0,
+        "port_stay_pol": 5, "port_stay_pod": 5
+    },
+    "330 ft": {
+        "speed_laden": 3, "speed_ballast": 4,
+        "consumption": 130, "price_fuel": 13500,
+        "consumption_fw": 2, "price_fw": 120000,
+        "charter": 0, "crew": 60000000, "insurance": 60000000,
+        "docking": 60000000, "maintenance": 60000000,
+        "certificate": 50000000, "premi_nm": 50000, "other_cost": 20000000,
+        "port_cost_pol": 35000000, "port_cost_pod": 35000000, "asist_tug": 0,
+        "port_stay_pol": 5, "port_stay_pod": 5
+    }
+}
+
+# User chooses manual or preset
+kapal_option = st.sidebar.selectbox("Pilih Ukuran Tongkang", ["Manual", "270 ft", "300 ft", "330 ft"])
+
+# If preset chosen, fill session_state defaults (so existing number_inputs pick them up)
+if kapal_option != "Manual":
+    chosen = preset_params[kapal_option]
+    for k, v in chosen.items():
+        # only set if not already set, or overwrite to reflect chosen preset
+        st.session_state[k] = v
+
+# Provide a small editor to tweak presets or add new (non-persistent; simple editor)
+with st.sidebar.expander("✏️ Edit / Tambah Ukuran (preset quick editor)"):
+    tab_edit, tab_add = st.tabs(["Edit Preset (temp)", "Tambah Preset Baru"])
+    with tab_edit:
+        st.write("Note: editor ini tidak menyimpan permanen. Untuk simpan, app-level JSON logic bisa ditambahkan.")
+        st.write(f"Preset sekarang: **{kapal_option}**")
+        if kapal_option != "Manual":
+            edited_local = {}
+            for key, val in preset_params[kapal_option].items():
+                step_val = 0.1 if isinstance(val, float) else 1000
+                edited_local[key] = st.number_input(f"{key}", value=val, step=step_val, key=f"edit_{key}")
+            if st.button("Apply Preset Locally"):
+                for k, v in edited_local.items():
+                    st.session_state[k] = v
+                st.success("Preset applied ke form (sementara).")
+        else:
+            st.info("Pilih preset selain 'Manual' untuk edit.")
+    with tab_add:
+        st.info("Tambah preset baru (tidak persisten setelah reload).")
+        new_name = st.text_input("Nama preset (contoh: 360 ft)")
+        if new_name:
+            col1, col2 = st.columns(2)
+            with col1:
+                nspeed_l = st.number_input("Speed Laden", value=0.0, key="new_speed_l")
+                ncons = st.number_input("Fuel Consumption (Ltr/hour)", value=0.0, key="new_cons")
+                ncons_fw = st.number_input("Freshwater Cons (Ton/Day)", value=0.0, key="new_cons_fw")
+                nangs = st.number_input("Angsuran (Rp/Month)", value=0.0, key="new_angs")
+                ncrew = st.number_input("Crew (Rp/Month)", value=0.0, key="new_crewval")
+            with col2:
+                nspeed_b = st.number_input("Speed Ballast", value=0.0, key="new_speed_b")
+                nprice_f = st.number_input("Price Fuel (Rp/Ltr)", value=0.0, key="new_pricef")
+                nprice_fw = st.number_input("Price Freshwater (Rp/Ton)", value=0.0, key="new_pricefw")
+                nother = st.number_input("Other Cost (Rp)", value=0.0, key="new_other")
+            if st.button("Tambah Preset Baru (apply local)"):
+                # apply to session_state so form picks up
+                st.session_state["speed_laden"] = nspeed_l
+                st.session_state["speed_ballast"] = nspeed_b
+                st.session_state["consumption"] = ncons
+                st.session_state["price_fuel"] = nprice_f
+                st.session_state["consumption_fw"] = ncons_fw
+                st.session_state["price_fw"] = nprice_fw
+                st.session_state["charter"] = nangs
+                st.session_state["crew"] = ncrew
+                st.session_state["other_cost"] = nother
+                st.success("Preset baru diterapkan ke form (sementara).")
+
 # ===== MODE =====
 mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
 
+# ===== helper untuk number_input yang memakai session_state default =====
+def get_param(key, label, default=0.0, step=None):
+    # determine min and max? keep simple
+    current = st.session_state.get(key, default)
+    if step is None:
+        # choose step depending on type
+        step = 0.1 if isinstance(current, float) and not float(current).is_integer() else 1000
+    return st.sidebar.number_input(label, value=current, step=step, key=key)
+
 # ===== SIDEBAR PARAMETERS =====
 with st.sidebar.expander("🚢 Speed"):
-    speed_laden = st.number_input("Speed Laden (knot)", 0.0)
-    speed_ballast = st.number_input("Speed Ballast (knot)", 0.0)
+    speed_laden = get_param("speed_laden", "Speed Laden (knot)", default=0.0, step=0.1)
+    speed_ballast = get_param("speed_ballast", "Speed Ballast (knot)", default=0.0, step=0.1)
 
 with st.sidebar.expander("⛽ Fuel"):
-    consumption = st.number_input("Consumption Fuel (liter/hour)", 0)
-    price_fuel = st.number_input("Price Fuel (Rp/Ltr)", 0)
+    consumption = get_param("consumption", "Consumption Fuel (liter/hour)", default=0.0, step=1)
+    price_fuel = get_param("price_fuel", "Price Fuel (Rp/Ltr)", default=0.0, step=100)
 
 with st.sidebar.expander("💧 Freshwater"):
-    consumption_fw = st.number_input("Consumption Freshwater (Ton/Day)", 0)
-    price_fw = st.number_input("Price Freshwater (Rp/Ton)", 0)
+    consumption_fw = get_param("consumption_fw", "Consumption Freshwater (Ton/Day)", default=0.0, step=0.1)
+    price_fw = get_param("price_fw", "Price Freshwater (Rp/Ton)", default=0.0, step=1000)
 
 if mode == "Owner":
     with st.sidebar.expander("🏗️ Owner Cost"):
-        charter = st.number_input("Angsuran (Rp/Month)", 0)
-        crew = st.number_input("Crew (Rp/Month)", 0)
-        insurance = st.number_input("Insurance (Rp/Month)", 0)
-        docking = st.number_input("Docking (Rp/Month)", 0)
-        maintenance = st.number_input("Maintenance (Rp/Month)", 0)
-        certificate = st.number_input("Certificate (Rp/Month)", 0)
-        premi_nm = st.number_input("Premi (Rp/NM)", 0)
-        other_cost = st.number_input("Other Cost (Rp)", 0)
+        charter = get_param("charter", "Angsuran (Rp/Month)", default=0.0, step=1000)
+        crew = get_param("crew", "Crew (Rp/Month)", default=0.0, step=1000)
+        insurance = get_param("insurance", "Insurance (Rp/Month)", default=0.0, step=1000)
+        docking = get_param("docking", "Docking (Rp/Month)", default=0.0, step=1000)
+        maintenance = get_param("maintenance", "Maintenance (Rp/Month)", default=0.0, step=1000)
+        certificate = get_param("certificate", "Certificate (Rp/Month)", default=0.0, step=1000)
+        premi_nm = get_param("premi_nm", "Premi (Rp/NM)", default=0.0, step=100)
+        other_cost = get_param("other_cost", "Other Cost (Rp)", default=0.0, step=1000)
 else:
     with st.sidebar.expander("🏗️ Charter Cost"):
-        charter = st.number_input("Charter Hire (Rp/Month)", 0)
-        premi_nm = st.number_input("Premi (Rp/NM)", 0)
-        other_cost = st.number_input("Other Cost (Rp)", 0)
+        charter = get_param("charter", "Charter Hire (Rp/Month)", default=0.0, step=1000)
+        premi_nm = get_param("premi_nm", "Premi (Rp/NM)", default=0.0, step=100)
+        other_cost = get_param("other_cost", "Other Cost (Rp)", default=0.0, step=1000)
 
 with st.sidebar.expander("⚓ Port Cost"):
-    port_cost_pol = st.number_input("Port Cost POL (Rp)", 0)
-    port_cost_pod = st.number_input("Port Cost POD (Rp)", 0)
-    asist_tug = st.number_input("Asist Tug (Rp)", 0)
+    port_cost_pol = get_param("port_cost_pol", "Port Cost POL (Rp)", default=0.0, step=1000)
+    port_cost_pod = get_param("port_cost_pod", "Port Cost POD (Rp)", default=0.0, step=1000)
+    asist_tug = get_param("asist_tug", "Asist Tug (Rp)", default=0.0, step=1000)
 
 with st.sidebar.expander("🕓 Port Stay"):
-    port_stay_pol = st.number_input("POL (Days)", 0)
-    port_stay_pod = st.number_input("POD (Days)", 0)
+    port_stay_pol = get_param("port_stay_pol", "POL (Days)", default=0.0, step=1)
+    port_stay_pod = get_param("port_stay_pod", "POD (Days)", default=0.0, step=1)
 
 # ===== ADDITIONAL COST =====
 with st.sidebar.expander("➕ Additional Cost"):
     if "additional_costs" not in st.session_state:
         st.session_state.additional_costs = []
 
-    # Button untuk tambah baris baru
     add_new = st.button("➕ Add Additional Cost")
-
     if add_new:
         st.session_state.additional_costs.append({
             "name": "",
@@ -123,7 +258,6 @@ with st.sidebar.expander("➕ Additional Cost"):
         })
 
     updated_costs = []
-    # daftar unit sekarang termasuk "Day"
     unit_options = ["Ltr", "Ton", "Month", "Voyage", "MT", "M3", "Day"]
 
     for i, cost in enumerate(st.session_state.additional_costs):
@@ -133,7 +267,6 @@ with st.sidebar.expander("➕ Additional Cost"):
             name = st.text_input(f"Name {i+1}", cost.get("name", ""), key=f"name_{i}")
             price = st.number_input(f"Price {i+1} (Rp)", cost.get("price", 0), key=f"price_{i}")
         with col2:
-            # update selectbox options to include "Day"
             unit = st.selectbox(
                 f"Unit {i+1}",
                 unit_options,
@@ -148,9 +281,9 @@ with st.sidebar.expander("➕ Additional Cost"):
                     index=["Day", "Hour"].index(cost.get("subtype", "Day")),
                     key=f"subtype_{i}"
                 )
-            consumption = 0
+            consumption_val = 0
             if unit in ["Ltr", "Ton"]:
-                consumption = st.number_input(
+                consumption_val = st.number_input(
                     f"Consumption {i+1} ({unit}/{subtype})",
                     cost.get("consumption", 0),
                     key=f"consumption_{i}"
@@ -162,7 +295,7 @@ with st.sidebar.expander("➕ Additional Cost"):
                 "price": price,
                 "unit": unit,
                 "subtype": subtype,
-                "consumption": consumption
+                "consumption": consumption_val
             })
     st.session_state.additional_costs = updated_costs
 
@@ -186,6 +319,11 @@ freight_price_input = st.number_input("Freight Price (Rp/MT)", 0)
 # ===== PERHITUNGAN =====
 if st.button("Calculate Freight 💸"):
     try:
+        # avoid division by zero for speed: if user left 0, throw friendly error
+        if speed_laden == 0 or speed_ballast == 0:
+            st.error("Speed Laden and Speed Ballast harus diisi (tidak boleh 0).")
+            st.stop()
+
         # Waktu sailing (hour) based on speed inputs (hours)
         sailing_time = (distance_pol_pod / speed_laden) + (distance_pod_pol / speed_ballast)
         # total voyage in days (sailing hours converted to days + port stays)
@@ -193,6 +331,7 @@ if st.button("Calculate Freight 💸"):
         total_voyage_days_round = int(total_voyage_days) if total_voyage_days % 1 < 0.5 else int(total_voyage_days) + 1
 
         # consumptions
+        # port consumption fuel default used 120 Ltr per day per initial code assumption
         total_consumption_fuel = (sailing_time * consumption) + ((port_stay_pol + port_stay_pod) * 120)
         total_consumption_fw = consumption_fw * total_voyage_days_round
         cost_fw = total_consumption_fw * price_fw
@@ -220,35 +359,27 @@ if st.button("Calculate Freight 💸"):
             cons = cost.get("consumption", 0)
 
             val = 0
-            # Ltr: bisa per Day atau per Hour (Hour uses total_voyage_days * 24)
             if unit == "Ltr":
                 if subtype == "Day":
                     val = cons * total_voyage_days * price
                 elif subtype == "Hour":
                     val = cons * (total_voyage_days * 24) * price
-            # Ton: per Day atau per Hour (Hour uses total_voyage_days * 24)
             elif unit == "Ton":
                 if subtype == "Day":
                     val = cons * total_voyage_days * price
                 elif subtype == "Hour":
                     val = cons * (total_voyage_days * 24) * price
-            # Month: dibagi 30 lalu dikali total_voyage_days
             elif unit == "Month":
                 val = (price / 30) * total_voyage_days
-            # Voyage: flat per voyage
             elif unit == "Voyage":
                 val = price
-            # MT / M3: dikalikan total cargo
             elif unit in ["MT", "M3"]:
                 val = price * qyt_cargo
-            # Day: baru — flat per day (harga x total_voyage_days)
             elif unit == "Day":
                 val = price * total_voyage_days
 
-            # kalau nilai > 0, masukkan ke breakdown
             if val and val > 0:
                 key_name = name if name else f"{unit} cost"
-                # jika nama sama, tambahkan nilainya
                 if key_name in additional_breakdown:
                     additional_breakdown[key_name] += val
                 else:
@@ -271,13 +402,7 @@ if st.button("Calculate Freight 💸"):
 
         # ===== DISPLAY RESULTS =====
         st.subheader("📋 Calculation Results")
-        st.markdown(f"""
-        **Port Of Loading:** {port_pol}  
-        **Port Of Discharge:** {port_pod}  
-        **Next Port:** {next_port}  
-        **Type Cargo:** {type_cargo}  
-        **Cargo Quantity:** {qyt_cargo:,.0f} {type_cargo.split()[1]}  
-        **Distance (NM):** {distance_pol_pod:,.0f}  
+        st.markdown(f""" 
         **Total Voyage (Days):** {total_voyage_days:.2f}  
         **Total Sailing Time (Hour):** {sailing_time:.2f}  
         **Total Consumption Fuel (Ltr):** {total_consumption_fuel:,.0f}  
@@ -346,40 +471,63 @@ if st.button("Calculate Freight 💸"):
         st.dataframe(df_profit, use_container_width=True)
 
         # ===== PDF GENERATOR =====
-        def create_pdf():
+        def create_pdf(username):
             buffer = BytesIO()
-            doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=10, leftMargin=10, topMargin=10, bottomMargin=10)
+            doc = SimpleDocTemplate(
+                buffer,
+                pagesize=A4,
+                rightMargin=25,
+                leftMargin=25,
+                topMargin=0,
+                bottomMargin=0
+            )
+
             styles = getSampleStyleSheet()
+            styles.add(ParagraphStyle(name='HeaderBlue', fontSize=16, textColor=colors.HexColor("#0d47a1"), alignment=1, spaceAfter=4))
+            styles.add(ParagraphStyle(name='SubHeader', fontSize=12, textColor=colors.HexColor("#0d47a1"), spaceAfter=4, fontName='Helvetica-Bold'))
+            styles.add(ParagraphStyle(name='NormalSmall', fontSize=8, leading=12))
+            styles.add(ParagraphStyle(name='Bold', fontSize=11, fontName='Helvetica-Bold'))
+
             elements = []
 
-            elements.append(Paragraph("<b>Freight Calculator Report</b>", styles['Title']))
-            elements.append(Spacer(0, 6))
+            # ===== HEADER =====
+            title = Paragraph("<b>Freight Calculation Report</b>", styles['HeaderBlue'])
+            elements.append(title)
+            elements.append(Spacer(1, 2))
 
+            # ===== VOYAGE INFO =====
+            elements.append(Paragraph("Voyage Information", styles['SubHeader']))
             voyage_data = [
                 ["Port Of Loading", port_pol],
                 ["Port Of Discharge", port_pod],
                 ["Next Port", next_port],
                 ["Cargo Quantity", f"{qyt_cargo:,.0f} {type_cargo.split()[1]}"],
                 ["Distance (NM)", f"{distance_pol_pod:,.0f}"],
-                ["Total Voyage (Days)", f"{total_voyage_days:.2f}"]
+                ["Total Voyage (Days)", f"{total_voyage_days:.2f}"],
             ]
-            t_voyage = Table(voyage_data, hAlign='LEFT')
-            t_voyage.setStyle(TableStyle([("GRID", (0, 0), (-1, -1), 0.25, colors.black)]))
-            elements.append(t_voyage)
-            elements.append(Spacer(0, 6))
+            t_voyage = Table(voyage_data, colWidths=[9*cm, 9*cm])
+            t_voyage.setStyle(TableStyle([
+                ('GRID', (0, 0), (-1, -1), 0.3, colors.grey),
+                ('BACKGROUND', (0, 0), (-1, -1), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ]))
+            elements += [t_voyage, Spacer(1, 4)]
 
+            # ===== OPERATIONAL COST =====
+            elements.append(Paragraph("Operational & Cost Summary", styles['SubHeader']))
             calc_data = [
                 ["Total Sailing Time (Hour)", f"{sailing_time:.2f}"],
-                ["Total Consumption Fuel (Ltr)", f"{total_consumption_fuel:,.0f} Ltr"],
-                ["Total Consumption Freshwater (Ton)", f"{total_consumption_fw:,.0f} Ton"],
+                ["Total Consumption Fuel (Ltr)", f"{total_consumption_fuel:,.0f}"],
+                ["Total Consumption Freshwater (Ton)", f"{total_consumption_fw:,.0f}"],
                 ["Fuel Cost (Rp)", f"Rp {cost_fuel:,.0f}"],
-                ["Freshwater Cost (Rp)", f"Rp {cost_fw:,.0f}"]
+                ["Freshwater Cost (Rp)", f"Rp {cost_fw:,.0f}"],
             ]
 
             for k, v in owner_data.items():
                 calc_data.append([k, f"Rp {v:,.0f}"])
 
-            # Tambahkan additional breakdown ke PDF kalau ada
             if additional_breakdown:
                 calc_data.append(["--- Additional Costs ---", ""])
                 for k, v in additional_breakdown.items():
@@ -387,41 +535,66 @@ if st.button("Calculate Freight 💸"):
 
             calc_data.append(["Total Cost (Rp)", f"Rp {total_cost:,.0f}"])
             calc_data.append([f"Freight Cost ({type_cargo.split()[1]})", f"Rp {freight_cost_mt:,.0f}"])
-            t_calc = Table(calc_data, hAlign='LEFT', colWidths=[220, 140])
-            t_calc.setStyle(TableStyle([("GRID", (0, 0), (-1, -1), 0.25, colors.black)]))
-            elements.append(t_calc)
-            elements.append(Spacer(0, 6))
 
-            # Tampilkan Freight Price Calculation hanya kalau diisi
+            t_calc = Table(calc_data, colWidths=[9*cm, 9*cm])
+            t_calc.setStyle(TableStyle([
+                ('GRID', (0, 0), (-1, -1), 0.3, colors.grey),
+                ('BACKGROUND', (0, -2), (-1, -1), colors.lightgrey),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ]))
+            elements += [t_calc, Spacer(1, 4)]
+
+            # ===== FREIGHT PRICE =====
             if freight_price_input > 0:
-                elements.append(Paragraph("<b>Freight Price Calculation User</b>", styles['Heading3']))
+                elements.append(Paragraph("Freight Price Calculation User", styles['SubHeader']))
                 fpc_data = [
                     ["Freight Price (Rp/MT)", f"Rp {freight_price_input:,.0f}"],
                     ["Revenue", f"Rp {revenue_user:,.0f}"],
                     ["PPH 1.2%", f"Rp {pph_user:,.0f}"],
                     ["Profit", f"Rp {profit_user:,.0f}"],
-                    ["Profit %", f"{profit_percent_user:.2f} %"]
+                    ["Profit %", f"{profit_percent_user:.2f} %"],
                 ]
-                t_fpc = Table(fpc_data, hAlign='LEFT', colWidths=[220, 140])
-                t_fpc.setStyle(TableStyle([("GRID", (0, 0), (-1, -1), 0.25, colors.black)]))
-                elements.append(t_fpc)
-                elements.append(Spacer(0, 6))
+                t_fpc = Table(fpc_data, colWidths=[9*cm, 9*cm])
+                t_fpc.setStyle(TableStyle([
+                    ('GRID', (0, 0), (-1, -1), 0.3, colors.grey),
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                    ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                    ('FONTSIZE', (0, 0), (-1, -1), 8),
+                ]))
+                elements += [t_fpc, Spacer(1, 4)]
 
-            # Profit Scenario
-            elements.append(Paragraph("<b>Profit Scenario 0–50%</b>", styles['Heading3']))
+            # ===== PROFIT SCENARIO =====
+            elements.append(Paragraph("Profit Scenario 0–75%", styles['SubHeader']))
             profit_table = [df_profit.columns.to_list()] + df_profit.values.tolist()
-            t_profit = Table(profit_table, hAlign='LEFT', colWidths=[60, 100, 100, 100, 100])
-            t_profit.setStyle(TableStyle([("GRID", (0, 0), (-1, -1), 0.25, colors.black)]))
-            elements.append(t_profit)
-            elements.append(Spacer(0, 6))
+            t_profit = Table(profit_table, colWidths=[3*cm, 3.8*cm, 3.8*cm, 3.8*cm, 3.8*cm])
+            t_profit.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#0d47a1")),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('GRID', (0, 0), (-1, -1), 0.25, colors.grey),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ]))
+            elements += [t_profit, Spacer(1, 4)]
 
-            elements.append(Paragraph("<i>Generated By: https://freight-calculatordemo2.streamlit.app/</i>", styles['Normal']))
+            # ===== FOOTER =====
+            footer_text = f"Generated by {username} | https://freight-calculator-barge-byiqna.streamlit.app/"
+            elements.append(Paragraph(footer_text, styles['NormalSmall']))
 
+            # Tanggal generated di bawah footer
+            generated_date = Paragraph(f"Generated: {datetime.now().strftime('%d %B %Y')}", styles['NormalSmall'])
+            elements.append(generated_date)
+
+            # ===== BUILD PDF =====
             doc.build(elements)
             buffer.seek(0)
             return buffer
 
-        pdf_buffer = create_pdf()
+        # ===== GENERATE PDF & DOWNLOAD BUTTON =====
+        pdf_buffer = create_pdf(username=st.session_state.email)
         file_name = f"Freight_Report_{port_pol}_{port_pod}_{datetime.now():%Y%m%d}.pdf"
 
         st.download_button(
@@ -433,6 +606,3 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
-
-
-
