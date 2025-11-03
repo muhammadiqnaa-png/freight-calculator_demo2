@@ -9,8 +9,8 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 from datetime import datetime
 import requests
-import json
-import os
+
+import streamlit as st
 
 # ==========================================================
 # ⚙️ Page Config (WAJIB paling atas!)
@@ -43,6 +43,7 @@ st.markdown("""
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FreightCalc">
 """, unsafe_allow_html=True)
+
 
 # ====== FIREBASE AUTH ======
 FIREBASE_API_KEY = st.secrets["FIREBASE_API_KEY"]
@@ -98,11 +99,10 @@ if st.sidebar.button("🚪 Log Out"):
     st.rerun()
 
 # ==========================================================
-# ⚙️ PARAMETER OTOMATIS KAPAL (Tambah di atas sidebar lain)
+# ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
+# - ditaruh di expander sidebar yang default tertutup
+# - tidak mengubah layout main / posisi expander lain
 # ==========================================================
-st.sidebar.markdown("### ⚙️ Parameter Otomatis Kapal")
-
-# Preset lengkap sesuai request user (default values)
 preset_params = {
     "270 ft": {
         "speed_laden": 3, "speed_ballast": 4,
@@ -136,111 +136,66 @@ preset_params = {
     }
 }
 
-# User chooses manual or preset
-kapal_option = st.sidebar.selectbox("Pilih Ukuran Tongkang", ["Manual", "270 ft", "300 ft", "330 ft"])
+# Expander kecil (default collapsed) — ini yang nggak ganggu tampilan kecuali user buka
+with st.sidebar.expander("⚙️ Preset Kapal (optional)", expanded=False):
+    kapal_option = st.selectbox("Pilih preset ukuran (biarkan Manual kalau mau input manual)", ["Manual", "270 ft", "300 ft", "330 ft"])
+    if kapal_option != "Manual":
+        # Apply preset into session_state so the number_inputs later pick them up as defaults
+        chosen = preset_params[kapal_option]
+        for k, v in chosen.items():
+            st.session_state[k] = v
 
-# If preset chosen, fill session_state defaults (so existing number_inputs pick them up)
-if kapal_option != "Manual":
-    chosen = preset_params[kapal_option]
-    for k, v in chosen.items():
-        # only set if not already set, or overwrite to reflect chosen preset
-        st.session_state[k] = v
-
-# Provide a small editor to tweak presets or add new (non-persistent; simple editor)
-with st.sidebar.expander("✏️ Edit / Tambah Ukuran (preset quick editor)"):
-    tab_edit, tab_add = st.tabs(["Edit Preset (temp)", "Tambah Preset Baru"])
-    with tab_edit:
-        st.write("Note: editor ini tidak menyimpan permanen. Untuk simpan, app-level JSON logic bisa ditambahkan.")
-        st.write(f"Preset sekarang: **{kapal_option}**")
+    # Optional: quick local apply button (ke session_state) — tetap inside expander
+    if st.button("Apply Preset"):
         if kapal_option != "Manual":
-            edited_local = {}
-            for key, val in preset_params[kapal_option].items():
-                step_val = 0.1 if isinstance(val, float) else 1000
-                edited_local[key] = st.number_input(f"{key}", value=val, step=step_val, key=f"edit_{key}")
-            if st.button("Apply Preset Locally"):
-                for k, v in edited_local.items():
-                    st.session_state[k] = v
-                st.success("Preset applied ke form (sementara).")
+            chosen = preset_params[kapal_option]
+            for k, v in chosen.items():
+                st.session_state[k] = v
+            st.success(f"Preset {kapal_option} applied.")
         else:
-            st.info("Pilih preset selain 'Manual' untuk edit.")
-    with tab_add:
-        st.info("Tambah preset baru (tidak persisten setelah reload).")
-        new_name = st.text_input("Nama preset (contoh: 360 ft)")
-        if new_name:
-            col1, col2 = st.columns(2)
-            with col1:
-                nspeed_l = st.number_input("Speed Laden", value=0.0, key="new_speed_l")
-                ncons = st.number_input("Fuel Consumption (Ltr/hour)", value=0.0, key="new_cons")
-                ncons_fw = st.number_input("Freshwater Cons (Ton/Day)", value=0.0, key="new_cons_fw")
-                nangs = st.number_input("Angsuran (Rp/Month)", value=0.0, key="new_angs")
-                ncrew = st.number_input("Crew (Rp/Month)", value=0.0, key="new_crewval")
-            with col2:
-                nspeed_b = st.number_input("Speed Ballast", value=0.0, key="new_speed_b")
-                nprice_f = st.number_input("Price Fuel (Rp/Ltr)", value=0.0, key="new_pricef")
-                nprice_fw = st.number_input("Price Freshwater (Rp/Ton)", value=0.0, key="new_pricefw")
-                nother = st.number_input("Other Cost (Rp)", value=0.0, key="new_other")
-            if st.button("Tambah Preset Baru (apply local)"):
-                # apply to session_state so form picks up
-                st.session_state["speed_laden"] = nspeed_l
-                st.session_state["speed_ballast"] = nspeed_b
-                st.session_state["consumption"] = ncons
-                st.session_state["price_fuel"] = nprice_f
-                st.session_state["consumption_fw"] = ncons_fw
-                st.session_state["price_fw"] = nprice_fw
-                st.session_state["charter"] = nangs
-                st.session_state["crew"] = ncrew
-                st.session_state["other_cost"] = nother
-                st.success("Preset baru diterapkan ke form (sementara).")
+            st.info("Pilih preset selain 'Manual' untuk apply.")
 
 # ===== MODE =====
 mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
 
-# ===== helper untuk number_input yang memakai session_state default =====
-def get_param(key, label, default=0.0, step=None):
-    # determine min and max? keep simple
-    current = st.session_state.get(key, default)
-    if step is None:
-        # choose step depending on type
-        step = 0.1 if isinstance(current, float) and not float(current).is_integer() else 1000
-    return st.sidebar.number_input(label, value=current, step=step, key=key)
-
 # ===== SIDEBAR PARAMETERS =====
 with st.sidebar.expander("🚢 Speed"):
-    speed_laden = get_param("speed_laden", "Speed Laden (knot)", default=0.0, step=0.1)
-    speed_ballast = get_param("speed_ballast", "Speed Ballast (knot)", default=0.0, step=0.1)
+    # set default values from session_state if exist, else 0.0
+    speed_laden = st.number_input("Speed Laden (knot)", value=st.session_state.get("speed_laden", 0.0))
+    speed_ballast = st.number_input("Speed Ballast (knot)", value=st.session_state.get("speed_ballast", 0.0))
 
 with st.sidebar.expander("⛽ Fuel"):
-    consumption = get_param("consumption", "Consumption Fuel (liter/hour)", default=0.0, step=1)
-    price_fuel = get_param("price_fuel", "Price Fuel (Rp/Ltr)", default=0.0, step=100)
+    consumption = st.number_input("Consumption Fuel (liter/hour)", value=st.session_state.get("consumption", 0))
+    price_fuel = st.number_input("Price Fuel (Rp/Ltr)", value=st.session_state.get("price_fuel", 0))
 
 with st.sidebar.expander("💧 Freshwater"):
-    consumption_fw = get_param("consumption_fw", "Consumption Freshwater (Ton/Day)", default=0.0, step=0.1)
-    price_fw = get_param("price_fw", "Price Freshwater (Rp/Ton)", default=0.0, step=1000)
+    consumption_fw = st.number_input("Consumption Freshwater (Ton/Day)", value=st.session_state.get("consumption_fw", 0))
+    price_fw = st.number_input("Price Freshwater (Rp/Ton)", value=st.session_state.get("price_fw", 0))
 
 if mode == "Owner":
     with st.sidebar.expander("🏗️ Owner Cost"):
-        charter = get_param("charter", "Angsuran (Rp/Month)", default=0.0, step=1000)
-        crew = get_param("crew", "Crew (Rp/Month)", default=0.0, step=1000)
-        insurance = get_param("insurance", "Insurance (Rp/Month)", default=0.0, step=1000)
-        docking = get_param("docking", "Docking (Rp/Month)", default=0.0, step=1000)
-        maintenance = get_param("maintenance", "Maintenance (Rp/Month)", default=0.0, step=1000)
-        certificate = get_param("certificate", "Certificate (Rp/Month)", default=0.0, step=1000)
-        premi_nm = get_param("premi_nm", "Premi (Rp/NM)", default=0.0, step=100)
-        other_cost = get_param("other_cost", "Other Cost (Rp)", default=0.0, step=1000)
+        charter = st.number_input("Angsuran (Rp/Month)", value=st.session_state.get("charter", 0))
+        crew = st.number_input("Crew (Rp/Month)", value=st.session_state.get("crew", 0))
+        insurance = st.number_input("Insurance (Rp/Month)", value=st.session_state.get("insurance", 0))
+        docking = st.number_input("Docking (Rp/Month)", value=st.session_state.get("docking", 0))
+        maintenance = st.number_input("Maintenance (Rp/Month)", value=st.session_state.get("maintenance", 0))
+        certificate = st.number_input("Certificate (Rp/Month)", value=st.session_state.get("certificate", 0))
+        premi_nm = st.number_input("Premi (Rp/NM)", value=st.session_state.get("premi_nm", 0))
+        other_cost = st.number_input("Other Cost (Rp)", value=st.session_state.get("other_cost", 0))
 else:
     with st.sidebar.expander("🏗️ Charter Cost"):
-        charter = get_param("charter", "Charter Hire (Rp/Month)", default=0.0, step=1000)
-        premi_nm = get_param("premi_nm", "Premi (Rp/NM)", default=0.0, step=100)
-        other_cost = get_param("other_cost", "Other Cost (Rp)", default=0.0, step=1000)
+        charter = st.number_input("Charter Hire (Rp/Month)", value=st.session_state.get("charter", 0))
+        premi_nm = st.number_input("Premi (Rp/NM)", value=st.session_state.get("premi_nm", 0))
+        other_cost = st.number_input("Other Cost (Rp)", value=st.session_state.get("other_cost", 0))
 
 with st.sidebar.expander("⚓ Port Cost"):
-    port_cost_pol = get_param("port_cost_pol", "Port Cost POL (Rp)", default=0.0, step=1000)
-    port_cost_pod = get_param("port_cost_pod", "Port Cost POD (Rp)", default=0.0, step=1000)
-    asist_tug = get_param("asist_tug", "Asist Tug (Rp)", default=0.0, step=1000)
+    port_cost_pol = st.number_input("Port Cost POL (Rp)", value=st.session_state.get("port_cost_pol", 0))
+    port_cost_pod = st.number_input("Port Cost POD (Rp)", value=st.session_state.get("port_cost_pod", 0))
+    asist_tug = st.number_input("Asist Tug (Rp)", value=st.session_state.get("asist_tug", 0))
 
 with st.sidebar.expander("🕓 Port Stay"):
-    port_stay_pol = get_param("port_stay_pol", "POL (Days)", default=0.0, step=1)
-    port_stay_pod = get_param("port_stay_pod", "POD (Days)", default=0.0, step=1)
+    port_stay_pol = st.number_input("POL (Days)", value=st.session_state.get("port_stay_pol", 0))
+    port_stay_pod = st.number_input("POD (Days)", value=st.session_state.get("port_stay_pod", 0))
 
 # ===== ADDITIONAL COST =====
 with st.sidebar.expander("➕ Additional Cost"):
@@ -281,9 +236,9 @@ with st.sidebar.expander("➕ Additional Cost"):
                     index=["Day", "Hour"].index(cost.get("subtype", "Day")),
                     key=f"subtype_{i}"
                 )
-            consumption_val = 0
+            consumption = 0
             if unit in ["Ltr", "Ton"]:
-                consumption_val = st.number_input(
+                consumption = st.number_input(
                     f"Consumption {i+1} ({unit}/{subtype})",
                     cost.get("consumption", 0),
                     key=f"consumption_{i}"
@@ -295,7 +250,7 @@ with st.sidebar.expander("➕ Additional Cost"):
                 "price": price,
                 "unit": unit,
                 "subtype": subtype,
-                "consumption": consumption_val
+                "consumption": consumption
             })
     st.session_state.additional_costs = updated_costs
 
@@ -319,11 +274,6 @@ freight_price_input = st.number_input("Freight Price (Rp/MT)", 0)
 # ===== PERHITUNGAN =====
 if st.button("Calculate Freight 💸"):
     try:
-        # avoid division by zero for speed: if user left 0, throw friendly error
-        if speed_laden == 0 or speed_ballast == 0:
-            st.error("Speed Laden and Speed Ballast harus diisi (tidak boleh 0).")
-            st.stop()
-
         # Waktu sailing (hour) based on speed inputs (hours)
         sailing_time = (distance_pol_pod / speed_laden) + (distance_pod_pol / speed_ballast)
         # total voyage in days (sailing hours converted to days + port stays)
@@ -331,7 +281,6 @@ if st.button("Calculate Freight 💸"):
         total_voyage_days_round = int(total_voyage_days) if total_voyage_days % 1 < 0.5 else int(total_voyage_days) + 1
 
         # consumptions
-        # port consumption fuel default used 120 Ltr per day per initial code assumption
         total_consumption_fuel = (sailing_time * consumption) + ((port_stay_pol + port_stay_pod) * 120)
         total_consumption_fw = consumption_fw * total_voyage_days_round
         cost_fw = total_consumption_fw * price_fw
