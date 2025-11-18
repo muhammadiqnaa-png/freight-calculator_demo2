@@ -136,15 +136,13 @@ preset_params = {
     }
 }
 
-preset_list = ["270 ft", "300 ft", "330 ft", "Custom"]
+preset = st.sidebar.segmented_control(
+    "Preset Kapal",
+    ["270 ft", "300 ft", "330 ft", "Custom"],
+    default=st.session_state.preset_selected,
+)
 
-st.sidebar.markdown("### ⚙️ Preset Kapal")
-
-for p in preset_list:
-    active = "background-color:#0d47a1;color:white" if st.session_state.preset_selected == p else "background-color:#f0f2f6"
-    if st.sidebar.button(p, key=f"btn_{p}"):
-        st.session_state.preset_selected = p
-    st.sidebar.markdown(f"<div style='{active}; padding:6px; border-radius:5px; margin-top:-10px'></div>", unsafe_allow_html=True)
+st.session_state.preset_selected = preset
 
 
 
@@ -559,6 +557,7 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 
 
 
