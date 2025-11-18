@@ -137,23 +137,23 @@ preset_params = {
 }
 
 # Expander kecil (default collapsed) — ini yang nggak ganggu tampilan kecuali user buka
-with st.sidebar.expander("⚙️ Preset Kapal (optional)", expanded=False):
-    kapal_option = st.selectbox("Pilih preset ukuran (biarkan Manual kalau mau input manual)", ["Manual", "270 ft", "300 ft", "330 ft"])
-    if kapal_option != "Manual":
-        # Apply preset into session_state so the number_inputs later pick them up as defaults
-        chosen = preset_params[kapal_option]
-        for k, v in chosen.items():
-            st.session_state[k] = v
+st.sidebar.markdown("### ⚙️ Preset Kapal")
 
-    # Optional: quick local apply button (ke session_state) — tetap inside expander
-    if st.button("Apply Preset"):
-        if kapal_option != "Manual":
-            chosen = preset_params[kapal_option]
-            for k, v in chosen.items():
-                st.session_state[k] = v
-            st.success(f"Preset {kapal_option} applied.")
-        else:
-            st.info("Pilih preset selain 'Manual' untuk apply.")
+kapal_option = st.sidebar.radio(
+    "Pilih preset ukuran",
+    ["Manual", "270 ft", "300 ft", "330 ft"],
+    index=0
+)
+
+# Auto-apply preset ketika user memilih
+if kapal_option != "Manual":
+    chosen = preset_params[kapal_option]
+    for k, v in chosen.items():
+        st.session_state[k] = v
+    st.sidebar.success(f"Preset {kapal_option} aktif")
+else:
+    st.sidebar.info("Mode manual aktif")
+
 
 # ===== MODE =====
 mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
@@ -566,3 +566,4 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
