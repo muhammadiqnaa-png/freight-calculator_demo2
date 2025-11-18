@@ -438,6 +438,17 @@ if st.button("Calculate Freight 💸"):
             styles.add(ParagraphStyle(name='Bold', fontSize=11, fontName='Helvetica-Bold'))
 
             elements = []
+            def fmt_rp(x):
+                return f"Rp {x:,.0f}"
+
+            def pct_of_total(x):
+                try:
+                    if total_cost and total_cost > 0:
+                        return f"   ({(x / total_cost) * 100:.1f}%)"
+                    else:
+                        return " (0.0%)"
+                except Exception:
+                    return " (0.0%)"
 
             # ===== HEADER =====
             title = Paragraph("<b>Freight Calculation Report</b>", styles['HeaderBlue'])
@@ -470,17 +481,17 @@ if st.button("Calculate Freight 💸"):
                 ["Total Sailing Time (Hour)", f"{sailing_time:.2f}"],
                 ["Total Consumption Fuel (Ltr)", f"{total_consumption_fuel:,.0f}"],
                 ["Total Consumption Freshwater (Ton)", f"{total_consumption_fw:,.0f}"],
-                ["Fuel Cost (Rp)", f"Rp {cost_fuel:,.0f}"],
-                ["Freshwater Cost (Rp)", f"Rp {cost_fw:,.0f}"],
+                ["Fuel Cost (Rp)", f"{fmt_rp(cost_fuel)}{pct_of_total(cost_fuel)}"],
+                ["Freshwater Cost (Rp)", f"{fmt_rp(cost_fw)}{pct_of_total(cost_fw)}"],
             ]
 
             for k, v in owner_data.items():
-                calc_data.append([k, f"Rp {v:,.0f}"])
+                calc_data.append([k, f"{fmt_rp(v)}{pct_of_total(v)}"])
 
             if additional_breakdown:
                 calc_data.append(["--- Additional Costs ---", ""])
                 for k, v in additional_breakdown.items():
-                    calc_data.append([k, f"Rp {v:,.0f}"])
+                    calc_data.append([k, f"{fmt_rp(v)}{pct_of_total(v)}"])
 
             calc_data.append(["Total Cost (Rp)", f"Rp {total_cost:,.0f}"])
             calc_data.append([f"Freight Cost ({type_cargo.split()[1]})", f"Rp {freight_cost_mt:,.0f}"])
