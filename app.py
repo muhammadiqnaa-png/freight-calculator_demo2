@@ -136,45 +136,49 @@ preset_params = {
     }
 }
 
+# Buat default state kalau belum ada
+if "preset_selected" not in st.session_state:
+    st.session_state.preset_selected = "Custom"
+
 st.sidebar.markdown("### ⚙️ Preset Kapal")
+
+# Buat style tombol aktif & non aktif
+def style_btn(label):
+    if st.session_state.preset_selected == label:
+        return f"background-color:#4a90e2; color:white; border:none; padding:6px; border-radius:5px;"
+    else:
+        return f"padding:6px; border-radius:5px;"
 
 col1, col2, col3, col4 = st.sidebar.columns(4)
 
 with col1:
-    btn_270 = st.button("270 ft")
+    if st.button("270 ft", key="btn270"):
+        st.session_state.preset_selected = "270 ft"
+        chosen = preset_params["270 ft"]
+        for k, v in chosen.items():
+            st.session_state[k] = v
+    st.markdown(f"<div style='{style_btn('270 ft')}'></div>", unsafe_allow_html=True)
 
 with col2:
-    btn_300 = st.button("300 ft")
+    if st.button("300 ft", key="btn300"):
+        st.session_state.preset_selected = "300 ft"
+        chosen = preset_params["300 ft"]
+        for k, v in chosen.items():
+            st.session_state[k] = v
+    st.markdown(f"<div style='{style_btn('300 ft')}'></div>", unsafe_allow_html=True)
 
 with col3:
-    btn_330 = st.button("330 ft")
+    if st.button("330 ft", key="btn330"):
+        st.session_state.preset_selected = "330 ft"
+        chosen = preset_params["330 ft"]
+        for k, v in chosen.items():
+            st.session_state[k] = v
+    st.markdown(f"<div style='{style_btn('330 ft')}'></div>", unsafe_allow_html=True)
 
 with col4:
-    btn_custom = st.button("Custom")
-
-
-# --- Apply preset sesuai tombol ---
-if btn_270:
-    chosen = preset_params["270 ft"]
-    for k, v in chosen.items():
-        st.session_state[k] = v
-    st.sidebar.success("Preset 270 ft applied")
-
-elif btn_300:
-    chosen = preset_params["300 ft"]
-    for k, v in chosen.items():
-        st.session_state[k] = v
-    st.sidebar.success("Preset 300 ft applied")
-
-elif btn_330:
-    chosen = preset_params["330 ft"]
-    for k, v in chosen.items():
-        st.session_state[k] = v
-    st.sidebar.success("Preset 330 ft applied")
-
-elif btn_custom:
-    st.sidebar.info("Mode Custom aktif — silakan isi manual")
-    # Tidak apply apa-apa → user bebas isi manual
+    if st.button("Custom", key="btncustom"):
+        st.session_state.preset_selected = "Custom"
+    st.markdown(f"<div style='{style_btn('Custom')}'></div>", unsafe_allow_html=True)
 
 
 # ===== MODE =====
@@ -588,5 +592,6 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 
 
