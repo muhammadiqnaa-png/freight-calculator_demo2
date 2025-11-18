@@ -136,53 +136,24 @@ preset_params = {
     }
 }
 
-st.sidebar.markdown("### ⚙️ Preset Kapal")
+# ==== PRESET SEGMEN ====
 
-# CSS segmented control
-st.sidebar.markdown("""
-<style>
-.seg-container {
-    display: flex;
-    background: #e0e0e0;
-    padding: 4px;
-    border-radius: 8px;
-}
-.seg-item {
-    flex: 1;
-    text-align: center;
-    padding: 6px 0;
-    border-radius: 6px;
-    font-size: 13px;
-    cursor: pointer;
-}
-.seg-active {
-    background: #0d47a1;
-    color: white;
-}
-</style>
-""", unsafe_allow_html=True)
-
-preset_list = ["270 ft", "300 ft", "330 ft", "Custom"]
-
-# Default
+# Pastikan ada default state
 if "preset_selected" not in st.session_state:
     st.session_state.preset_selected = "Custom"
 
-# Render segmented control
-st.sidebar.markdown('<div class="seg-container">', unsafe_allow_html=True)
-for p in preset_list:
-    active_class = "seg-active" if st.session_state.preset_selected == p else ""
-    if st.sidebar.button(p):
-        st.session_state.preset_selected = p
-    st.sidebar.markdown(
-        f'<div class="seg-item {active_class}">{p}</div>', 
-        unsafe_allow_html=True
-    )
-st.sidebar.markdown('</div>', unsafe_allow_html=True)
+preset = st.sidebar.segmented_control(
+    "Preset Kapal",
+    ["270 ft", "300 ft", "330 ft", "Custom"],
+    default=st.session_state.preset_selected,
+)
 
-# Apply preset otomatis
-if st.session_state.preset_selected != "Custom":
-    chosen = preset_params[st.session_state.preset_selected]
+# Simpan pilihan ke session
+st.session_state.preset_selected = preset
+
+# ==== APPLY PRESET ====
+if preset != "Custom":
+    chosen = preset_params[preset]
     for k, v in chosen.items():
         st.session_state[k] = v
 
@@ -598,6 +569,7 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 
 
 
