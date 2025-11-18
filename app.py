@@ -136,23 +136,45 @@ preset_params = {
     }
 }
 
-# Expander kecil (default collapsed) — ini yang nggak ganggu tampilan kecuali user buka
 st.sidebar.markdown("### ⚙️ Preset Kapal")
 
-kapal_option = st.sidebar.radio(
-    "Pilih preset ukuran",
-    ["Manual", "270 ft", "300 ft", "330 ft"],
-    index=0
-)
+col1, col2, col3, col4 = st.sidebar.columns(4)
 
-# Auto-apply preset ketika user memilih
-if kapal_option != "Manual":
-    chosen = preset_params[kapal_option]
+with col1:
+    btn_270 = st.button("270 ft")
+
+with col2:
+    btn_300 = st.button("300 ft")
+
+with col3:
+    btn_330 = st.button("330 ft")
+
+with col4:
+    btn_custom = st.button("Custom")
+
+
+# --- Apply preset sesuai tombol ---
+if btn_270:
+    chosen = preset_params["270 ft"]
     for k, v in chosen.items():
         st.session_state[k] = v
-    st.sidebar.success(f"Preset {kapal_option} aktif")
-else:
-    st.sidebar.info("Mode manual aktif")
+    st.sidebar.success("Preset 270 ft applied")
+
+elif btn_300:
+    chosen = preset_params["300 ft"]
+    for k, v in chosen.items():
+        st.session_state[k] = v
+    st.sidebar.success("Preset 300 ft applied")
+
+elif btn_330:
+    chosen = preset_params["330 ft"]
+    for k, v in chosen.items():
+        st.session_state[k] = v
+    st.sidebar.success("Preset 330 ft applied")
+
+elif btn_custom:
+    st.sidebar.info("Mode Custom aktif — silakan isi manual")
+    # Tidak apply apa-apa → user bebas isi manual
 
 
 # ===== MODE =====
@@ -566,4 +588,5 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 
