@@ -12,37 +12,6 @@ import requests
 
 import streamlit as st
 
-@st.cache_data
-def load_distance_data(path="data/port_distances.csv"):
-    try:
-        df = pd.read_csv(path)
-        # normalisasi string supaya pencarian case-insensitive dan tanpa spasi ekstra
-        df["POL"] = df["POL"].astype(str).str.strip()
-        df["POD"] = df["POD"].astype(str).str.strip()
-        return df
-    except Exception as e:
-        st.error(f"Failed to load distance CSV: {e}")
-        return pd.DataFrame(columns=["POL", "POD", "NM"])
-
-df_distance = load_distance_data()
-
-def find_distance_nm(pol: str, pod: str):
-    """Return NM as float jika ditemukan, else None. Case-insensitive."""
-    if not pol or not pod or df_distance.empty:
-        return None
-    pol_q = pol.strip().lower()
-    pod_q = pod.strip().lower()
-    match = df_distance[
-        (df_distance["POL"].str.lower() == pol_q) &
-        (df_distance["POD"].str.lower() == pod_q)
-    ]
-    if not match.empty:
-        try:
-            return float(match.iloc[0]["NM"])
-        except:
-            return None
-    return None
-
 # ==========================================================
 # ⚙️ Page Config (WAJIB paling atas!)
 # ==========================================================
@@ -297,35 +266,12 @@ with col1:
 with col2:
     port_pod = st.text_input("Port Of Discharge")
 with col3:
-    next_port = st.text_input("Next Port (optional)")
+    next_port = st.text_input("Next Port")
 
 type_cargo = st.selectbox("Type Cargo", ["Bauxite (MT)", "Sand (M3)", "Coal (MT)", "Nickel (MT)", "Split (M3)"])
 qyt_cargo = st.number_input("Cargo Quantity", 0.0)
-
-# ---- auto-detect distance from CSV (falls back to manual input) ----
-auto_pol_pod = find_distance_nm(port_pol, port_pod)
-auto_pod_next = find_distance_nm(port_pod, next_port) if next_port else None
-
-st.markdown("### Distance (NM)")
-# If auto detected, preset number_input to that value so user can still edit
-distance_pol_pod = st.number_input(
-    "Distance POL - POD (NM)",
-    value=float(auto_pol_pod) if auto_pol_pod is not None else 0.0,
-    step=1.0,
-    format="%.2f"
-)
-if auto_pol_pod is not None:
-    st.caption(f"Auto value loaded from CSV: {auto_pol_pod} NM — you can edit manually.")
-
-distance_pod_pol = st.number_input(
-    "Distance POD - POL (NM)",
-    value=float(auto_pod_next) if auto_pod_next is not None else 0.0,
-    step=1.0,
-    format="%.2f"
-)
-if auto_pod_next is not None:
-    st.caption(f"Auto value loaded from CSV for POD → Next Port: {auto_pod_next} NM — you can edit manually.")
-
+distance_pol_pod = st.number_input("Distance POL - POD (NM)", 0.0)
+distance_pod_pol = st.number_input("Distance POD - POL (NM)", 0.0)
 freight_price_input = st.number_input("Freight Price (Rp/MT)", 0)
 
 # ===== PERHITUNGAN =====
@@ -623,13 +569,3 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
-
-
-
-
-
-
-
-
-
-
