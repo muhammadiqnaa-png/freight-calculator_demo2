@@ -9,7 +9,6 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 from datetime import datetime
 import requests
-
 import streamlit as st
 
 # ==========================================================
@@ -90,14 +89,6 @@ if not st.session_state.logged_in:
                 st.error("Failed to register. Email may already exist.")
     st.stop()
 
-# ===== LOGOUT =====
-st.sidebar.markdown("### 👤 Account")
-st.sidebar.write(f"Logged in as: **{st.session_state.email}**")
-if st.sidebar.button("🚪 Log Out"):
-    st.session_state.logged_in = False
-    st.success("Successfully logged out.")
-    st.rerun()
-
 # ==========================================================
 # ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
 # - ditaruh di expander sidebar yang default tertutup
@@ -138,24 +129,27 @@ preset_params = {
 
 # ==== PRESET SEGMEN ====
 
+# Default state
 if "preset_selected" not in st.session_state:
     st.session_state.preset_selected = "Custom"
+
+# Handler untuk update state
+def update_preset():
+    st.session_state.preset_selected = st.session_state.preset_control
 
 preset = st.sidebar.segmented_control(
     "Size Barge",
     ["270 ft", "300 ft", "330 ft", "Custom"],
     default=st.session_state.preset_selected,
-    key="preset_control"     # <==== WAJIB
+    key="preset_control",
+    on_change=update_preset
 )
 
-st.session_state.preset_selected = preset
-
 # ==== APPLY PRESET ====
-if preset != "Custom":
-    chosen = preset_params[preset]
+if st.session_state.preset_selected != "Custom":
+    chosen = preset_params[st.session_state.preset_selected]
     for k, v in chosen.items():
         st.session_state[k] = v
-
 
 
 # ===== MODE =====
@@ -195,6 +189,16 @@ with st.sidebar.expander("⚓ Port Cost"):
     port_cost_pol = st.number_input("Port Cost POL (Rp)", value=st.session_state.get("port_cost_pol", 0))
     port_cost_pod = st.number_input("Port Cost POD (Rp)", value=st.session_state.get("port_cost_pod", 0))
     asist_tug = st.number_input("Asist Tug (Rp)", value=st.session_state.get("asist_tug", 0))
+
+with st.sidebar.expander("🏢 General Overhead"):
+    opex_office = st.number_input(
+        "Opex (Rp/Month)",
+        value=st.session_state.get("opex_office", 0)
+    )
+    depreciation_kapal = st.number_input(
+        "Depreciation Kapal (Rp/Month)",
+        value=st.session_state.get("depreciation_kapal", 0)
+    )
 
 with st.sidebar.expander("🕓 Port Stay"):
     port_stay_pol = st.number_input("POL (Days)", value=st.session_state.get("port_stay_pol", 0))
@@ -239,13 +243,14 @@ with st.sidebar.expander("➕ Additional Cost"):
                     index=["Day", "Hour"].index(cost.get("subtype", "Day")),
                     key=f"subtype_{i}"
                 )
-            consumption = 0
+            additional_consumption = 0
             if unit in ["Ltr", "Ton"]:
-                consumption = st.number_input(
+                additional_consumption = st.number_input(
                     f"Consumption {i+1} ({unit}/{subtype})",
                     cost.get("consumption", 0),
-                    key=f"consumption_{i}"
+                    key=f"additional_consumption_{i}"
                 )
+
         remove = st.button(f"❌ Remove {i+1}", key=f"remove_{i}")
         if not remove:
             updated_costs.append({
@@ -253,9 +258,17 @@ with st.sidebar.expander("➕ Additional Cost"):
                 "price": price,
                 "unit": unit,
                 "subtype": subtype,
-                "consumption": consumption
+                "consumption": additional_consumption
             })
     st.session_state.additional_costs = updated_costs
+
+# ===== LOGOUT =====
+st.sidebar.markdown("### Account")
+st.sidebar.write(f"**{st.session_state.email}**")
+if st.sidebar.button("Log Out"):
+    st.session_state.logged_in = False
+    st.success("Successfully logged out.")
+    st.rerun()
 
 # ===== MAIN INPUT =====
 st.title("🚢 Freight Calculator Barge")
@@ -296,6 +309,7 @@ if st.button("Calculate Freight 💸"):
         docking_cost = (docking / 30) * total_voyage_days if mode == "Owner" else 0
         maintenance_cost = (maintenance / 30) * total_voyage_days if mode == "Owner" else 0
         certificate_cost = (certificate / 30) * total_voyage_days if mode == "Owner" else 0
+        total_general_overhead = ((opex_office + depreciation_kapal) / 30) * total_voyage_days
         premi_cost = distance_pol_pod * premi_nm
         port_cost = port_cost_pol + port_cost_pod + asist_tug
 
@@ -340,7 +354,7 @@ if st.button("Calculate Freight 💸"):
 
         # ===== TOTAL COST FINAL =====
         total_cost = sum([
-            charter_cost, crew_cost, insurance_cost, docking_cost, maintenance_cost, certificate_cost,
+            charter_cost, crew_cost, insurance_cost, docking_cost, maintenance_cost, certificate_cost,total_general_overhead, 
             premi_cost, port_cost, cost_fuel, cost_fw, other_cost, additional_total
         ])
 
@@ -351,6 +365,17 @@ if st.button("Calculate Freight 💸"):
         pph_user = revenue_user * 0.012
         profit_user = revenue_user - total_cost - pph_user
         profit_percent_user = (profit_user / total_cost * 100) if total_cost > 0 else 0
+
+        # ===== TCE CALCULATION =====
+        tce_base_cost = cost_fuel + cost_fw + port_cost + premi_cost
+
+        tce_per_day = (
+            tce_base_cost / total_voyage_days
+            if total_voyage_days > 0 else 0
+        )
+
+        tce_per_month = tce_per_day * 30
+
 
         # ===== DISPLAY RESULTS =====
         st.subheader("📋 Calculation Results")
@@ -392,7 +417,7 @@ if st.button("Calculate Freight 💸"):
             st.markdown("### ➕ Additional Costs")
             for k, v in additional_breakdown.items():
                 st.markdown(f"- {k}: Rp {v:,.0f}")
-
+        st.markdown(f"- General Overhead: Rp {total_general_overhead:,.0f}")
         st.markdown(f"**🧮 Total Cost:** Rp {total_cost:,.0f}")
         st.markdown(f"**🧮 Freight Cost ({type_cargo.split()[1]}):** Rp {freight_cost_mt:,.0f}")
 
@@ -409,15 +434,23 @@ if st.button("Calculate Freight 💸"):
         else:
             st.info("Masukkan Freight Price untuk melihat hasil perhitungan profit user.")
 
+        st.subheader("⏱️ Time Charter Equivalent (TCE)")
+        st.markdown(f"""
+        **Base Cost (Fuel + FW + Port + Premi):** Rp {tce_base_cost:,.0f}  
+        **TCE Per Day:** Rp {tce_per_day:,.0f} / Day  
+        **TCE Per Month:** Rp {tce_per_month:,.0f} / Month
+        """)
+
+
         # ===== PROFIT SCENARIO =====
         data = []
         for p in range(0, 80, 5):
             freight_persen = freight_cost_mt * (1 + p / 100)
             revenue = freight_persen * qyt_cargo
             pph = revenue * 0.012
-            profit = revenue - total_cost - pph
-            data.append([f"{p}%", f"Rp {freight_persen:,.0f}", f"Rp {revenue:,.0f}", f"Rp {pph:,.0f}", f"Rp {profit:,.0f}"])
-        df_profit = pd.DataFrame(data, columns=["Profit %", "Freight (Rp)", "Revenue (Rp)", "PPH 1.2% (Rp)", "Profit (Rp)"])
+            gross_profit = revenue - total_cost - pph
+            data.append([f"{p}%", f"Rp {freight_persen:,.0f}", f"Rp {revenue:,.0f}", f"Rp {pph:,.0f}", f"Rp {gross_profit:,.0f}"])
+        df_profit = pd.DataFrame(data, columns=["Profit %", "Freight (Rp)", "Revenue (Rp)", "PPH 1.2% (Rp)", "Gross Profit (Rp)"])
 
         st.subheader("💹 Profit Scenario 0–75%")
         st.dataframe(df_profit, use_container_width=True)
@@ -486,6 +519,7 @@ if st.button("Calculate Freight 💸"):
                 ["Total Consumption Freshwater (Ton)", f"{total_consumption_fw:,.0f}"],
                 ["Fuel Cost (Rp)", f"{fmt_rp(cost_fuel)}{pct_of_total(cost_fuel)}"],
                 ["Freshwater Cost (Rp)", f"{fmt_rp(cost_fw)}{pct_of_total(cost_fw)}"],
+                ["Total General Overhead (Voyage)", fmt_rp(total_general_overhead) + pct_of_total(total_general_overhead)],
             ]
 
             for k, v in owner_data.items():
@@ -528,6 +562,27 @@ if st.button("Calculate Freight 💸"):
                     ('FONTSIZE', (0, 0), (-1, -1), 8),
                 ]))
                 elements += [t_fpc, Spacer(1, 4)]
+
+            # ===== TCE =====
+            elements.append(Paragraph("Time Charter Equivalent (TCE)", styles['SubHeader']))
+
+            tce_data = [
+                ["Base Cost (Fuel + FW + Port + Premi)", fmt_rp(tce_base_cost)],
+                ["TCE Per Day", f"{fmt_rp(tce_per_day)} / Day"],
+                ["TCE Per Month", f"{fmt_rp(tce_per_month)} / Month"],
+            ]
+
+            t_tce = Table(tce_data, colWidths=[9*cm, 9*cm])
+            t_tce.setStyle(TableStyle([
+                ('GRID', (0, 0), (-1, -1), 0.3, colors.grey),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ]))
+
+            elements += [t_tce, Spacer(1, 4)]
+
 
             # ===== PROFIT SCENARIO =====
             elements.append(Paragraph("Profit Scenario 0–75%", styles['SubHeader']))
