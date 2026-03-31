@@ -159,7 +159,7 @@ mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
 with st.sidebar.expander("🚢 Speed"):
     # set default values from session_state if exist, else 0.0
     speed_laden = st.number_input("Speed Laden (knot)", 0.0, step=0.1, format="%.1f")
-    speed_ballast = st.number_input("Speed Ballast (knot)", 0.0, step=0.1, format="%.1f"
+    speed_ballast = st.number_input("Speed Ballast (knot)", 0.0, step=0.1, format="%.1f")
 
 with st.sidebar.expander("⛽ Fuel"):
     consumption = st.number_input("Consumption Fuel (liter/hour)", value=st.session_state.get("consumption", 0))
