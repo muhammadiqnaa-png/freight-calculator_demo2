@@ -344,9 +344,13 @@ for r in st.session_state.route_master:
     if r["pol"].lower() == port_pol.lower() and r["pod"].lower() == port_pod.lower():
         distance_pol_pod = r["distance"]
 
-    # POD → POL (BALIK)
+    # POD → POL (kalau ada di master)
     if r["pol"].lower() == port_pod.lower() and r["pod"].lower() == port_pol.lower():
         distance_pod_pol = r["distance"]
+
+# 🔥 AUTO BALIK (INI KUNCINYA)
+if distance_pod_pol == 0 and distance_pol_pod > 0:
+    distance_pod_pol = distance_pol_pod
 
 st.number_input("Distance POL - POD (NM)", value=distance_pol_pod, disabled=True)
 st.number_input("Distance POD - POL (NM)", value=distance_pod_pol, disabled=True)
