@@ -340,11 +340,11 @@ for r in st.session_state.route_master:
     if r["pol"] == port_pol and r["pod"] == port_pod:
         distance_pol_pod = r["distance"]
 
-    # POD → NEXT (kalau next_port ada)
+    # POD → NEXT
     if next_port and r["pol"] == port_pod and r["pod"] == next_port:
         distance_pod_next = r["distance"]
 
-# auto kebalik
+# auto reverse (NEXT → POD)
 if next_port and distance_pod_next == 0:
     for r in st.session_state.route_master:
         if r["pol"] == next_port and r["pod"] == port_pod:
@@ -352,16 +352,22 @@ if next_port and distance_pod_next == 0:
 
 # tampilkan
 st.number_input("Distance POL - POD (NM)", value=distance_pol_pod, disabled=True)
+
 if next_port:
     st.number_input("Distance POD - Next Port (NM)", value=distance_pod_next, disabled=True)
 
+# validasi
 if distance_pol_pod == 0:
     st.error(f"❌ Route {port_pol} → {port_pod} belum ada di master data!")
 
-if distance_pod_next == 0:
+if next_port and distance_pod_next == 0:
     st.error(f"❌ Route {port_pod} → {next_port} belum ada di master data!")
 
-if distance_pol_pod == 0 or distance_pod_next == 0:
+# stop hanya kalau data wajib kosong
+if distance_pol_pod == 0:
+    st.stop()
+
+if next_port and distance_pod_next == 0:
     st.stop()
 
 type_cargo = st.selectbox("Type Cargo", ["Bauxite (MT)", "Sand (M3)", "Coal (MT)", "Nickel (MT)", "Split (M3)"])
