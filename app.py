@@ -163,6 +163,47 @@ menu = st.sidebar.radio("Menu", ["Calculator", "Master Data"])
 # ===== MODE =====
 mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
 
+# ===== MASTER DATA ROUTE =====
+with st.sidebar.expander("⚙️ Master Data Route", expanded=False):
+
+    st.markdown("### ➕ Add Route")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        pol_input = st.text_input("POL", key="md_pol")
+
+    with col2:
+        pod_input = st.text_input("POD", key="md_pod")
+
+    distance_input = st.number_input("Distance (NM)", 0.0, key="md_distance")
+
+    if st.button("💾 Save Route"):
+        if pol_input and pod_input:
+            st.session_state.route_master.append({
+                "pol": pol_input,
+                "pod": pod_input,
+                "distance": distance_input
+            })
+            st.success("Route saved!")
+        else:
+            st.warning("POL & POD wajib diisi!")
+
+    st.divider()
+
+    st.markdown("### 📋 Route List")
+
+    for i, r in enumerate(st.session_state.route_master):
+        col1, col2, col3, col4 = st.columns([2,2,1,1])
+
+        col1.write(r["pol"])
+        col2.write(r["pod"])
+        col3.write(f"{r['distance']} NM")
+
+        if col4.button("❌", key=f"del_route_{i}"):
+            st.session_state.route_master.pop(i)
+            st.rerun()
+
 # ===== SIDEBAR PARAMETERS =====
 with st.sidebar.expander("🚢 Speed"):
     # set default values from session_state if exist, else 0.0
