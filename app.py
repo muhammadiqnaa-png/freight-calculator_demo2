@@ -91,8 +91,8 @@ if not st.session_state.logged_in:
 # ===== MASTER ROUTE =====
 if "route_master" not in st.session_state:
     st.session_state.route_master = [
-        {"pol": "Taboneo", "pod": "Surabaya", "distance": 450},
-        {"pol": "Surabaya", "pod": "Taboneo", "distance": 450},
+        {"pol": "SIP", "pod": "INDRAMAYU", "distance": 500},
+        {"pol": "TEMPIRAI", "pod": "INDRAMAYU", "distance": 300},
     ]
 
 # ==========================================================
@@ -163,8 +163,6 @@ mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
 # ===== MASTER DATA ROUTE =====
 with st.sidebar.expander("⚙️ Master Data Route", expanded=False):
 
-    st.markdown("### ➕ Add Route")
-
     col1, col2 = st.columns(2)
 
     with col1:
@@ -178,24 +176,18 @@ with st.sidebar.expander("⚙️ Master Data Route", expanded=False):
     if st.button("💾 Save Route"):
         if pol_input and pod_input:
             st.session_state.route_master.append({
-                "pol": pol_input,
-                "pod": pod_input,
+                "pol": pol_input.strip().upper(),
+                "pod": pod_input.strip().upper(),
                 "distance": distance_input
             })
             st.success("Route saved!")
-        else:
-            st.warning("POL & POD wajib diisi!")
-
-    st.divider()
-
-    st.markdown("### 📋 Route List")
 
     for i, r in enumerate(st.session_state.route_master):
         col1, col2, col3, col4 = st.columns([2,2,1,1])
 
         col1.write(r["pol"])
         col2.write(r["pod"])
-        col3.write(f"{r['distance']} NM")
+        col3.write(f"{r['distance']}")
 
         if col4.button("❌", key=f"del_route_{i}"):
             st.session_state.route_master.pop(i)
@@ -320,8 +312,8 @@ if st.sidebar.button("Log Out"):
 st.title("🚢 Freight Calculator Barge")
 
 # ambil data dari master route
-pol_list = list(set([r["pol"] for r in st.session_state.route_master]))
-pod_list = list(set([r["pod"] for r in st.session_state.route_master]))
+pol_list = sorted(list(set([r["pol"] for r in st.session_state.route_master])))
+pod_list = sorted(list(set([r["pod"] for r in st.session_state.route_master])))
 
 col1, col2, col3 = st.columns(3)
 
@@ -336,28 +328,34 @@ with col3:
 
 # ===== AUTO DISTANCE =====
 distance_pol_pod = 0
-distance_pod_pol = 0
+distance_pod_next = 0
 
 for r in st.session_state.route_master:
 
-    # POL → POD
-    if r["pol"].lower() == port_pol.lower() and r["pod"].lower() == port_pod.lower():
+    if r["pol"] == port_pol and r["pod"] == port_pod:
         distance_pol_pod = r["distance"]
 
-    # POD → POL (kalau ada di master)
-    if r["pol"].lower() == port_pod.lower() and r["pod"].lower() == port_pol.lower():
-        distance_pod_pol = r["distance"]
+    if r["pol"] == port_pod and r["pod"] == next_port:
+        distance_pod_next = r["distance"]
 
-# 🔥 AUTO BALIK (INI KUNCINYA)
-if distance_pod_pol == 0 and distance_pol_pod > 0:
-    distance_pod_pol = distance_pol_pod
+# auto kebalik
+if distance_pod_next == 0:
+    for r in st.session_state.route_master:
+        if r["pol"] == next_port and r["pod"] == port_pod:
+            distance_pod_next = r["distance"]
 
+# tampilkan
 st.number_input("Distance POL - POD (NM)", value=distance_pol_pod, disabled=True)
-st.number_input("Distance POD - POL (NM)", value=distance_pod_pol, disabled=True)
+st.number_input("Distance POD - Next Port (NM)", value=distance_pod_next, disabled=True)
 
-# warning kalau route belum ada
 if distance_pol_pod == 0:
-    st.warning("⚠️ Route belum ada di master data!")
+    st.error(f"❌ Route {port_pol} → {port_pod} belum ada di master data!")
+
+if distance_pod_next == 0:
+    st.error(f"❌ Route {port_pod} → {next_port} belum ada di master data!")
+
+if distance_pol_pod == 0 or distance_pod_next == 0:
+    st.stop()
 
 type_cargo = st.selectbox("Type Cargo", ["Bauxite (MT)", "Sand (M3)", "Coal (MT)", "Nickel (MT)", "Split (M3)"])
 qyt_cargo = st.number_input("Cargo Quantity", 0.0)
