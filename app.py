@@ -319,18 +319,42 @@ if st.sidebar.button("Log Out"):
 # ===== MAIN INPUT =====
 st.title("🚢 Freight Calculator Barge")
 
+# ambil data dari master route
+pol_list = list(set([r["pol"] for r in st.session_state.route_master]))
+pod_list = list(set([r["pod"] for r in st.session_state.route_master]))
+
 col1, col2, col3 = st.columns(3)
+
 with col1:
-    port_pol = st.text_input("Port Of Loading")
+    port_pol = st.selectbox("Port Of Loading", pol_list)
+
 with col2:
-    port_pod = st.text_input("Port Of Discharge")
+    port_pod = st.selectbox("Port Of Discharge", pod_list)
+
 with col3:
-    next_port = st.text_input("Next Port")
+    next_port = port_pol
+    st.text_input("Next Port", value=next_port, disabled=True)
+
+# ===== AUTO DISTANCE =====
+distance_pol_pod = 0
+distance_pod_pol = 0
+
+for r in st.session_state.route_master:
+    if r["pol"] == port_pol and r["pod"] == port_pod:
+        distance_pol_pod = r["distance"]
+
+    if r["pol"] == port_pod and r["pod"] == port_pol:
+        distance_pod_pol = r["distance"]
+
+st.number_input("Distance POL - POD (NM)", value=distance_pol_pod, disabled=True)
+st.number_input("Distance POD - POL (NM)", value=distance_pod_pol, disabled=True)
+
+# warning kalau route belum ada
+if distance_pol_pod == 0:
+    st.warning("⚠️ Route belum ada di master data!")
 
 type_cargo = st.selectbox("Type Cargo", ["Bauxite (MT)", "Sand (M3)", "Coal (MT)", "Nickel (MT)", "Split (M3)"])
 qyt_cargo = st.number_input("Cargo Quantity", 0.0)
-distance_pol_pod = st.number_input("Distance POL - POD (NM)", 0.0)
-distance_pod_pol = st.number_input("Distance POD - POL (NM)", 0.0)
 freight_price_input = st.number_input("Freight Price (Rp/MT)", 0)
 
 # ===== PERHITUNGAN =====
