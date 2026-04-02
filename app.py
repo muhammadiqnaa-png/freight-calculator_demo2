@@ -332,8 +332,7 @@ with col2:
     port_pod = st.selectbox("Port Of Discharge", pod_list)
 
 with col3:
-    next_port = port_pol
-    st.text_input("Next Port", value=next_port, disabled=True)
+    next_port = st.selectbox("Next Port", pol_list)
 
 # ===== AUTO DISTANCE =====
 distance_pol_pod = 0
