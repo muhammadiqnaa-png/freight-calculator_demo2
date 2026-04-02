@@ -378,7 +378,10 @@ freight_price_input = st.number_input("Freight Price (Rp/MT)", 0)
 if st.button("Calculate Freight 💸"):
     try:
         # Waktu sailing (hour) based on speed inputs (hours)
-        sailing_time = (distance_pol_pod / speed_laden) + (distance_pod_pol / speed_ballast)
+        sailing_time = (
+            (distance_pol_pod / speed_laden) +
+            ((distance_pod_next / speed_ballast) if next_port else 0)
+        )
         # total voyage in days (sailing hours converted to days + port stays)
         total_voyage_days = (sailing_time / 24) + (port_stay_pol + port_stay_pod)
         total_voyage_days_round = int(total_voyage_days) if total_voyage_days % 1 < 0.5 else int(total_voyage_days) + 1
