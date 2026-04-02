@@ -324,7 +324,11 @@ with col2:
     port_pod = st.selectbox("Port Of Discharge", pod_list)
 
 with col3:
-    next_port = st.selectbox("Next Port", pol_list)
+    next_port = st.selectbox(
+        "Next Port (Optional)",
+        [None] + pol_list,
+        format_func=lambda x: "Pilih (Optional)" if x is None else x
+    )
 
 # ===== AUTO DISTANCE =====
 distance_pol_pod = 0
@@ -332,21 +336,24 @@ distance_pod_next = 0
 
 for r in st.session_state.route_master:
 
+    # POL → POD
     if r["pol"] == port_pol and r["pod"] == port_pod:
         distance_pol_pod = r["distance"]
 
-    if r["pol"] == port_pod and r["pod"] == next_port:
+    # POD → NEXT (kalau next_port ada)
+    if next_port and r["pol"] == port_pod and r["pod"] == next_port:
         distance_pod_next = r["distance"]
 
 # auto kebalik
-if distance_pod_next == 0:
+if next_port and distance_pod_next == 0:
     for r in st.session_state.route_master:
         if r["pol"] == next_port and r["pod"] == port_pod:
             distance_pod_next = r["distance"]
 
 # tampilkan
 st.number_input("Distance POL - POD (NM)", value=distance_pol_pod, disabled=True)
-st.number_input("Distance POD - Next Port (NM)", value=distance_pod_next, disabled=True)
+if next_port:
+    st.number_input("Distance POD - Next Port (NM)", value=distance_pod_next, disabled=True)
 
 if distance_pol_pod == 0:
     st.error(f"❌ Route {port_pol} → {port_pod} belum ada di master data!")
