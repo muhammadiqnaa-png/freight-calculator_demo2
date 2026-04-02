@@ -159,6 +159,8 @@ if st.session_state.preset_selected != "Custom":
     for k, v in chosen.items():
         st.session_state[k] = v
 
+# ===== MENU =====
+menu = st.sidebar.radio("Menu", ["Calculator", "Master Data"])
 
 # ===== MODE =====
 mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
