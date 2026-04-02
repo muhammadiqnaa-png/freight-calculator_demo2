@@ -281,7 +281,8 @@ if st.sidebar.button("Log Out"):
     st.rerun()
 
 # ===== MAIN INPUT =====
-st.title("🚢 Freight Calculator Barge")
+if menu == "Calculator":
+    st.title("🚢 Freight Calculator Barge")
 
 col1, col2, col3 = st.columns(3)
 with col1:
