@@ -340,12 +340,12 @@ distance_pod_pol = 0
 
 for r in st.session_state.route_master:
 
-    # pergi
+    # POL → POD
     if r["pol"].lower() == port_pol.lower() and r["pod"].lower() == port_pod.lower():
         distance_pol_pod = r["distance"]
 
-    # balik (pakai NEXT PORT)
-    if r["pol"].lower() == port_pod.lower() and r["pod"].lower() == next_port.lower():
+    # POD → POL (BALIK)
+    if r["pol"].lower() == port_pod.lower() and r["pod"].lower() == port_pol.lower():
         distance_pod_pol = r["distance"]
 
 st.number_input("Distance POL - POD (NM)", value=distance_pol_pod, disabled=True)
