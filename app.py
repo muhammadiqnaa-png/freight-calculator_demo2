@@ -209,6 +209,8 @@ if menu_sidebar == "📍 Master Data":
             if col4.button("❌", key=f"del_route_{i}"):
                 st.session_state.route_master.pop(i)
                 st.rerun()
+# Safety fallback (biar ga error di menu lain)
+mode = st.session_state.get("mode", "Owner")
 
 # ===== SIDEBAR PARAMETERS =====
 with st.sidebar.expander("🚢 Speed"):
