@@ -133,32 +133,38 @@ preset_params = {
     }
 }
 
-# ==== PRESET SEGMEN ====
-
-# Default state
-if "preset_selected" not in st.session_state:
-    st.session_state.preset_selected = "Custom"
-
-# Handler untuk update state
-def update_preset():
-    st.session_state.preset_selected = st.session_state.preset_control
-
-preset = st.sidebar.segmented_control(
-    "Size Barge",
-    ["270 ft", "300 ft", "330 ft", "Custom"],
-    default=st.session_state.preset_selected,
-    key="preset_control",
-    on_change=update_preset
+# ===== MENU SIDEBAR =====
+menu_sidebar = st.sidebar.radio(
+    "📂 Menu",
+    ["🚢 Calculator Freight", "📍 Master Data", "👤 Akun"]
 )
 
-# ==== APPLY PRESET ====
-if st.session_state.preset_selected != "Custom":
-    chosen = preset_params[st.session_state.preset_selected]
-    for k, v in chosen.items():
-        st.session_state[k] = v
+if menu_sidebar == "🚢 Calculator Freight":
 
-# ===== MODE =====
-mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
+    # ==== PRESET SEGMEN ====
+    # Default state
+    if "preset_selected" not in st.session_state:
+        st.session_state.preset_selected = "Custom"
+
+    def update_preset():
+        st.session_state.preset_selected = st.session_state.preset_control
+
+    preset = st.sidebar.segmented_control(
+        "Size Barge",
+        ["270 ft", "300 ft", "330 ft", "Custom"],
+        default=st.session_state.preset_selected,
+        key="preset_control",
+        on_change=update_preset
+    )
+
+    # ==== APPLY PRESET ====
+    if st.session_state.preset_selected != "Custom":
+        chosen = preset_params[st.session_state.preset_selected]
+        for k, v in chosen.items():
+            st.session_state[k] = v
+
+    # ===== MODE =====
+    mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
 
 # ===== MASTER DATA ROUTE =====
 with st.sidebar.expander("⚙️ Master Data Route", expanded=False):
