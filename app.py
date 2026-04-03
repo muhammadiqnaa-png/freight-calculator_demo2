@@ -165,15 +165,6 @@ preset = st.sidebar.segmented_control(
     on_change=update_preset
 )
 
-# ==== APPLY PRESET ====
-if st.session_state.preset_selected != "Custom":
-    chosen = preset_params[st.session_state.preset_selected]
-    for k, v in chosen.items():
-        st.session_state[k] = v
-
-# ===== MODE =====
-mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
-
 # ===== MASTER DATA ROUTE =====
 with st.sidebar.expander("⚙️ Master Data Route", expanded=False):
 
@@ -206,6 +197,15 @@ with st.sidebar.expander("⚙️ Master Data Route", expanded=False):
         if col4.button("❌", key=f"del_route_{i}"):
             st.session_state.route_master.pop(i)
             st.rerun()
+
+# ==== APPLY PRESET ====
+if st.session_state.preset_selected != "Custom":
+    chosen = preset_params[st.session_state.preset_selected]
+    for k, v in chosen.items():
+        st.session_state[k] = v
+
+# ===== MODE =====
+mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
 
 # ===== SIDEBAR PARAMETERS =====
 with st.sidebar.expander("🚢 Speed"):
