@@ -110,6 +110,39 @@ if "route_master" not in st.session_state:
         {"pol": "TEMPIRAI", "pod": "PERAWANG", "distance": 425},
     ]
 
+# ===== MASTER DATA ROUTE =====
+with st.sidebar.expander("⚙️ Master Data Route", expanded=False):
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        pol_input = st.text_input("POL", key="md_pol")
+
+    with col2:
+        pod_input = st.text_input("POD", key="md_pod")
+
+    distance_input = st.number_input("Distance (NM)", 0.0, key="md_distance")
+
+    if st.button("💾 Save Route"):
+        if pol_input and pod_input:
+            st.session_state.route_master.append({
+                "pol": pol_input.strip().upper(),
+                "pod": pod_input.strip().upper(),
+                "distance": distance_input
+            })
+            st.success("Route saved!")
+
+    for i, r in enumerate(st.session_state.route_master):
+        col1, col2, col3, col4 = st.columns([2,2,1,1])
+
+        col1.write(r["pol"])
+        col2.write(r["pod"])
+        col3.write(f"{r['distance']}")
+
+        if col4.button("❌", key=f"del_route_{i}"):
+            st.session_state.route_master.pop(i)
+            st.rerun()
+
 # ==========================================================
 # ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
 # - ditaruh di expander sidebar yang default tertutup
@@ -165,39 +198,6 @@ preset = st.sidebar.segmented_control(
     key="preset_control",
     on_change=update_preset
 )
-
-# ===== MASTER DATA ROUTE =====
-with st.sidebar.expander("⚙️ Master Data Route", expanded=False):
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        pol_input = st.text_input("POL", key="md_pol")
-
-    with col2:
-        pod_input = st.text_input("POD", key="md_pod")
-
-    distance_input = st.number_input("Distance (NM)", 0.0, key="md_distance")
-
-    if st.button("💾 Save Route"):
-        if pol_input and pod_input:
-            st.session_state.route_master.append({
-                "pol": pol_input.strip().upper(),
-                "pod": pod_input.strip().upper(),
-                "distance": distance_input
-            })
-            st.success("Route saved!")
-
-    for i, r in enumerate(st.session_state.route_master):
-        col1, col2, col3, col4 = st.columns([2,2,1,1])
-
-        col1.write(r["pol"])
-        col2.write(r["pod"])
-        col3.write(f"{r['distance']}")
-
-        if col4.button("❌", key=f"del_route_{i}"):
-            st.session_state.route_master.pop(i)
-            st.rerun()
 
 # ==== APPLY PRESET ====
 if st.session_state.preset_selected != "Custom":
