@@ -9,7 +9,6 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 from datetime import datetime
 import requests
-import streamlit as st
 
 # ==========================================================
 # ⚙️ Page Config (WAJIB paling atas!)
