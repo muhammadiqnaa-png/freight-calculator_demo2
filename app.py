@@ -167,7 +167,13 @@ if menu_sidebar == "🚢 Calculator Freight":
             st.session_state[k] = v
 
     # ===== MODE =====
-    mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
+    st.session_state.mode = st.sidebar.selectbox(
+    "Mode",
+    ["Owner", "Charter"],
+    index=0 if st.session_state.mode == "Owner" else 1
+)
+
+mode = st.session_state.mode
 
 # ===== MASTER DATA ROUTE =====
 if menu_sidebar == "📍 Master Data":
