@@ -9,6 +9,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 from datetime import datetime
 import requests
+import streamlit as st
 
 # ==========================================================
 # ⚙️ Page Config (WAJIB paling atas!)
@@ -132,84 +133,65 @@ preset_params = {
     }
 }
 
-# ===== MENU SIDEBAR =====
-menu_sidebar = st.sidebar.radio(
-# FIX ERROR mode not defined
-if "mode" not in st.session_state:
-    st.session_state.mode = "Owner"
-    "📂 Menu",
-    ["🚢 Calculator Freight", "📍 Master Data", "👤 Akun"]
+# ==== PRESET SEGMEN ====
+
+# Default state
+if "preset_selected" not in st.session_state:
+    st.session_state.preset_selected = "Custom"
+
+# Handler untuk update state
+def update_preset():
+    st.session_state.preset_selected = st.session_state.preset_control
+
+preset = st.sidebar.segmented_control(
+    "Size Barge",
+    ["270 ft", "300 ft", "330 ft", "Custom"],
+    default=st.session_state.preset_selected,
+    key="preset_control",
+    on_change=update_preset
 )
 
-if menu_sidebar == "🚢 Calculator Freight":
+# ==== APPLY PRESET ====
+if st.session_state.preset_selected != "Custom":
+    chosen = preset_params[st.session_state.preset_selected]
+    for k, v in chosen.items():
+        st.session_state[k] = v
 
-    # ==== PRESET SEGMEN ====
-    # Default state
-    if "preset_selected" not in st.session_state:
-        st.session_state.preset_selected = "Custom"
-
-    def update_preset():
-        st.session_state.preset_selected = st.session_state.preset_control
-
-    preset = st.sidebar.segmented_control(
-        "Size Barge",
-        ["270 ft", "300 ft", "330 ft", "Custom"],
-        default=st.session_state.preset_selected,
-        key="preset_control",
-        on_change=update_preset
-    )
-
-    # ==== APPLY PRESET ====
-    if st.session_state.preset_selected != "Custom":
-        chosen = preset_params[st.session_state.preset_selected]
-        for k, v in chosen.items():
-            st.session_state[k] = v
-
-    # ===== MODE =====
-    st.session_state.mode = st.sidebar.selectbox(
-    "Mode",
-    ["Owner", "Charter"],
-    index=0 if st.session_state.mode == "Owner" else 1
-)
-
-mode = st.session_state.mode
+# ===== MODE =====
+mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
 
 # ===== MASTER DATA ROUTE =====
-if menu_sidebar == "📍 Master Data":
+with st.sidebar.expander("⚙️ Master Data Route", expanded=False):
 
-    with st.sidebar.expander("📍 Distance Route", expanded=True):
+    col1, col2 = st.columns(2)
 
-        col1, col2 = st.columns(2)
+    with col1:
+        pol_input = st.text_input("POL", key="md_pol")
 
-        with col1:
-            pol_input = st.text_input("POL", key="md_pol")
+    with col2:
+        pod_input = st.text_input("POD", key="md_pod")
 
-        with col2:
-            pod_input = st.text_input("POD", key="md_pod")
+    distance_input = st.number_input("Distance (NM)", 0.0, key="md_distance")
 
-        distance_input = st.number_input("Distance (NM)", 0.0, key="md_distance")
+    if st.button("💾 Save Route"):
+        if pol_input and pod_input:
+            st.session_state.route_master.append({
+                "pol": pol_input.strip().upper(),
+                "pod": pod_input.strip().upper(),
+                "distance": distance_input
+            })
+            st.success("Route saved!")
 
-        if st.button("💾 Save Route"):
-            if pol_input and pod_input:
-                st.session_state.route_master.append({
-                    "pol": pol_input.strip().upper(),
-                    "pod": pod_input.strip().upper(),
-                    "distance": distance_input
-                })
-                st.success("Route saved!")
+    for i, r in enumerate(st.session_state.route_master):
+        col1, col2, col3, col4 = st.columns([2,2,1,1])
 
-        for i, r in enumerate(st.session_state.route_master):
-            col1, col2, col3, col4 = st.columns([2,2,1,1])
+        col1.write(r["pol"])
+        col2.write(r["pod"])
+        col3.write(f"{r['distance']}")
 
-            col1.write(r["pol"])
-            col2.write(r["pod"])
-            col3.write(f"{r['distance']}")
-
-            if col4.button("❌", key=f"del_route_{i}"):
-                st.session_state.route_master.pop(i)
-                st.rerun()
-# Safety fallback (biar ga error di menu lain)
-mode = st.session_state.get("mode", "Owner")
+        if col4.button("❌", key=f"del_route_{i}"):
+            st.session_state.route_master.pop(i)
+            st.rerun()
 
 # ===== SIDEBAR PARAMETERS =====
 with st.sidebar.expander("🚢 Speed"):
@@ -746,4 +728,3 @@ if st.button("Calculate Freight 💸"):
 
     except Exception as e:
         st.error(f"Error: {e}")
-
