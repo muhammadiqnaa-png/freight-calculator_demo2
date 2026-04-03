@@ -167,7 +167,9 @@ if menu_sidebar == "🚢 Calculator Freight":
     mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
 
 # ===== MASTER DATA ROUTE =====
-with st.sidebar.expander("⚙️ Master Data Route", expanded=False):
+if menu_sidebar == "📍 Master Data":
+
+    with st.sidebar.expander("📍 Distance Route", expanded=True):
 
     col1, col2 = st.columns(2)
 
