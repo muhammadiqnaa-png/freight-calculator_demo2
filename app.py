@@ -88,6 +88,7 @@ if not st.session_state.logged_in:
             else:
                 st.error("Failed to register. Email may already exist.")
     st.stop()
+    
 # ===== MASTER ROUTE =====
 if "route_master" not in st.session_state:
     st.session_state.route_master = [
