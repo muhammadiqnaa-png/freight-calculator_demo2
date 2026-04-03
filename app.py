@@ -135,6 +135,9 @@ preset_params = {
 
 # ===== MENU SIDEBAR =====
 menu_sidebar = st.sidebar.radio(
+# FIX ERROR mode not defined
+if "mode" not in st.session_state:
+    st.session_state.mode = "Owner"
     "📂 Menu",
     ["🚢 Calculator Freight", "📍 Master Data", "👤 Akun"]
 )
