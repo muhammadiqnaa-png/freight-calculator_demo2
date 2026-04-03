@@ -108,6 +108,7 @@ if "route_master" not in st.session_state:
         {"pol": "TEMPIRAI", "pod": "AWAR AWAR", "distance": 575},
         {"pol": "TEMPIRAI", "pod": "LONTAR", "distance": 335},
         {"pol": "TEMPIRAI", "pod": "PERAWANG", "distance": 425},
+        {"pol": "ABN, Samarinda", "pod": "Cirebon", "distance": 710},
     ]
 
 # ===== MASTER DATA ROUTE =====
