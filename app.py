@@ -91,8 +91,22 @@ if not st.session_state.logged_in:
 # ===== MASTER ROUTE =====
 if "route_master" not in st.session_state:
     st.session_state.route_master = [
-        {"pol": "SIP", "pod": "INDRAMAYU", "distance": 500},
-        {"pol": "TEMPIRAI", "pod": "INDRAMAYU", "distance": 300},
+        {"pol": "SIP", "pod": "INDRAMAYU", "distance": 525},
+        {"pol": "SIP", "pod": "LONTAR", "distance": 490},
+        {"pol": "SIP", "pod": "BANGKA", "distance": 275},
+        {"pol": "SIP", "pod": "PELABUHAN RATU", "distance": 640},
+        {"pol": "SIP", "pod": "MERAK", "distance": 475},
+        {"pol": "SIP", "pod": "LABUAN", "distance": 515},
+        {"pol": "SIP", "pod": "REMBANG", "distance": 690},
+        {"pol": "SIP", "pod": "PANGKALAN SUSU", "distance": 540},
+        {"pol": "TEMPIRAI", "pod": "INDRAMAYU", "distance": 375},
+        {"pol": "TEMPIRAI", "pod": "PELABUHAN RATU", "distance": 485},
+        {"pol": "TEMPIRAI", "pod": "MERAK", "distance": 325},
+        {"pol": "TEMPIRAI", "pod": "MARUNDA", "distance": 345},
+        {"pol": "TEMPIRAI", "pod": "REMBANG", "distance": 545},
+        {"pol": "TEMPIRAI", "pod": "AWAR AWAR", "distance": 575},
+        {"pol": "TEMPIRAI", "pod": "LONTAR", "distance": 335},
+        {"pol": "TEMPIRAI", "pod": "PERAWANG", "distance": 425},
     ]
 
 # ==========================================================
