@@ -782,24 +782,37 @@ if st.button("Calculate Freight 💸"):
             file_name=file_name,
             mime="application/pdf"
         )
-        # ===== SAVE HISTORY =====
-if st.button("💾 Save Calculation"):
-    st.session_state.history_data.append({
-        "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "user": st.session_state.email,
-        "pol": port_pol,
-        "pod": port_pod,
-        "next_port": next_port,
-        "cargo": type_cargo,
-        "qty": qyt_cargo,
-        "distance": distance_pol_pod,
-        "total_cost": total_cost,
-        "freight_cost": freight_cost_mt,
-        "revenue": revenue_user,
-        "profit": profit_user,
-        "profit_percent": profit_percent_user
-    })
-    st.success("✅ Calculation saved!")
+        if st.button("Calculate Freight 💸"):
+    try:
+        # =========================
+        # PERHITUNGAN LO
+        # =========================
+
+        st.download_button(
+            label="📥 Download PDF Report",
+            data=pdf_buffer,
+            file_name=file_name,
+            mime="application/pdf"
+        )
+
+        # ===== SAVE HISTORY (HARUS DI DALAM TRY) =====
+        if st.button("💾 Save Calculation"):
+            st.session_state.history_data.append({
+                "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "user": st.session_state.email,
+                "pol": port_pol,
+                "pod": port_pod,
+                "next_port": next_port,
+                "cargo": type_cargo,
+                "qty": qyt_cargo,
+                "distance": distance_pol_pod,
+                "total_cost": total_cost,
+                "freight_cost": freight_cost_mt,
+                "revenue": revenue_user,
+                "profit": profit_user,
+                "profit_percent": profit_percent_user
+            })
+            st.success("✅ Calculation saved!")
 
     except Exception as e:
         st.error(f"Error: {e}")
