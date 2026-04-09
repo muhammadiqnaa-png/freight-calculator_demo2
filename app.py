@@ -783,17 +783,6 @@ if st.button("Calculate Freight 💸"):
             mime="application/pdf"
         )
         if st.button("Calculate Freight 💸"):
-    try:
-        # =========================
-        # PERHITUNGAN LO
-        # =========================
-
-        st.download_button(
-            label="📥 Download PDF Report",
-            data=pdf_buffer,
-            file_name=file_name,
-            mime="application/pdf"
-        )
 
         # ===== SAVE HISTORY (HARUS DI DALAM TRY) =====
         if st.button("💾 Save Calculation"):
