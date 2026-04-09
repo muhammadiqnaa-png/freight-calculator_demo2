@@ -118,6 +118,10 @@ if "route_master" not in st.session_state:
         
     ]
 
+# ===== HISTORY PERHITUNGAN =====
+if "history_data" not in st.session_state:
+    st.session_state.history_data = []
+
 # ===== MASTER DATA ROUTE =====
 with st.sidebar.expander("⚙️ Master Data Route", expanded=False):
 
@@ -322,6 +326,36 @@ with st.sidebar.expander("➕ Additional Cost"):
                 "consumption": additional_consumption
             })
     st.session_state.additional_costs = updated_costs
+
+# ===== HISTORY PERHITUNGAN (DI ATAS ACCOUNT) =====
+st.sidebar.markdown("### 📊 History Perhitungan")
+
+if st.session_state.history_data:
+
+    for i, h in enumerate(st.session_state.history_data[::-1]):
+        st.sidebar.markdown(f"""
+        **{h['date']}**
+        {h['pol']} → {h['pod']}
+        Qty: {h['qty']}
+        Profit: Rp {h['profit']:,.0f}
+        """)
+
+        if st.sidebar.button("❌", key=f"del_hist_{i}"):
+            st.session_state.history_data.pop(len(st.session_state.history_data)-1-i)
+            st.rerun()
+
+    # DOWNLOAD HISTORY
+    df_hist = pd.DataFrame(st.session_state.history_data)
+
+    st.sidebar.download_button(
+        "📥 Download History",
+        data=df_hist.to_csv(index=False),
+        file_name="history_freight.csv",
+        mime="text/csv"
+    )
+
+else:
+    st.sidebar.info("Belum ada history")
 
 # ===== LOGOUT =====
 st.sidebar.markdown("### Account")
@@ -748,6 +782,25 @@ if st.button("Calculate Freight 💸"):
             file_name=file_name,
             mime="application/pdf"
         )
+        
+        # ===== SAVE HISTORY =====
+        if st.button("💾 Save Calculation"):
+            st.session_state.history_data.append({
+               "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+               "user": st.session_state.email,
+               "pol": port_pol,
+               "pod": port_pod,
+               "next_port": next_port,
+               "cargo": type_cargo,
+               "qty": qyt_cargo,
+               "distance": distance_pol_pod,
+               "total_cost": total_cost,
+               "freight_cost": freight_cost_mt,
+               "revenue": revenue_user,
+               "profit": profit_user,
+               "profit_percent": profit_percent_user
+           })
+           st.success("✅ Calculation saved!")
 
     except Exception as e:
         st.error(f"Error: {e}")
