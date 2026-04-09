@@ -132,7 +132,7 @@ with st.sidebar.expander("⚙️ Distance Data", expanded=False):
 
     distance_input = st.number_input("Distance (NM)", 0.0, key="md_distance")
 
-    if st.button("💾 Save Route"):
+    if st.button("💾 Save Distance"):
         if pol_input and pod_input:
             st.session_state.distance_data.append({
                 "pol": pol_input.strip().upper(),
@@ -148,7 +148,7 @@ with st.sidebar.expander("⚙️ Distance Data", expanded=False):
         col2.write(r["pod"])
         col3.write(f"{r['distance']}")
 
-        if col4.button("❌", key=f"del_route_{i}"):
+        if col4.button("❌", key=f"del_Distance_{i}"):
             st.session_state.distance_data.pop(i)
             st.rerun()
 
@@ -336,8 +336,8 @@ if st.sidebar.button("Log Out"):
 st.title("🚢 Freight Calculator Barge")
 
 # ambil data dari master route
-pol_list = sorted(list(set([r["pol"] for r in st.session_state.route_master])))
-pod_list = sorted(list(set([r["pod"] for r in st.session_state.route_master])))
+pol_list = sorted(list(set([r["pol"] for r in st.session_state.distance_data])))
+pod_list = sorted(list(set([r["pod"] for r in st.session_state.distance_data])))
 
 col1, col2, col3 = st.columns(3)
 
@@ -358,7 +358,7 @@ with col3:
 distance_pol_pod = 0
 distance_pod_next = 0
 
-for r in st.session_state.route_master:
+for r in st.session_state.distance_data:
 
     # POL → POD
     if r["pol"] == port_pol and r["pod"] == port_pod:
@@ -370,7 +370,7 @@ for r in st.session_state.route_master:
 
 # auto reverse (NEXT → POD)
 if next_port and distance_pod_next == 0:
-    for r in st.session_state.route_master:
+    for r in st.session_state.distance_data:
         if r["pol"] == next_port and r["pod"] == port_pod:
             distance_pod_next = r["distance"]
 
@@ -382,10 +382,10 @@ if next_port:
 
 # validasi
 if distance_pol_pod == 0:
-    st.error(f"❌ Route {port_pol} → {port_pod} belum ada di master data!")
+    st.error(f"❌ Distance {port_pol} → {port_pod} belum ada di master data!")
 
 if next_port and distance_pod_next == 0:
-    st.error(f"❌ Route {port_pod} → {next_port} belum ada di master data!")
+    st.error(f"❌ Distance {port_pod} → {next_port} belum ada di master data!")
 
 # stop hanya kalau data wajib kosong
 if distance_pol_pod == 0:
