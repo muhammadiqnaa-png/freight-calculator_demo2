@@ -140,9 +140,19 @@ with st.sidebar.expander("➕ Add Distance", expanded=False):
             })
             st.success("Distance saved!")
 
-        if col4.button("❌", key=f"del_Distance_{i}"):
-            st.session_state.distance_data.pop(i)
-            st.rerun()
+        # ===== LIST DATA =====
+st.markdown("### 📋 List Distance")
+
+for i, d in enumerate(st.session_state.distance_data):
+    col1, col2, col3, col4 = st.columns([2,2,2,1])
+
+    col1.write(d["pol"])
+    col2.write(d["pod"])
+    col3.write(d["distance"])
+
+    if col4.button("❌", key=f"del_{i}"):
+        st.session_state.distance_data.pop(i)
+        st.rerun()
 
 # ==========================================================
 # ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
