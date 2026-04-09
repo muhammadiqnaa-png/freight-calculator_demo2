@@ -91,8 +91,8 @@ if not st.session_state.logged_in:
     st.stop()
     
 # ===== MASTER ROUTE =====
-if "route_master" not in st.session_state:
-    st.session_state.route_master = [
+if "Distance Data" not in st.session_state:
+    st.session_state.distance_data = [
         {"pol": "SIP", "pod": "INDRAMAYU", "distance": 525},
         {"pol": "SIP", "pod": "LONTAR", "distance": 490},
         {"pol": "SIP", "pod": "BANGKA", "distance": 275},
@@ -120,7 +120,7 @@ if "route_master" not in st.session_state:
     ]
 
 # ===== MASTER DATA ROUTE =====
-with st.sidebar.expander("⚙️ Master Data Route", expanded=False):
+with st.sidebar.expander("⚙️ Distance Data", expanded=False):
 
     col1, col2 = st.columns(2)
 
@@ -134,14 +134,14 @@ with st.sidebar.expander("⚙️ Master Data Route", expanded=False):
 
     if st.button("💾 Save Route"):
         if pol_input and pod_input:
-            st.session_state.route_master.append({
+            st.session_state.distance_data.append({
                 "pol": pol_input.strip().upper(),
                 "pod": pod_input.strip().upper(),
                 "distance": distance_input
             })
-            st.success("Route saved!")
+            st.success("Distance saved!")
 
-    for i, r in enumerate(st.session_state.route_master):
+    for i, r in enumerate(st.session_state.distance_data):
         col1, col2, col3, col4 = st.columns([2,2,1,1])
 
         col1.write(r["pol"])
@@ -149,7 +149,7 @@ with st.sidebar.expander("⚙️ Master Data Route", expanded=False):
         col3.write(f"{r['distance']}")
 
         if col4.button("❌", key=f"del_route_{i}"):
-            st.session_state.route_master.pop(i)
+            st.session_state.distance_data.pop(i)
             st.rerun()
 
 # ==========================================================
