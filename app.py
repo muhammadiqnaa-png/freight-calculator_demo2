@@ -114,6 +114,7 @@ if "route_master" not in st.session_state:
         {"pol": "WBS, Palembang", "pod": "WHW, Kendawangan", "distance": 405},
         {"pol": "EWF, Jambi", "pod": "PLTU Ketapang", "distance": 425},
         {"pol": "TIA, Bunati", "pod": "Ciwandan", "distance": 610},
+        {"pol": "MBL, Samarinda", "pod": "Southport, Klang Malaysia", "distance": 1435},
         
     ]
 
