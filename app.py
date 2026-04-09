@@ -119,7 +119,7 @@ if "distance_data" not in st.session_state:
     ]
 
 # ===== MASTER DATA ROUTE =====
-with st.sidebar.expander("⚙️ Distance Data", expanded=False):
+with st.sidebar.expander("➕ Add Distance", expanded=False):
 
     col1, col2 = st.columns(2)
 
