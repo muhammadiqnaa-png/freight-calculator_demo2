@@ -91,7 +91,7 @@ if not st.session_state.logged_in:
     st.stop()
     
 # ===== MASTER ROUTE =====
-if "Distance Data" not in st.session_state:
+if "distance_data" not in st.session_state:
     st.session_state.distance_data = [
         {"pol": "SIP", "pod": "INDRAMAYU", "distance": 525},
         {"pol": "SIP", "pod": "LONTAR", "distance": 490},
