@@ -140,19 +140,23 @@ with st.sidebar.expander("➕ Add Distance", expanded=False):
             })
             st.success("Distance saved!")
 
-        # ===== LIST DATA =====
-st.markdown("### 📋 List Distance")
+# ===== MASTER DATA - LIST DISTANCE =====
+with st.sidebar.expander("📋 Master Data - List Distance", expanded=False):
 
-for i, d in enumerate(st.session_state.distance_data):
-    col1, col2, col3, col4 = st.columns([2,2,2,1])
+    if "distance_data" in st.session_state and len(st.session_state.distance_data) > 0:
 
-    col1.write(d["pol"])
-    col2.write(d["pod"])
-    col3.write(d["distance"])
+        for i, row in enumerate(st.session_state.distance_data):
+            col1, col2, col3, col4 = st.columns([2,2,2,1])
 
-    if col4.button("❌", key=f"del_{i}"):
-        st.session_state.distance_data.pop(i)
-        st.rerun()
+            col1.write(row["pol"])
+            col2.write(row["pod"])
+            col3.write(row["distance"])
+
+            if col4.button("❌", key=f"delete_distance_{i}"):
+                st.session_state.distance_data.pop(i)
+                st.rerun()
+    else:
+        st.info("Belum ada data distance")
 
 # ==========================================================
 # ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
