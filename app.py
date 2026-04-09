@@ -140,18 +140,6 @@ with st.sidebar.expander("➕ Add Distance", expanded=False):
             })
             st.success("Distance saved!")
 
-    # ===== MASTER DATA =====
-    with st.sidebar.expander("📂 Master Data", expanded=False):
-
-    tab1, tab2 = st.tabs(["Distance List", "Freight History"])
-
-    for i, r in enumerate(st.session_state.distance_data):
-        col1, col2, col3, col4 = st.columns([2,2,1,1])
-
-        col1.write(r["pol"])
-        col2.write(r["pod"])
-        col3.write(f"{r['distance']}")
-
         if col4.button("❌", key=f"del_Distance_{i}"):
             st.session_state.distance_data.pop(i)
             st.rerun()
