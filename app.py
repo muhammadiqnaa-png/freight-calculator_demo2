@@ -57,6 +57,14 @@ def register_user(email, password):
     res = requests.post(REGISTER_URL, json={"email": email, "password": password, "returnSecureToken": True})
     return res.ok, res.json()
 
+def check_session(email):
+    data = db.collection("sessions").document(email).get()
+
+    if data.exists:
+        return data.to_dict().get("logged_in", False)
+
+    return False
+
 # ===== LOGIN =====
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -67,6 +75,12 @@ if "email" not in st.session_state:
 if "login_time" not in st.session_state:
     st.session_state.login_time = None
 
+# AUTO LOGIN SAAT REFRESH
+if not st.session_state.logged_in:
+    if st.session_state.email:
+        if check_session(st.session_state.email):
+            st.session_state.logged_in = True
+
 if not st.session_state.logged_in:
     st.markdown("<h2 style='text-align:center;'>🔐 Login Freight Calculator</h2>", unsafe_allow_html=True)
     tab_login, tab_register = st.tabs(["Login", "Register"])
@@ -76,13 +90,6 @@ if not st.session_state.logged_in:
         password = st.text_input("Password", type="password")
         if st.button("Login 🚀"):
             ok, data = login_user(email, password)
-            if ok:
-                st.session_state.logged_in = True
-                st.session_state.email = email
-                st.session_state.login_time = time.time()   # cuma simpan waktu login
-                st.success("Login successful!")
-                st.rerun()
-
             if ok:
                 st.session_state.logged_in = True
                 st.session_state.email = email
