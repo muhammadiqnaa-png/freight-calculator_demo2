@@ -82,6 +82,16 @@ if not st.session_state.logged_in:
                 st.session_state.login_time = time.time()   # cuma simpan waktu login
                 st.success("Login successful!")
                 st.rerun()
+
+            if ok:
+                st.session_state.logged_in = True
+                st.session_state.email = email
+                db.child("sessions").child(email.replace("@","_")).set({
+                    "logged_in": True
+                })
+
+                st.success("Login successful!")
+                st.rerun()
             else:
                 st.error("Email or password incorrect!")
 
