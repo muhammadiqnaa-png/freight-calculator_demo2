@@ -143,31 +143,41 @@ with st.sidebar.expander("➕ Add Distance", expanded=False):
             })
             st.success("Distance saved!")
 
-with st.sidebar.expander("📂 Master Data", expanded=True):
+# ===== MASTER DATA - LIST DISTANCE =====
+with st.sidebar.expander("List Distance", expanded=False):
 
-    st.markdown("### 📍 Distance List")
+    if "distance_data" in st.session_state and len(st.session_state.distance_data) > 0:
 
-    if st.session_state.distance_data:
-    for i, item in enumerate(st.session_state.distance_data):
-        with st.expander(f"{item['from']} → {item['to']}"):
-            st.write(f"Distance: {item['distance']} NM")
+        for i, row in enumerate(st.session_state.distance_data):
+            col1, col2, col3, col4 = st.columns([2,2,2,1])
+
+            col1.write(row["pol"])
+            col2.write(row["pod"])
+            col3.write(row["distance"])
+
+            if col4.button("❌", key=f"delete_distance_{i}"):
+                st.session_state.distance_data.pop(i)
+                st.rerun()
     else:
-        st.caption("Belum ada distance")
+        st.info("Belum ada data distance")
 
-    st.markdown("### 📁 History Calculate")
+with st.sidebar.expander("📁 History Calculate"):
 
-    if st.session_state.history_calculate:
-    for i, item in enumerate(reversed(st.session_state.history_calculate)):
-        with st.expander(f"📄 {item['name']}"):
-            st.download_button(
-                "⬇️ Download",
-                data=item["data"],
-                file_name=item["name"],
-                mime="application/pdf",
-                key=f"his_{i}"
-            )
-    else:
+    if "history_calculate" not in st.session_state:
+        st.session_state.history_calculate = []
+
+    if len(st.session_state.history_calculate) == 0:
         st.caption("Belum ada history")
+    else:
+        for i, item in enumerate(reversed(st.session_state.history_calculate)):
+            with st.expander(f"📄 {item['name']}"):
+                st.download_button(
+                    label="⬇️ Download",
+                    data=item["data"],
+                    file_name=item["name"],
+                    mime="application/pdf",
+                    key=f"history_{i}"
+                )
 
 # ==========================================================
 # ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
@@ -307,7 +317,7 @@ with st.sidebar.expander("➕ Additional Cost"):
     unit_options = ["Ltr", "Ton", "Month", "Voyage", "MT", "M3", "Day"]
 
     for i, cost in enumerate(st.session_state.additional_costs):
-        st.markdown(f"**Additional Cost {i+1}**")
+        st.markdown(f"*Additional Cost {i+1}*")
         col1, col2 = st.columns(2)
         with col1:
             name = st.text_input(f"Name {i+1}", cost.get("name", ""), key=f"name_{i}")
@@ -348,7 +358,7 @@ with st.sidebar.expander("➕ Additional Cost"):
 
 # ===== LOGOUT =====
 st.sidebar.markdown("### Account")
-st.sidebar.write(f"**{st.session_state.email}**")
+st.sidebar.write(f"*{st.session_state.email}*")
 if st.sidebar.button("Log Out"):
     st.session_state.logged_in = False
     st.success("Successfully logged out.")
@@ -516,12 +526,12 @@ if st.button("Calculate Freight 💸"):
         # ===== DISPLAY RESULTS =====
         st.subheader("📋 Calculation Results")
         st.markdown(f""" 
-        **Total Voyage (Days):** {total_voyage_days:.2f}  
-        **Total Sailing Time (Hour):** {sailing_time:.2f}  
-        **Total Consumption Fuel (Ltr):** {total_consumption_fuel:,.0f}  
-        **Total Consumption Freshwater (Ton):** {total_consumption_fw:,.0f}  
-        **Fuel Cost (Rp):** Rp {cost_fuel:,.0f}  
-        **Freshwater Cost (Rp):** Rp {cost_fw:,.0f}
+        *Total Voyage (Days):* {total_voyage_days:.2f}  
+        *Total Sailing Time (Hour):* {sailing_time:.2f}  
+        *Total Consumption Fuel (Ltr):* {total_consumption_fuel:,.0f}  
+        *Total Consumption Freshwater (Ton):* {total_consumption_fw:,.0f}  
+        *Fuel Cost (Rp):* Rp {cost_fuel:,.0f}  
+        *Freshwater Cost (Rp):* Rp {cost_fw:,.0f}
         """)
 
         if mode == "Owner":
@@ -554,27 +564,27 @@ if st.button("Calculate Freight 💸"):
             for k, v in additional_breakdown.items():
                 st.markdown(f"- {k}: Rp {v:,.0f}")
         st.markdown(f"- General Overhead: Rp {total_general_overhead:,.0f}")
-        st.markdown(f"**🧮 Total Cost:** Rp {total_cost:,.0f}")
-        st.markdown(f"**🧮 Freight Cost ({type_cargo.split()[1]}):** Rp {freight_cost_mt:,.0f}")
+        st.markdown(f"*🧮 Total Cost:* Rp {total_cost:,.0f}")
+        st.markdown(f"*🧮 Freight Cost ({type_cargo.split()[1]}):* Rp {freight_cost_mt:,.0f}")
 
         # ===== FREIGHT PRICE CALCULATION USER (Conditional) =====
         st.subheader("💰 Freight Price Calculation User")
         if freight_price_input > 0:
             st.markdown(f"""
-            **Freight Price (Rp/MT):** Rp {freight_price_input:,.0f}  
-            **Revenue:** Rp {revenue_user:,.0f}  
-            **PPH 1.2%:** Rp {pph_user:,.0f}  
-            **Profit:** Rp {profit_user:,.0f}  
-            **Profit %:** {profit_percent_user:.2f} %
+            *Freight Price (Rp/MT):* Rp {freight_price_input:,.0f}  
+            *Revenue:* Rp {revenue_user:,.0f}  
+            *PPH 1.2%:* Rp {pph_user:,.0f}  
+            *Profit:* Rp {profit_user:,.0f}  
+            *Profit %:* {profit_percent_user:.2f} %
             """)
         else:
             st.info("Masukkan Freight Price untuk melihat hasil perhitungan profit user.")
 
         st.subheader("⏱️ Time Charter Equivalent (TCE)")
         st.markdown(f"""
-        **Base Cost (Fuel + FW + Port + Premi):** Rp {tce_base_cost:,.0f}  
-        **TCE Per Day:** Rp {tce_per_day:,.0f} / Day  
-        **TCE Per Month:** Rp {tce_per_month:,.0f} / Month
+        *Base Cost (Fuel + FW + Port + Premi):* Rp {tce_base_cost:,.0f}  
+        *TCE Per Day:* Rp {tce_per_day:,.0f} / Day  
+        *TCE Per Month:* Rp {tce_per_month:,.0f} / Month
         """)
 
 
@@ -763,7 +773,7 @@ if st.button("Calculate Freight 💸"):
 
         # ===== GENERATE PDF & DOWNLOAD BUTTON =====
         pdf_buffer = create_pdf(username=st.session_state.email)
-        file_name = f"Freight_Report_{port_pol}_{port_pod}_{datetime.now():%Y%m%d}.pdf"
+        file_name = f"Freight_Report_{port_pol}{port_pod}{datetime.now():%Y%m%d}.pdf"
         pdf_bytes = pdf_buffer.getvalue()
 
         st.session_state.history_calculate.append({
