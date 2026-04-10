@@ -177,6 +177,9 @@ if st.session_state.history_calculate:
 else:
     st.sidebar.caption("Belum ada history")
 
+if st.sidebar.button("🗑 Clear History"):
+    st.session_state.history_calculate = []
+
 # ==========================================================
 # ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
 # - ditaruh di expander sidebar yang default tertutup
