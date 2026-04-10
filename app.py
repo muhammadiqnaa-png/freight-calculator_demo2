@@ -754,6 +754,14 @@ if st.button("Calculate Freight 💸"):
         pdf_buffer = create_pdf(username=st.session_state.email)
         file_name = f"Freight_Report_{port_pol}_{port_pod}_{datetime.now():%Y%m%d}.pdf"
 
+        pdf_bytes = pdf_buffer.getvalue()
+
+# simpan ke history
+st.session_state.history_calculate.append({
+    "name": file_name,
+    "data": pdf_bytes
+})
+
         st.download_button(
             label="📥 Download PDF Report",
             data=pdf_buffer,
