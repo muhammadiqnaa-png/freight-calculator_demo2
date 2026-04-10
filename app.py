@@ -161,7 +161,7 @@ with st.sidebar.expander("List Distance", expanded=False):
     else:
         st.info("Belum ada data distance")
 
-with st.sidebar.expander("📁 History Calculate"):
+with st.sidebar.expander("History Calculate"):
 
     if "history_calculate" not in st.session_state:
         st.session_state.history_calculate = []
