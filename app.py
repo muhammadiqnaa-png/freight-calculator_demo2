@@ -9,7 +9,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 from datetime import datetime
 import requests
-import time
+import streamlit as st
 
 # ==========================================================
 # ⚙️ Page Config (WAJIB paling atas!)
@@ -57,29 +57,9 @@ def register_user(email, password):
     res = requests.post(REGISTER_URL, json={"email": email, "password": password, "returnSecureToken": True})
     return res.ok, res.json()
 
-def check_session(email):
-    data = db.collection("sessions").document(email).get()
-
-    if data.exists:
-        return data.to_dict().get("logged_in", False)
-
-    return False
-
 # ===== LOGIN =====
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
-
-if "email" not in st.session_state:
-    st.session_state.email = None
-
-if "login_time" not in st.session_state:
-    st.session_state.login_time = None
-
-# AUTO LOGIN SAAT REFRESH
-if not st.session_state.logged_in:
-    if st.session_state.email:
-        if check_session(st.session_state.email):
-            st.session_state.logged_in = True
 
 if not st.session_state.logged_in:
     st.markdown("<h2 style='text-align:center;'>🔐 Login Freight Calculator</h2>", unsafe_allow_html=True)
@@ -93,10 +73,6 @@ if not st.session_state.logged_in:
             if ok:
                 st.session_state.logged_in = True
                 st.session_state.email = email
-                db.child("sessions").child(email.replace("@","_")).set({
-                    "logged_in": True
-                })
-
                 st.success("Login successful!")
                 st.rerun()
             else:
