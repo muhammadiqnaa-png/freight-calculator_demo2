@@ -141,7 +141,7 @@ with st.sidebar.expander("➕ Add Distance", expanded=False):
             st.success("Distance saved!")
 
 # ===== MASTER DATA - LIST DISTANCE =====
-with st.sidebar.expander("📋 Master Data - List Distance", expanded=False):
+with st.sidebar.expander("List Distance", expanded=False):
 
     if "distance_data" in st.session_state and len(st.session_state.distance_data) > 0:
 
