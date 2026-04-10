@@ -118,6 +118,9 @@ if "distance_data" not in st.session_state:
         
     ]
 
+if "history_calculate" not in st.session_state:
+    st.session_state.history_calculate = []
+
 # ===== MASTER DATA ROUTE =====
 with st.sidebar.expander("➕ Add Distance", expanded=False):
 
