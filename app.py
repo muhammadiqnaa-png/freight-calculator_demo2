@@ -166,7 +166,7 @@ with st.sidebar.expander("📋 Master Data - List Distance", expanded=False):
 preset_params = {
     "270 ft": {
         "speed_laden": 3, "speed_ballast": 4,
-        "consumption": 85, "price_fuel": 13500,
+        "consumption": 85, "price_fuel": 25000,
         "consumption_fw": 2, "price_fw": 120000,
         "charter": 0, "crew": 60000000, "insurance": 40000000,
         "docking": 40000000, "maintenance": 40000000,
@@ -176,7 +176,7 @@ preset_params = {
     },
     "300 ft": {
         "speed_laden": 3, "speed_ballast": 4,
-        "consumption": 115, "price_fuel": 13500,
+        "consumption": 115, "price_fuel": 25000,
         "consumption_fw": 2, "price_fw": 120000,
         "charter": 0, "crew": 60000000, "insurance": 50000000,
         "docking": 50000000, "maintenance": 50000000,
@@ -186,7 +186,7 @@ preset_params = {
     },
     "330 ft": {
         "speed_laden": 3, "speed_ballast": 4,
-        "consumption": 130, "price_fuel": 13500,
+        "consumption": 130, "price_fuel": 25000,
         "consumption_fw": 2, "price_fw": 120000,
         "charter": 0, "crew": 60000000, "insurance": 60000000,
         "docking": 60000000, "maintenance": 60000000,
