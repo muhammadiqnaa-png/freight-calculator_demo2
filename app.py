@@ -161,6 +161,22 @@ with st.sidebar.expander("List Distance", expanded=False):
     else:
         st.info("Belum ada data distance")
 
+st.sidebar.markdown("### 📁 History Calculate")
+
+if st.session_state.history_calculate:
+
+    for i, file in enumerate(reversed(st.session_state.history_calculate)):
+        st.sidebar.download_button(
+            label=file["name"],
+            data=file["data"],
+            file_name=file["name"],
+            mime="application/pdf",
+            key=f"history_{i}"
+        )
+
+else:
+    st.sidebar.caption("Belum ada history")
+
 # ==========================================================
 # ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
 # - ditaruh di expander sidebar yang default tertutup
