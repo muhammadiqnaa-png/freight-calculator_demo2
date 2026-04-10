@@ -253,6 +253,9 @@ with st.sidebar.expander("🚢 Speed"):
     ]:
         st.number_input(label, step=0.1, format="%.1f", key=key)
 
+speed_laden = st.session_state.speed_laden
+speed_ballast = st.session_state.speed_ballast
+
 with st.sidebar.expander("⛽ Fuel"):
     consumption = st.number_input("Consumption Fuel (liter/hour)", value=st.session_state.get("consumption", 0))
     price_fuel = st.number_input("Price Fuel (Rp/Ltr)", value=st.session_state.get("price_fuel", 0))
