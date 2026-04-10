@@ -9,7 +9,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 from datetime import datetime
 import requests
-import streamlit as st
+import time
 
 # ==========================================================
 # ⚙️ Page Config (WAJIB paling atas!)
@@ -58,8 +58,8 @@ def register_user(email, password):
     return res.ok, res.json()
 
 # ===== LOGIN =====
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+if "login_time" not in st.session_state:
+    st.session_state.login_time = None
 
 if not st.session_state.logged_in:
     st.markdown("<h2 style='text-align:center;'>🔐 Login Freight Calculator</h2>", unsafe_allow_html=True)
@@ -73,6 +73,7 @@ if not st.session_state.logged_in:
             if ok:
                 st.session_state.logged_in = True
                 st.session_state.email = email
+                st.session_state.login_time = time.time()   # cuma simpan waktu login
                 st.success("Login successful!")
                 st.rerun()
             else:
