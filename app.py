@@ -161,24 +161,23 @@ with st.sidebar.expander("List Distance", expanded=False):
     else:
         st.info("Belum ada data distance")
 
-st.sidebar.markdown("### 📁 History Calculate")
+with st.sidebar.expander("📁 History Calculate"):
 
-if st.session_state.history_calculate:
+    if "history_calculate" not in st.session_state:
+        st.session_state.history_calculate = []
 
-    for i, file in enumerate(reversed(st.session_state.history_calculate)):
-        st.sidebar.download_button(
-            label=file["name"],
-            data=file["data"],
-            file_name=file["name"],
-            mime="application/pdf",
-            key=f"history_{i}"
-        )
-
-else:
-    st.sidebar.caption("Belum ada history")
-
-if st.sidebar.button("🗑 Clear History"):
-    st.session_state.history_calculate = []
+    if len(st.session_state.history_calculate) == 0:
+        st.caption("Belum ada history")
+    else:
+        for i, item in enumerate(reversed(st.session_state.history_calculate)):
+            with st.expander(f"📄 {item['name']}"):
+                st.download_button(
+                    label="⬇️ Download",
+                    data=item["data"],
+                    file_name=item["name"],
+                    mime="application/pdf",
+                    key=f"history_{i}"
+                )
 
 # ==========================================================
 # ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
