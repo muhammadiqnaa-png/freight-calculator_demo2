@@ -143,41 +143,31 @@ with st.sidebar.expander("➕ Add Distance", expanded=False):
             })
             st.success("Distance saved!")
 
-# ===== MASTER DATA - LIST DISTANCE =====
-with st.sidebar.expander("List Distance", expanded=False):
+with st.sidebar.expander("📂 Master Data", expanded=True):
 
-    if "distance_data" in st.session_state and len(st.session_state.distance_data) > 0:
+    st.markdown("### 📍 Distance List")
 
-        for i, row in enumerate(st.session_state.distance_data):
-            col1, col2, col3, col4 = st.columns([2,2,2,1])
+if st.session_state.distance_data:
+    for i, item in enumerate(st.session_state.distance_data):
+        with st.expander(f"{item['from']} → {item['to']}"):
+            st.write(f"Distance: {item['distance']} NM")
+else:
+    st.caption("Belum ada distance")
 
-            col1.write(row["pol"])
-            col2.write(row["pod"])
-            col3.write(row["distance"])
+st.markdown("### 📁 History Calculate")
 
-            if col4.button("❌", key=f"delete_distance_{i}"):
-                st.session_state.distance_data.pop(i)
-                st.rerun()
-    else:
-        st.info("Belum ada data distance")
-
-with st.sidebar.expander("📁 History Calculate"):
-
-    if "history_calculate" not in st.session_state:
-        st.session_state.history_calculate = []
-
-    if len(st.session_state.history_calculate) == 0:
-        st.caption("Belum ada history")
-    else:
-        for i, item in enumerate(reversed(st.session_state.history_calculate)):
-            with st.expander(f"📄 {item['name']}"):
-                st.download_button(
-                    label="⬇️ Download",
-                    data=item["data"],
-                    file_name=item["name"],
-                    mime="application/pdf",
-                    key=f"history_{i}"
-                )
+if st.session_state.history_calculate:
+    for i, item in enumerate(reversed(st.session_state.history_calculate)):
+        with st.expander(f"📄 {item['name']}"):
+            st.download_button(
+                "⬇️ Download",
+                data=item["data"],
+                file_name=item["name"],
+                mime="application/pdf",
+                key=f"his_{i}"
+            )
+else:
+    st.caption("Belum ada history")
 
 # ==========================================================
 # ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
