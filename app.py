@@ -147,16 +147,16 @@ with st.sidebar.expander("📂 Master Data", expanded=True):
 
     st.markdown("### 📍 Distance List")
 
-if st.session_state.distance_data:
+    if st.session_state.distance_data:
     for i, item in enumerate(st.session_state.distance_data):
         with st.expander(f"{item['from']} → {item['to']}"):
             st.write(f"Distance: {item['distance']} NM")
-else:
-    st.caption("Belum ada distance")
+    else:
+        st.caption("Belum ada distance")
 
-st.markdown("### 📁 History Calculate")
+    st.markdown("### 📁 History Calculate")
 
-if st.session_state.history_calculate:
+    if st.session_state.history_calculate:
     for i, item in enumerate(reversed(st.session_state.history_calculate)):
         with st.expander(f"📄 {item['name']}"):
             st.download_button(
@@ -166,8 +166,8 @@ if st.session_state.history_calculate:
                 mime="application/pdf",
                 key=f"his_{i}"
             )
-else:
-    st.caption("Belum ada history")
+    else:
+        st.caption("Belum ada history")
 
 # ==========================================================
 # ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
