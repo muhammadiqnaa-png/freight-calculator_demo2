@@ -225,20 +225,11 @@ mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
 
 # ===== SIDEBAR PARAMETERS =====
 with st.sidebar.expander("🚢 Speed"):
-
-    speed_laden = st.number_input(
-        "Speed Laden (knot)",
-        step=0.1,
-        format="%.1f",
-        key="speed_laden"
-    )
-
-    speed_ballast = st.number_input(
-        "Speed Ballast (knot)",
-        step=0.1,
-        format="%.1f",
-        key="speed_ballast"
-    )
+    for label, key in [
+        ("Speed Laden (knot)", "speed_laden"),
+        ("Speed Ballast (knot)", "speed_ballast"),
+    ]:
+        st.number_input(label, step=0.1, format="%.1f", key=key)
 
 with st.sidebar.expander("⛽ Fuel"):
     consumption = st.number_input("Consumption Fuel (liter/hour)", value=st.session_state.get("consumption", 0))
