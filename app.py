@@ -58,6 +58,12 @@ def register_user(email, password):
     return res.ok, res.json()
 
 # ===== LOGIN =====
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+if "email" not in st.session_state:
+    st.session_state.email = None
+
 if "login_time" not in st.session_state:
     st.session_state.login_time = None
 
