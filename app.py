@@ -774,7 +774,7 @@ if st.button("Calculate Freight 💸"):
 
         # ===== GENERATE PDF & DOWNLOAD BUTTON =====
         pdf_buffer = create_pdf(username=st.session_state.email)
-        file_name = f"Freight_Report_{port_pol}-{port_pod}-{datetime.now():%Y%m%d}.pdf"
+        file_name = f"Freight Report {port_pol}-{port_pod}-{datetime.now():%Y%m%d}.pdf"
         pdf_bytes = pdf_buffer.getvalue()
 
         st.session_state.history_calculate.append({
