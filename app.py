@@ -116,6 +116,7 @@ if "distance_data" not in st.session_state:
         {"pol": "TIA, Bunati", "pod": "Ciwandan", "distance": 610},
         {"pol": "MBL, Samarinda", "pod": "Southport, Klang Malaysia", "distance": 1435},
         {"pol": "Kideco, Grogot", "pod": "Tanjung Kasam, Batam", "distance": 995},
+        {"pol": "Lampung", "pod": "Marunda", "distance": 120},
         
     ]
 
