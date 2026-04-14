@@ -109,6 +109,7 @@ if "distance_data" not in st.session_state:
         {"pol": "Tempirai, Sungai Lilin", "pod": "Lontar", "distance": 335},
         {"pol": "Tempirai, Sungai Lilin", "pod": "Perawang", "distance": 425},
         {"pol": "ABN, Samarinda", "pod": "Cirebon", "distance": 710},
+        {"pol": "SBL, Palembang", "pod": "Marunda", "distance": 385},
         {"pol": "SBL, Palembang", "pod": "BAP, Kendawangan", "distance": 435},
         {"pol": "SBL, Palembang", "pod": "WHW, Kendawangan", "distance": 440},
         {"pol": "WBS, Palembang", "pod": "WHW, Kendawangan", "distance": 405},
