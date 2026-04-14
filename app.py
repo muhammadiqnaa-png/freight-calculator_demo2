@@ -124,7 +124,6 @@ if "distance_data" not in st.session_state:
 if "history_calculate" not in st.session_state:
     st.session_state.history_calculate = []
 
-# ===== MASTER DATA ROUTE =====
 with st.sidebar.expander("➕ Add Distance", expanded=False):
 
     col1, col2 = st.columns(2)
@@ -145,9 +144,13 @@ with st.sidebar.expander("➕ Add Distance", expanded=False):
                 "distance": distance_input
             })
             st.success("Distance saved!")
+            
+with st.sidebar.expander("📂 Master Data", expanded=False):
 
-# ===== MASTER DATA - LIST DISTANCE =====
-with st.sidebar.expander("List Distance", expanded=False):
+    # =========================
+    # 📋 LIST DISTANCE
+    # =========================
+    st.markdown("### 📋 List Distance")
 
     if "distance_data" in st.session_state and len(st.session_state.distance_data) > 0:
 
@@ -164,7 +167,12 @@ with st.sidebar.expander("List Distance", expanded=False):
     else:
         st.info("Belum ada data distance")
 
-with st.sidebar.expander("History Calculate"):
+    st.divider()
+
+    # =========================
+    # 📜 HISTORY CALCULATE
+    # =========================
+    st.markdown("### 📜 History Calculate")
 
     if "history_calculate" not in st.session_state:
         st.session_state.history_calculate = []
