@@ -363,28 +363,6 @@ with st.sidebar.expander("📂 Master Data", expanded=False):
                 st.session_state.history_calculate = []
                 st.rerun()
 
-
-with st.sidebar.expander("➕ Add Distance", expanded=False):
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        pol_input = st.text_input("POL", key="md_pol")
-
-    with col2:
-        pod_input = st.text_input("POD", key="md_pod")
-
-    distance_input = st.number_input("Distance (NM)", 0.0, key="md_distance")
-
-    if st.button("💾 Save Distance"):
-        if pol_input and pod_input:
-            st.session_state.distance_data.append({
-                "pol": pol_input.strip().upper(),
-                "pod": pod_input.strip().upper(),
-                "distance": distance_input
-            })
-            st.success("Distance saved!")
-
 with st.sidebar.expander("👤 Account", expanded=True):
 
     st.write(f"📧 {st.session_state.email}")
@@ -433,29 +411,6 @@ preset_params = {
     }
 }
 
-# ==== PRESET SEGMEN ====
-
-# Default state
-if "preset_selected" not in st.session_state:
-    st.session_state.preset_selected = "Custom"
-
-# Handler untuk update state
-def update_preset():
-    st.session_state.preset_selected = st.session_state.preset_control
-
-preset = st.sidebar.segmented_control(
-    "Size Barge",
-    ["270 ft", "300 ft", "330 ft", "Custom"],
-    default=st.session_state.preset_selected,
-    key="preset_control",
-    on_change=update_preset
-)
-
-# ==== APPLY PRESET ====
-if st.session_state.preset_selected != "Custom":
-    chosen = preset_params[st.session_state.preset_selected]
-    for k, v in chosen.items():
-        st.session_state[k] = v
 
 
 # ===== MAIN INPUT =====
