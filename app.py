@@ -149,12 +149,20 @@ if "distance_data" not in st.session_state:
         {"pol": "SBL, Palembang", "pod": "WHW, Kendawangan", "distance": 440},
         {"pol": "WBS, Palembang", "pod": "WHW, Kendawangan", "distance": 405},
         {"pol": "EWF, Jambi", "pod": "PLTU Ketapang", "distance": 425},
+        {"pol": "PUS, Jambi", "pod": "Muara Sabak", "distance": 95},
+        {"pol": "PUS, Jambi", "pod": "Belitung", "distance": 320},
+        {"pol": "PUS, Jambi", "pod": "Banten", "distance": 435},
+        {"pol": "PUS, Jambi", "pod": "Suralaya", "distance": 435},
+        {"pol": "PUS, Jambi", "pod": "Lontar", "distance": 450},
+        {"pol": "PUS, Jambi", "pod": "Labuan", "distance": 465},
+        {"pol": "PUS, Jambi", "pod": "Indramayu", "distance": 485},
+        {"pol": "PUS, Jambi", "pod": "Rembang", "distance": 650},
+        {"pol": "PUS, Jambi", "pod": "Awar Awar", "distance": 685},
         {"pol": "TIA, Bunati", "pod": "Ciwandan", "distance": 610},
         {"pol": "MBL, Samarinda", "pod": "Southport, Klang Malaysia", "distance": 1435},
         {"pol": "Kideco, Grogot", "pod": "Tanjung Kasam, Batam", "distance": 995},
         {"pol": "Lampung, Muara Teladas", "pod": "Marunda", "distance": 125},
         {"pol": "Talenta, Sunngai Putting", "pod": "Gresik", "distance": 295}
-        
     ]
 
 # ==========================================================
