@@ -162,33 +162,13 @@ with st.sidebar.expander("📂 Master Data", expanded=False):
                 max_value=len(df_distance)-1,
                 step=1
             )
-            # ===== EXPORT EXCEL =====
-def convert_to_excel(df):
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name='Distance Data')
-    return output.getvalue()
 
-excel_data = convert_to_excel(df_distance)
+            if st.button("❌ Delete Selected"):
+                st.session_state.distance_data.pop(delete_index)
+                st.rerun()
+        else:
+            st.caption("Belum ada data distance")
 
-st.download_button(
-    label="⬇️ Download Excel",
-    data=excel_data,
-    file_name="list_distance.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-)
-delete_index = st.number_input(
-    "Hapus index",
-    min_value=0,
-    max_value=len(df_distance)-1,
-    step=1
-)
-
-if st.button("❌ Delete Selected"):
-    st.session_state.distance_data.pop(delete_index)
-    st.rerun()
-
-    
     # =========================
     # 📜 HISTORY CALCULATE (SUB)
     # =========================
