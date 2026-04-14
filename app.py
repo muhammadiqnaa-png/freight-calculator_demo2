@@ -102,25 +102,25 @@ if not st.session_state.logged_in:
 
 cargo_capacity = {
     "270 ft": {
-        "Coal (MT)": 6000,
-        "Nickel (MT)": 5800,
-        "Bauxite (MT)": 6500,
-        "Sand (M3)": 4000,
-        "Split (M3)": 4200
+        "Coal (MT)": 5500,
+        "Nickel (MT)": 5500,
+        "Bauxite (MT)": 5500,
+        "Sand (M3)": 3500,
+        "Split (M3)": 3500
     },
     "300 ft": {
         "Coal (MT)": 7500,
-        "Nickel (MT)": 7200,
-        "Bauxite (MT)": 8000,
-        "Sand (M3)": 5000,
-        "Split (M3)": 5200
+        "Nickel (MT)": 7500,
+        "Bauxite (MT)": 7500,
+        "Sand (M3)": 4300,
+        "Split (M3)": 4300
     },
     "330 ft": {
-        "Coal (MT)": 9000,
-        "Nickel (MT)": 8700,
-        "Bauxite (MT)": 9500,
-        "Sand (M3)": 6000,
-        "Split (M3)": 6200
+        "Coal (MT)": 10000,
+        "Nickel (MT)": 10000,
+        "Bauxite (MT)": 10000,
+        "Sand (M3)": 5500,
+        "Split (M3)": 6500
     }
 }
     
