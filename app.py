@@ -180,14 +180,14 @@ if "distance_data" not in st.session_state:
         {"pol": "Lampung, Muara Teladas", "pod": "Marunda", "distance": 125},
         {"pol": "Talenta, Sungai Putting", "pod": "Taboneo", "distance": 60},
         {"pol": "Talenta, Sungai Putting", "pod": "Gresik", "distance": 295},
-        {"pol": "ABN, Samarinda", "pod": "Cirebon", "distance": 710},
-        {"pol": "TIA, Bunati", "pod": "Ciwandan", "distance": 610},
         {"pol": "MBL, Samarinda", "pod": "Southport, Klang Malaysia", "distance": 1435},
+        {"pol": "ABN, Samarinda", "pod": "Cirebon", "distance": 710},
         {"pol": "Kideco, Grogot", "pod": "Tanjung Kasam, Batam", "distance": 995},
+        {"pol": "TIA, Bunati", "pod": "Ciwandan", "distance": 610},
+        {"pol": "BIB, Bunati", "pod": "Jawa 7", "distance": 605},
         {"pol": "SPJ, Suralaya", "pod": "Lontar", "distance": 35},
         {"pol": "SPJ, Suralaya", "pod": "Labuan", "distance": 40},
         {"pol": "SPJ, Suralaya", "pod": "Pelabuhan Ratu", "distance": 165},
-    
     ]
 
 # ==========================================================
