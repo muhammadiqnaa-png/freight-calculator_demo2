@@ -19,6 +19,17 @@ st.set_page_config(
     page_icon="https://raw.githubusercontent.com/muhammadiqnaa-png/freight-calculator/main/icon-512x512.png",
     layout="wide"
 )
+st.markdown("""
+<style>
+.card {
+    background-color: #111827;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0px 4px 20px rgba(0,0,0,0.3);
+    margin-bottom: 15px;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ==========================================================
 # 🔧 PWA Support — biar bisa di-install di HP
