@@ -121,16 +121,6 @@ if "distance_data" not in st.session_state:
         
     ]
 
-if "history_calculate" not in st.session_state:
-    st.session_state.history_calculate = []
-
-# =========================
-# ⚙️ SETUP
-# =========================
-with st.sidebar.expander("⚙️ Setup", expanded=True):
-
-    mode = st.selectbox("Mode", ["Owner", "Charter"])
-
 # ==========================================================
 # ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
 # - ditaruh di expander sidebar yang default tertutup
@@ -169,6 +159,17 @@ preset_params = {
     }
 }
 
+
+if "history_calculate" not in st.session_state:
+    st.session_state.history_calculate = []
+
+# =========================
+# ⚙️ SETUP
+# =========================
+with st.sidebar.expander("⚙️ Setup", expanded=True):
+
+    mode = st.selectbox("Mode", ["Owner", "Charter"])
+
 # ===== INIT PRESET STATE =====
 if "preset_selected" not in st.session_state:
     st.session_state.preset_selected = "Custom"
@@ -176,7 +177,6 @@ if "preset_selected" not in st.session_state:
 # Handler
 def update_preset():
     st.session_state.preset_selected = st.session_state.preset_control
-    st.rerun()
 
 # UI
 preset = st.sidebar.segmented_control(
@@ -220,11 +220,8 @@ if st.session_state.preset_selected in preset_params:
     selected = preset_params[st.session_state.preset_selected]
 
     for key, value in selected.items():
-        if key not in st.session_state or st.session_state[key] == 0:
+        if key not in st.session_state:
             st.session_state[key] = value
-
-if "preset_selected" not in st.session_state:
-    st.session_state.preset_selected = "Custom"
 
 # =========================
 # 📊 PARAMETER
@@ -390,7 +387,7 @@ with st.sidebar.expander("📂 Master Data", expanded=False):
             )
 
             if st.button("❌ Delete Selected"):
-                st.session_state.distance_data.pop(delete_index)
+                st.session_state.distance_data.pop(delete_index - 1)
                 st.rerun()
         else:
             st.caption("Belum ada data distance")
