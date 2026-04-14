@@ -124,148 +124,51 @@ if "distance_data" not in st.session_state:
 if "history_calculate" not in st.session_state:
     st.session_state.history_calculate = []
 
-with st.sidebar.expander("➕ Add Distance", expanded=False):
+# =========================
+# ⚙️ SETUP
+# =========================
+with st.sidebar.expander("⚙️ Setup", expanded=True):
 
-    col1, col2 = st.columns(2)
+    mode = st.selectbox("Mode", ["Owner", "Charter"])
 
-    with col1:
-        pol_input = st.text_input("POL", key="md_pol")
+    preset = st.segmented_control(
+        "Size Barge",
+        ["270 ft", "300 ft", "330 ft", "Custom"],
+        default=st.session_state.preset_selected,
+        key="preset_control",
+        on_change=update_preset
+    )
 
-    with col2:
-        pod_input = st.text_input("POD", key="md_pod")
+# =========================
+# 🚢 VOYAGE INPUT
+# =========================
+with st.sidebar.expander("🚢 Voyage Input", expanded=False):
 
-    distance_input = st.number_input("Distance (NM)", 0.0, key="md_distance")
+    with st.expander("➕ Add Distance", expanded=False):
 
-    if st.button("💾 Save Distance"):
-        if pol_input and pod_input:
-            st.session_state.distance_data.append({
-                "pol": pol_input.strip().upper(),
-                "pod": pod_input.strip().upper(),
-                "distance": distance_input
-            })
-            st.success("Distance saved!")
-            
-with st.sidebar.expander("📂 Master Data", expanded=False):
+        col1, col2 = st.columns(2)
 
-    # =========================
-    # 📋 LIST DISTANCE (SUB)
-    # =========================
-    with st.expander("📋 List Distance", expanded=False):
+        with col1:
+            pol_input = st.text_input("POL", key="md_pol")
 
-        if len(st.session_state.distance_data) > 1:
-            df_distance = pd.DataFrame(st.session_state.distance_data)
-            df_distance.index = df_distance.index + 1
-            st.dataframe(df_distance, use_container_width=True, height=200)
+        with col2:
+            pod_input = st.text_input("POD", key="md_pod")
 
-            delete_index = st.number_input(
-                "Hapus index",
-                min_value=1,
-                max_value=len(df_distance)-1,
-                step=1
-            )
+        distance_input = st.number_input("Distance (NM)", 0.0, key="md_distance")
 
-            if st.button("❌ Delete Selected"):
-                st.session_state.distance_data.pop(delete_index)
-                st.rerun()
-        else:
-            st.caption("Belum ada data distance")
+        if st.button("💾 Save Distance"):
+            if pol_input and pod_input:
+                st.session_state.distance_data.append({
+                    "pol": pol_input.strip().upper(),
+                    "pod": pod_input.strip().upper(),
+                    "distance": distance_input
+                })
+                st.success("Distance saved!")
 
-    # =========================
-    # 📜 HISTORY CALCULATE (SUB)
-    # =========================
-    with st.expander("📜 History Calculate", expanded=False):
-
-        if len(st.session_state.history_calculate) == 0:
-            st.caption("Belum ada history")
-        else:
-            history_limit = st.number_input(
-                "Tampilkan terakhir",
-                1, 20, 5
-            )
-
-            history_data = list(reversed(st.session_state.history_calculate))[:history_limit]
-
-            for i, item in enumerate(history_data):
-                with st.expander(f"📄 {item['name']}"):
-                    st.download_button(
-                        label="⬇️ Download",
-                        data=item["data"],
-                        file_name=item["name"],
-                        mime="application/pdf",
-                        key=f"history_{i}"
-                    )
-
-            if st.button("🗑️ Clear History"):
-                st.session_state.history_calculate = []
-                st.rerun()
-
-# ==========================================================
-# ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
-# - ditaruh di expander sidebar yang default tertutup
-# - tidak mengubah layout main / posisi expander lain
-# ==========================================================
-preset_params = {
-    "270 ft": {
-        "speed_laden": 3, "speed_ballast": 4,
-        "consumption": 85, "price_fuel": 25000,
-        "consumption_fw": 2, "price_fw": 120000,
-        "charter": 0, "crew": 60000000, "insurance": 40000000,
-        "docking": 40000000, "maintenance": 40000000,
-        "certificate": 40000000, "premi_nm": 50000, "other_cost": 10000000,
-        "port_cost_pol": 35000000, "port_cost_pod": 35000000, "asist_tug": 0,
-        "port_stay_pol": 4, "port_stay_pod": 4
-    },
-    "300 ft": {
-        "speed_laden": 3, "speed_ballast": 4,
-        "consumption": 115, "price_fuel": 25000,
-        "consumption_fw": 2, "price_fw": 120000,
-        "charter": 0, "crew": 60000000, "insurance": 50000000,
-        "docking": 50000000, "maintenance": 50000000,
-        "certificate": 45000000, "premi_nm": 50000, "other_cost": 15000000,
-        "port_cost_pol": 35000000, "port_cost_pod": 35000000, "asist_tug": 0,
-        "port_stay_pol": 5, "port_stay_pod": 5
-    },
-    "330 ft": {
-        "speed_laden": 3, "speed_ballast": 4,
-        "consumption": 130, "price_fuel": 25000,
-        "consumption_fw": 2, "price_fw": 120000,
-        "charter": 0, "crew": 60000000, "insurance": 60000000,
-        "docking": 60000000, "maintenance": 60000000,
-        "certificate": 50000000, "premi_nm": 50000, "other_cost": 20000000,
-        "port_cost_pol": 35000000, "port_cost_pod": 35000000, "asist_tug": 0,
-        "port_stay_pol": 5, "port_stay_pod": 5
-    }
-}
-
-# ==== PRESET SEGMEN ====
-
-# Default state
-if "preset_selected" not in st.session_state:
-    st.session_state.preset_selected = "Custom"
-
-# Handler untuk update state
-def update_preset():
-    st.session_state.preset_selected = st.session_state.preset_control
-
-preset = st.sidebar.segmented_control(
-    "Size Barge",
-    ["270 ft", "300 ft", "330 ft", "Custom"],
-    default=st.session_state.preset_selected,
-    key="preset_control",
-    on_change=update_preset
-)
-
-# ==== APPLY PRESET ====
-if st.session_state.preset_selected != "Custom":
-    chosen = preset_params[st.session_state.preset_selected]
-    for k, v in chosen.items():
-        st.session_state[k] = v
-
-# ===== MODE =====
-mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
-
-# ===== PARAMETER (RAPIH) =====
-with st.sidebar.expander("⚙️ Parameter", expanded=False):
+# =========================
+# 📊 PARAMETER
+# =========================
+with st.sidebar.expander("📊 Parameter", expanded=False):
 
     # ===== SPEED =====
     with st.expander("🚢 Speed"):
@@ -401,13 +304,159 @@ with st.sidebar.expander("⚙️ Parameter", expanded=False):
                 })
 
         st.session_state.additional_costs = updated_costs
-# ===== LOGOUT =====
-st.sidebar.markdown("### Account")
-st.sidebar.write(f"*{st.session_state.email}*")
-if st.sidebar.button("Log Out"):
-    st.session_state.logged_in = False
-    st.success("Successfully logged out.")
-    st.rerun()
+
+# =========================
+# 📂 MASTER DATA
+# =========================
+
+with st.sidebar.expander("📂 Master Data", expanded=False):
+
+    # =========================
+    # 📋 LIST DISTANCE (SUB)
+    # =========================
+    with st.expander("📋 List Distance", expanded=False):
+
+        if len(st.session_state.distance_data) > 1:
+            df_distance = pd.DataFrame(st.session_state.distance_data)
+            df_distance.index = df_distance.index + 1
+            st.dataframe(df_distance, use_container_width=True, height=200)
+
+            delete_index = st.number_input(
+                "Hapus index",
+                min_value=1,
+                max_value=len(df_distance)-1,
+                step=1
+            )
+
+            if st.button("❌ Delete Selected"):
+                st.session_state.distance_data.pop(delete_index)
+                st.rerun()
+        else:
+            st.caption("Belum ada data distance")
+
+    # =========================
+    # 📜 HISTORY CALCULATE (SUB)
+    # =========================
+    with st.expander("📜 History Calculate", expanded=False):
+
+        if len(st.session_state.history_calculate) == 0:
+            st.caption("Belum ada history")
+        else:
+            history_limit = st.number_input(
+                "Tampilkan terakhir",
+                1, 20, 5
+            )
+
+            history_data = list(reversed(st.session_state.history_calculate))[:history_limit]
+
+            for i, item in enumerate(history_data):
+                with st.expander(f"📄 {item['name']}"):
+                    st.download_button(
+                        label="⬇️ Download",
+                        data=item["data"],
+                        file_name=item["name"],
+                        mime="application/pdf",
+                        key=f"history_{i}"
+                    )
+
+            if st.button("🗑️ Clear History"):
+                st.session_state.history_calculate = []
+                st.rerun()
+
+
+with st.sidebar.expander("➕ Add Distance", expanded=False):
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        pol_input = st.text_input("POL", key="md_pol")
+
+    with col2:
+        pod_input = st.text_input("POD", key="md_pod")
+
+    distance_input = st.number_input("Distance (NM)", 0.0, key="md_distance")
+
+    if st.button("💾 Save Distance"):
+        if pol_input and pod_input:
+            st.session_state.distance_data.append({
+                "pol": pol_input.strip().upper(),
+                "pod": pod_input.strip().upper(),
+                "distance": distance_input
+            })
+            st.success("Distance saved!")
+
+with st.sidebar.expander("👤 Account", expanded=True):
+
+    st.write(f"📧 {st.session_state.email}")
+
+    if st.button("Log Out"):
+        st.session_state.logged_in = False
+        st.success("Successfully logged out.")
+        st.rerun()
+            
+
+# ==========================================================
+# ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
+# - ditaruh di expander sidebar yang default tertutup
+# - tidak mengubah layout main / posisi expander lain
+# ==========================================================
+preset_params = {
+    "270 ft": {
+        "speed_laden": 3, "speed_ballast": 4,
+        "consumption": 85, "price_fuel": 25000,
+        "consumption_fw": 2, "price_fw": 120000,
+        "charter": 0, "crew": 60000000, "insurance": 40000000,
+        "docking": 40000000, "maintenance": 40000000,
+        "certificate": 40000000, "premi_nm": 50000, "other_cost": 10000000,
+        "port_cost_pol": 35000000, "port_cost_pod": 35000000, "asist_tug": 0,
+        "port_stay_pol": 4, "port_stay_pod": 4
+    },
+    "300 ft": {
+        "speed_laden": 3, "speed_ballast": 4,
+        "consumption": 115, "price_fuel": 25000,
+        "consumption_fw": 2, "price_fw": 120000,
+        "charter": 0, "crew": 60000000, "insurance": 50000000,
+        "docking": 50000000, "maintenance": 50000000,
+        "certificate": 45000000, "premi_nm": 50000, "other_cost": 15000000,
+        "port_cost_pol": 35000000, "port_cost_pod": 35000000, "asist_tug": 0,
+        "port_stay_pol": 5, "port_stay_pod": 5
+    },
+    "330 ft": {
+        "speed_laden": 3, "speed_ballast": 4,
+        "consumption": 130, "price_fuel": 25000,
+        "consumption_fw": 2, "price_fw": 120000,
+        "charter": 0, "crew": 60000000, "insurance": 60000000,
+        "docking": 60000000, "maintenance": 60000000,
+        "certificate": 50000000, "premi_nm": 50000, "other_cost": 20000000,
+        "port_cost_pol": 35000000, "port_cost_pod": 35000000, "asist_tug": 0,
+        "port_stay_pol": 5, "port_stay_pod": 5
+    }
+}
+
+# ==== PRESET SEGMEN ====
+
+# Default state
+if "preset_selected" not in st.session_state:
+    st.session_state.preset_selected = "Custom"
+
+# Handler untuk update state
+def update_preset():
+    st.session_state.preset_selected = st.session_state.preset_control
+
+preset = st.sidebar.segmented_control(
+    "Size Barge",
+    ["270 ft", "300 ft", "330 ft", "Custom"],
+    default=st.session_state.preset_selected,
+    key="preset_control",
+    on_change=update_preset
+)
+
+# ==== APPLY PRESET ====
+if st.session_state.preset_selected != "Custom":
+    chosen = preset_params[st.session_state.preset_selected]
+    for k, v in chosen.items():
+        st.session_state[k] = v
+
 
 # ===== MAIN INPUT =====
 st.title("🚢 Freight Calculator Barge")
