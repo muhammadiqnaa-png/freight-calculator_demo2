@@ -635,6 +635,9 @@ with col3:
 
 st.markdown('</div>', unsafe_allow_html=True)
 
+    except Exception as e:
+        st.error(f"Error: {e}")
+
         if mode == "Owner":
             st.markdown("### 🏗️ Owner Costs Summary")
             owner_data = {
