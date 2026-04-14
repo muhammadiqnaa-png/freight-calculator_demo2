@@ -637,13 +637,14 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         </div>
         """, unsafe_allow_html=True)
 
-        # ===== OPERATIONAL SUMMARY =====
         st.markdown("### ⚙️ Operational Summary")
-            st.markdown(f"""
-            *Sailing Time:* {sailing_time:.2f} Hours    
-            *Fuel Consumption:* {total_consumption_fuel:,.0f} Ltr  
-            *Freshwater:* {total_consumption_fw:,.0f} Ton  
-            """)
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric("⏱️ Sailing Time", f"{sailing_time:.1f} Hrs")
+        col2.metric("⛽ Fuel Used", f"{total_consumption_fuel:,.0f} Ltr")
+        col3.metric("💧 Freshwater", f"{total_consumption_fw:,.0f} Ton")
+
+        st.divider()
             
         if mode == "Owner":
             st.markdown("### 🏗️ Owner Costs Summary")
