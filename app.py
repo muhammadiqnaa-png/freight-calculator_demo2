@@ -443,7 +443,11 @@ with st.sidebar.expander("👤 Account", expanded=True):
         st.rerun()
 
 # ===== MAIN INPUT =====
-st.title("🚢 Freight Calculator Barge")
+st.markdown("""
+<h1 style='margin-bottom:0;'>🚢 Freight Calculator</h1>
+<p style='color:gray; margin-top:0;'>Professional Barge Cost & Profit Analysis</p>
+<hr>
+""", unsafe_allow_html=True)
 
 # ambil data dari master route
 pol_list = sorted(list(set([r["pol"] for r in st.session_state.distance_data])))
