@@ -264,117 +264,133 @@ if st.session_state.preset_selected != "Custom":
 # ===== MODE =====
 mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
 
-# ===== SIDEBAR PARAMETERS =====
-with st.sidebar.expander("🚢 Speed"):
-    for label, key in [
-        ("Speed Laden (knot)", "speed_laden"),
-        ("Speed Ballast (knot)", "speed_ballast"),
-    ]:
-        st.number_input(label, step=0.1, format="%.1f", key=key)
+with st.sidebar.expander("⚙️ Parameter", expanded=False):
 
-speed_laden = st.session_state.speed_laden
-speed_ballast = st.session_state.speed_ballast
+with st.sidebar.expander("⚙️ Parameter", expanded=False):
 
-with st.sidebar.expander("⛽ Fuel"):
-    consumption = st.number_input("Consumption Fuel (liter/hour)", value=st.session_state.get("consumption", 0))
-    price_fuel = st.number_input("Price Fuel (Rp/Ltr)", value=st.session_state.get("price_fuel", 0))
+    # ===== SPEED =====
+    with st.expander("🚢 Speed"):
+        for label, key in [
+            ("Speed Laden (knot)", "speed_laden"),
+            ("Speed Ballast (knot)", "speed_ballast"),
+        ]:
+            st.number_input(label, step=0.1, format="%.1f", key=key)
 
-with st.sidebar.expander("💧 Freshwater"):
-    consumption_fw = st.number_input("Consumption Freshwater (Ton/Day)", value=st.session_state.get("consumption_fw", 0))
-    price_fw = st.number_input("Price Freshwater (Rp/Ton)", value=st.session_state.get("price_fw", 0))
+    speed_laden = st.session_state.speed_laden
+    speed_ballast = st.session_state.speed_ballast
 
-if mode == "Owner":
-    with st.sidebar.expander("🏗️ Owner Cost"):
-        charter = st.number_input("Angsuran (Rp/Month)", value=st.session_state.get("charter", 0))
-        crew = st.number_input("Crew (Rp/Month)", value=st.session_state.get("crew", 0))
-        insurance = st.number_input("Insurance (Rp/Month)", value=st.session_state.get("insurance", 0))
-        docking = st.number_input("Docking (Rp/Month)", value=st.session_state.get("docking", 0))
-        maintenance = st.number_input("Maintenance (Rp/Month)", value=st.session_state.get("maintenance", 0))
-        certificate = st.number_input("Certificate (Rp/Month)", value=st.session_state.get("certificate", 0))
-        premi_nm = st.number_input("Premi (Rp/NM)", value=st.session_state.get("premi_nm", 0))
-        other_cost = st.number_input("Other Cost (Rp)", value=st.session_state.get("other_cost", 0))
-else:
-    with st.sidebar.expander("🏗️ Charter Cost"):
-        charter = st.number_input("Charter Hire (Rp/Month)", value=st.session_state.get("charter", 0))
-        premi_nm = st.number_input("Premi (Rp/NM)", value=st.session_state.get("premi_nm", 0))
-        other_cost = st.number_input("Other Cost (Rp)", value=st.session_state.get("other_cost", 0))
+    # ===== FUEL =====
+    with st.expander("⛽ Fuel"):
+        consumption = st.number_input(
+            "Consumption Fuel (liter/hour)",
+            value=st.session_state.get("consumption", 0)
+        )
+        price_fuel = st.number_input(
+            "Price Fuel (Rp/Ltr)",
+            value=st.session_state.get("price_fuel", 0)
+        )
 
-with st.sidebar.expander("⚓ Port Cost"):
-    port_cost_pol = st.number_input("Port Cost POL (Rp)", value=st.session_state.get("port_cost_pol", 0))
-    port_cost_pod = st.number_input("Port Cost POD (Rp)", value=st.session_state.get("port_cost_pod", 0))
-    asist_tug = st.number_input("Asist Tug (Rp)", value=st.session_state.get("asist_tug", 0))
+    # ===== FRESHWATER =====
+    with st.expander("💧 Freshwater"):
+        consumption_fw = st.number_input(
+            "Consumption Freshwater (Ton/Day)",
+            value=st.session_state.get("consumption_fw", 0)
+        )
+        price_fw = st.number_input(
+            "Price Freshwater (Rp/Ton)",
+            value=st.session_state.get("price_fw", 0)
+        )
 
-with st.sidebar.expander("🏢 General Overhead"):
-    opex_office = st.number_input(
-        "Opex (Rp/Month)",
-        value=st.session_state.get("opex_office", 0)
-    )
-    depreciation_kapal = st.number_input(
-        "Depreciation Kapal (Rp/Month)",
-        value=st.session_state.get("depreciation_kapal", 0)
-    )
+    # ===== OWNER / CHARTER =====
+    if mode == "Owner":
+        with st.expander("🏗️ Owner Cost"):
+            charter = st.number_input("Angsuran (Rp/Month)", value=st.session_state.get("charter", 0))
+            crew = st.number_input("Crew (Rp/Month)", value=st.session_state.get("crew", 0))
+            insurance = st.number_input("Insurance (Rp/Month)", value=st.session_state.get("insurance", 0))
+            docking = st.number_input("Docking (Rp/Month)", value=st.session_state.get("docking", 0))
+            maintenance = st.number_input("Maintenance (Rp/Month)", value=st.session_state.get("maintenance", 0))
+            certificate = st.number_input("Certificate (Rp/Month)", value=st.session_state.get("certificate", 0))
+            premi_nm = st.number_input("Premi (Rp/NM)", value=st.session_state.get("premi_nm", 0))
+            other_cost = st.number_input("Other Cost (Rp)", value=st.session_state.get("other_cost", 0))
+    else:
+        with st.expander("🏗️ Charter Cost"):
+            charter = st.number_input("Charter Hire (Rp/Month)", value=st.session_state.get("charter", 0))
+            premi_nm = st.number_input("Premi (Rp/NM)", value=st.session_state.get("premi_nm", 0))
+            other_cost = st.number_input("Other Cost (Rp)", value=st.session_state.get("other_cost", 0))
 
-with st.sidebar.expander("🕓 Port Stay"):
-    port_stay_pol = st.number_input("POL (Days)", value=st.session_state.get("port_stay_pol", 0))
-    port_stay_pod = st.number_input("POD (Days)", value=st.session_state.get("port_stay_pod", 0))
+    # ===== PORT COST =====
+    with st.expander("⚓ Port Cost"):
+        port_cost_pol = st.number_input("Port Cost POL (Rp)", value=st.session_state.get("port_cost_pol", 0))
+        port_cost_pod = st.number_input("Port Cost POD (Rp)", value=st.session_state.get("port_cost_pod", 0))
+        asist_tug = st.number_input("Asist Tug (Rp)", value=st.session_state.get("asist_tug", 0))
 
-# ===== ADDITIONAL COST =====
-with st.sidebar.expander("➕ Additional Cost"):
-    if "additional_costs" not in st.session_state:
-        st.session_state.additional_costs = []
+    # ===== GENERAL OVERHEAD =====
+    with st.expander("🏢 General Overhead"):
+        opex_office = st.number_input("Opex (Rp/Month)", value=st.session_state.get("opex_office", 0))
+        depreciation_kapal = st.number_input("Depreciation Kapal (Rp/Month)", value=st.session_state.get("depreciation_kapal", 0))
 
-    add_new = st.button("➕ Add Additional Cost")
-    if add_new:
-        st.session_state.additional_costs.append({
-            "name": "",
-            "price": 0,
-            "unit": "Ltr",
-            "subtype": "Day",
-            "consumption": 0
-        })
+    # ===== PORT STAY =====
+    with st.expander("🕓 Port Stay"):
+        port_stay_pol = st.number_input("POL (Days)", value=st.session_state.get("port_stay_pol", 0))
+        port_stay_pod = st.number_input("POD (Days)", value=st.session_state.get("port_stay_pod", 0))
 
-    updated_costs = []
-    unit_options = ["Ltr", "Ton", "Month", "Voyage", "MT", "M3", "Day"]
+    # ===== ADDITIONAL COST =====
+    with st.expander("➕ Additional Cost"):
+        if "additional_costs" not in st.session_state:
+            st.session_state.additional_costs = []
 
-    for i, cost in enumerate(st.session_state.additional_costs):
-        st.markdown(f"*Additional Cost {i+1}*")
-        col1, col2 = st.columns(2)
-        with col1:
-            name = st.text_input(f"Name {i+1}", cost.get("name", ""), key=f"name_{i}")
-            price = st.number_input(f"Price {i+1} (Rp)", cost.get("price", 0), key=f"price_{i}")
-        with col2:
-            unit = st.selectbox(
-                f"Unit {i+1}",
-                unit_options,
-                index=unit_options.index(cost.get("unit", "Ltr")) if cost.get("unit", "Ltr") in unit_options else 0,
-                key=f"unit_{i}"
-            )
-            subtype = "Day"
-            if unit in ["Ltr", "Ton"]:
-                subtype = st.selectbox(
-                    f"Type {i+1}",
-                    ["Day", "Hour"],
-                    index=["Day", "Hour"].index(cost.get("subtype", "Day")),
-                    key=f"subtype_{i}"
-                )
-            additional_consumption = 0
-            if unit in ["Ltr", "Ton"]:
-                additional_consumption = st.number_input(
-                    f"Consumption {i+1} ({unit}/{subtype})",
-                    cost.get("consumption", 0),
-                    key=f"additional_consumption_{i}"
-                )
-
-        remove = st.button(f"❌ Remove {i+1}", key=f"remove_{i}")
-        if not remove:
-            updated_costs.append({
-                "name": name,
-                "price": price,
-                "unit": unit,
-                "subtype": subtype,
-                "consumption": additional_consumption
+        add_new = st.button("➕ Add Additional Cost")
+        if add_new:
+            st.session_state.additional_costs.append({
+                "name": "",
+                "price": 0,
+                "unit": "Ltr",
+                "subtype": "Day",
+                "consumption": 0
             })
-    st.session_state.additional_costs = updated_costs
+
+        updated_costs = []
+        unit_options = ["Ltr", "Ton", "Month", "Voyage", "MT", "M3", "Day"]
+    
+        for i, cost in enumerate(st.session_state.additional_costs):
+            st.markdown(f"*Additional Cost {i+1}*")
+            col1, col2 = st.columns(2)
+            with col1:
+                name = st.text_input(f"Name {i+1}", cost.get("name", ""), key=f"name_{i}")
+                price = st.number_input(f"Price {i+1} (Rp)", cost.get("price", 0), key=f"price_{i}")
+            with col2:
+                unit = st.selectbox(
+                    f"Unit {i+1}",
+                    unit_options,
+                    index=unit_options.index(cost.get("unit", "Ltr")) if cost.get("unit", "Ltr") in unit_options else 0,
+                    key=f"unit_{i}"
+                )
+                subtype = "Day"
+                if unit in ["Ltr", "Ton"]:
+                    subtype = st.selectbox(
+                        f"Type {i+1}",
+                        ["Day", "Hour"],
+                        index=["Day", "Hour"].index(cost.get("subtype", "Day")),
+                        key=f"subtype_{i}"
+                    )
+                additional_consumption = 0
+                if unit in ["Ltr", "Ton"]:
+                    additional_consumption = st.number_input(
+                        f"Consumption {i+1} ({unit}/{subtype})",
+                        cost.get("consumption", 0),
+                        key=f"additional_consumption_{i}"
+                    )
+    
+            remove = st.button(f"❌ Remove {i+1}", key=f"remove_{i}")
+            if not remove:
+                updated_costs.append({
+                    "name": name,
+                    "price": price,
+                    "unit": unit,
+                    "subtype": subtype,
+                    "consumption": additional_consumption
+                })
+        st.session_state.additional_costs = updated_costs
 
 # ===== LOGOUT =====
 st.sidebar.markdown("### Account")
