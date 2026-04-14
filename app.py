@@ -177,13 +177,18 @@ st.download_button(
     file_name="list_distance.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )
+delete_index = st.number_input(
+    "Hapus index",
+    min_value=0,
+    max_value=len(df_distance)-1,
+    step=1
+)
 
-            if st.button("❌ Delete Selected"):
-                st.session_state.distance_data.pop(delete_index)
-                st.rerun()
-        else:
-            st.caption("Belum ada data distance")
+if st.button("❌ Delete Selected"):
+    st.session_state.distance_data.pop(delete_index)
+    st.rerun()
 
+    
     # =========================
     # 📜 HISTORY CALCULATE (SUB)
     # =========================
