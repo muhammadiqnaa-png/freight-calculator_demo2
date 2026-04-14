@@ -138,6 +138,7 @@ if "preset_selected" not in st.session_state:
 # Handler
 def update_preset():
     st.session_state.preset_selected = st.session_state.preset_control
+    st.rerun()
 
 # UI
 preset = st.sidebar.segmented_control(
@@ -420,6 +421,15 @@ preset_params = {
     }
 }
 
+# =========================
+# 🔁 APPLY PRESET KE PARAMETER
+# =========================
+if st.session_state.preset_selected in preset_params:
+    selected = preset_params[st.session_state.preset_selected]
+
+    for key, value in selected.items():
+        if key not in st.session_state or st.session_state[key] == 0:
+            st.session_state[key] = value
 
 
 # ===== MAIN INPUT =====
