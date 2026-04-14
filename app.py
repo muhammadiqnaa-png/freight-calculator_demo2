@@ -637,6 +637,27 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
 
         st.divider()
 
+        # ===== DEFINE OWNER / CHARTER DATA =====
+        if mode == "Owner":
+            owner_data = {
+                "Angsuran": charter_cost,
+                "Crew": crew_cost,
+                "Insurance": insurance_cost,
+                "Docking": docking_cost,
+                "Maintenance": maintenance_cost,
+                "Certificate": certificate_cost,
+                "Premi": premi_cost,
+                "Port Cost": port_cost,
+                "Other Cost": other_cost
+            }
+        else:
+            owner_data = {
+                "Charter Hire": charter_cost,
+                "Premi": premi_cost,
+                "Port Cost": port_cost,
+                "Other Cost": other_cost
+            }
+        
         # ===== COST BREAKDOWN =====
         st.markdown("### 🏗️ Cost Breakdown")
 
