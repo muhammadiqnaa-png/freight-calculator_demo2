@@ -131,6 +131,46 @@ with st.sidebar.expander("⚙️ Setup", expanded=True):
 
     mode = st.selectbox("Mode", ["Owner", "Charter"])
 
+            
+
+# ==========================================================
+# ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
+# - ditaruh di expander sidebar yang default tertutup
+# - tidak mengubah layout main / posisi expander lain
+# ==========================================================
+preset_params = {
+    "270 ft": {
+        "speed_laden": 3, "speed_ballast": 4,
+        "consumption": 85, "price_fuel": 25000,
+        "consumption_fw": 2, "price_fw": 120000,
+        "charter": 0, "crew": 60000000, "insurance": 40000000,
+        "docking": 40000000, "maintenance": 40000000,
+        "certificate": 40000000, "premi_nm": 50000, "other_cost": 10000000,
+        "port_cost_pol": 35000000, "port_cost_pod": 35000000, "asist_tug": 0,
+        "port_stay_pol": 4, "port_stay_pod": 4
+    },
+    "300 ft": {
+        "speed_laden": 3, "speed_ballast": 4,
+        "consumption": 115, "price_fuel": 25000,
+        "consumption_fw": 2, "price_fw": 120000,
+        "charter": 0, "crew": 60000000, "insurance": 50000000,
+        "docking": 50000000, "maintenance": 50000000,
+        "certificate": 45000000, "premi_nm": 50000, "other_cost": 15000000,
+        "port_cost_pol": 35000000, "port_cost_pod": 35000000, "asist_tug": 0,
+        "port_stay_pol": 5, "port_stay_pod": 5
+    },
+    "330 ft": {
+        "speed_laden": 3, "speed_ballast": 4,
+        "consumption": 130, "price_fuel": 25000,
+        "consumption_fw": 2, "price_fw": 120000,
+        "charter": 0, "crew": 60000000, "insurance": 60000000,
+        "docking": 60000000, "maintenance": 60000000,
+        "certificate": 50000000, "premi_nm": 50000, "other_cost": 20000000,
+        "port_cost_pol": 35000000, "port_cost_pod": 35000000, "asist_tug": 0,
+        "port_stay_pol": 5, "port_stay_pod": 5
+    }
+}
+
     # ===== INIT PRESET STATE =====
 if "preset_selected" not in st.session_state:
     st.session_state.preset_selected = "Custom"
@@ -394,45 +434,6 @@ with st.sidebar.expander("👤 Account", expanded=True):
         st.session_state.logged_in = False
         st.success("Successfully logged out.")
         st.rerun()
-            
-
-# ==========================================================
-# ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
-# - ditaruh di expander sidebar yang default tertutup
-# - tidak mengubah layout main / posisi expander lain
-# ==========================================================
-preset_params = {
-    "270 ft": {
-        "speed_laden": 3, "speed_ballast": 4,
-        "consumption": 85, "price_fuel": 25000,
-        "consumption_fw": 2, "price_fw": 120000,
-        "charter": 0, "crew": 60000000, "insurance": 40000000,
-        "docking": 40000000, "maintenance": 40000000,
-        "certificate": 40000000, "premi_nm": 50000, "other_cost": 10000000,
-        "port_cost_pol": 35000000, "port_cost_pod": 35000000, "asist_tug": 0,
-        "port_stay_pol": 4, "port_stay_pod": 4
-    },
-    "300 ft": {
-        "speed_laden": 3, "speed_ballast": 4,
-        "consumption": 115, "price_fuel": 25000,
-        "consumption_fw": 2, "price_fw": 120000,
-        "charter": 0, "crew": 60000000, "insurance": 50000000,
-        "docking": 50000000, "maintenance": 50000000,
-        "certificate": 45000000, "premi_nm": 50000, "other_cost": 15000000,
-        "port_cost_pol": 35000000, "port_cost_pod": 35000000, "asist_tug": 0,
-        "port_stay_pol": 5, "port_stay_pod": 5
-    },
-    "330 ft": {
-        "speed_laden": 3, "speed_ballast": 4,
-        "consumption": 130, "price_fuel": 25000,
-        "consumption_fw": 2, "price_fw": 120000,
-        "charter": 0, "crew": 60000000, "insurance": 60000000,
-        "docking": 60000000, "maintenance": 60000000,
-        "certificate": 50000000, "premi_nm": 50000, "other_cost": 20000000,
-        "port_cost_pol": 35000000, "port_cost_pod": 35000000, "asist_tug": 0,
-        "port_stay_pol": 5, "port_stay_pod": 5
-    }
-}
 
 # ===== MAIN INPUT =====
 st.title("🚢 Freight Calculator Barge")
