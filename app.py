@@ -282,13 +282,16 @@ with st.sidebar.expander("⚙️ Parameter", expanded=False):
     with st.expander("⛽ Fuel"):
         consumption = st.number_input(
             "Consumption Fuel (liter/hour)",
-            value=st.session_state.get("consumption", 0)
-        )
-        price_fuel = st.number_input(
-            "Price Fuel (Rp/Ltr)",
-            value=st.session_state.get("price_fuel", 0)
+            value=st.session_state.get("consumption", 0),
+            key="consumption"
         )
 
+        price_fuel = st.number_input(
+            "Price Fuel (Rp/Ltr)",
+            value=st.session_state.get("price_fuel", 0),
+            key="price_fuel"
+        )
+    
     # ===== FRESHWATER =====
     with st.expander("💧 Freshwater"):
         consumption_fw = st.number_input(
