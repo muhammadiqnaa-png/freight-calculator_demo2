@@ -616,16 +616,30 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
 
         tce_per_month = tce_per_day * 30
 
-        st.markdown("### 📊 Summary")
+        st.markdown("## 📊 Summary")
 
         col1, col2, col3 = st.columns(3)
 
-        with col1:
-            st.metric("🚢 Voyage Days", f"{total_voyage_days:.2f}")
-        with col2:
-            st.metric("💰 Total Cost", f"Rp {total_cost:,.0f}")
-        with col3:
-            st.metric("💰 Freight Cost", f"Rp {freight_cost_mt:,.0f} / {type_cargo.split()[1]}")
+        col1.markdown(f"""
+        <div class="card">
+        <h4>🚢 Voyage Days</h4>
+        <h2>{total_voyage_days:.2f}</h2>
+        </div>
+        """, unsafe_allow_html=True)
+
+        col2.markdown(f"""
+        <div class="card">
+        <h4>💰 Total Cost</h4>
+        <h2>Rp {total_cost:,.0f}</h2>
+        </div>
+        """, unsafe_allow_html=True)
+
+        col3.markdown(f"""
+        <div class="card">
+        <h4>📦 Freight Cost</h4>
+        <h2>Rp {freight_cost_mt:,.0f}</h2>
+        </div>
+        """, unsafe_allow_html=True)
 
        # ===== DISPLAY RESULTS =====
         st.subheader("📋 Calculation Results")
