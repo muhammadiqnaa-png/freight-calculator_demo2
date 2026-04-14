@@ -696,7 +696,7 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
 
         col1.metric("🚢 Voyage Days", f"{total_voyage_days:.2f}")
         col2.metric("💰 Total Cost", f"Rp {total_cost:,.0f}")
-        col3.metric("📦 Freight Cost", f"Rp {freight_cost_mt:,.0f}")
+        col3.metric("📦Freight Cost", f"Rp {freight_cost_mt:,.0f} / {type_cargo.split()[1]}")
 
         st.divider()
 
