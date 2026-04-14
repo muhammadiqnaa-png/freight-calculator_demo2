@@ -525,7 +525,7 @@ qyt_cargo = st.number_input("Cargo Quantity", 0.0)
 freight_price_input = st.number_input("Freight Price (Rp/MT)", 0)
 
 # ===== PERHITUNGAN =====
-if st.button("Calculate Freight 💸"):
+if st.button("🚀 Calculate Freight", use_container_width=True):
     try:
         # Waktu sailing (hour) based on speed inputs (hours)
         sailing_time = (
