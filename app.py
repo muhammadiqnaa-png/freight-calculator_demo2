@@ -617,88 +617,73 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         tce_per_month = tce_per_day * 30
 
         st.markdown("## 📊 Summary")
-        col1, col2, col3 = st.columns(3)
-        col1.markdown(f"""
-        <div class="card">
-        <h4>🚢 Voyage Days</h4>
-        <h2>{total_voyage_days:.2f}</h2>
-        </div>
-        """, unsafe_allow_html=True)
-        col2.markdown(f"""
-        <div class="card">
-        <h4>💰 Total Cost</h4>
-        <h2>Rp {total_cost:,.0f}</h2>
-        </div>
-        """, unsafe_allow_html=True)
-        col3.markdown(f"""
-        <div class="card">
-        <h4>📦 Freight Cost</h4>
-        <h2>Rp {freight_cost_mt:,.0f}</h2>
-        </div>
-        """, unsafe_allow_html=True)
 
-        st.markdown("### ⚙️ Operational Summary")
+        # ===== TOP KPI =====
         col1, col2, col3 = st.columns(3)
 
+        col1.metric("🚢 Voyage Days", f"{total_voyage_days:.2f}")
+        col2.metric("💰 Total Cost", f"Rp {total_cost:,.0f}")
+        col3.metric("📦 Freight Cost", f"Rp {freight_cost_mt:,.0f}")
+
+        st.divider()
+
+        # ===== OPERATIONAL =====
+        st.markdown("### ⚙️ Operational")
+
+        col1, col2, col3 = st.columns(3)
         col1.metric("⏱️ Sailing Time", f"{sailing_time:.1f} Hrs")
-        col2.metric("⛽ Fuel Used", f"{total_consumption_fuel:,.0f} Ltr")
+        col2.metric("⛽ Fuel", f"{total_consumption_fuel:,.0f} Ltr")
         col3.metric("💧 Freshwater", f"{total_consumption_fw:,.0f} Ton")
 
         st.divider()
-            
-        if mode == "Owner":
-            st.markdown("### 🏗️ Owner Costs Summary")
-            owner_data = {
-                "Angsuran": charter_cost,
-                "Crew": crew_cost,
-                "Insurance": insurance_cost,
-                "Docking": docking_cost,
-                "Maintenance": maintenance_cost,
-                "Certificate": certificate_cost,
-                "Premi": premi_cost,
-                "Port Costs": port_cost,
-                "Other Costs": other_cost
-            }
-        else:
-            st.markdown("### 🏗️ Charter Costs Summary")
-            owner_data = {
-                "Charter Hire": charter_cost,
-                "Premi": premi_cost,
-                "Port Costs": port_cost,
-                "Other Costs": other_cost
-            }
 
-        for k, v in owner_data.items():
-            st.markdown(f"- {k}: Rp {v:,.0f}")
+        # ===== COST BREAKDOWN =====
+        st.markdown("### 🏗️ Cost Breakdown")
 
+        cost_dict = owner_data.copy()
+        cost_dict["Fuel"] = cost_fuel
+        cost_dict["Freshwater"] = cost_fw
+        cost_dict["General Overhead"] = total_general_overhead
+
+        df_cost = pd.DataFrame(list(cost_dict.items()), columns=["Item", "Amount"])
+        df_cost["Amount"] = df_cost["Amount"].apply(lambda x: f"Rp {x:,.0f}")
+
+        st.dataframe(df_cost, use_container_width=True, hide_index=True)
+
+        # ===== ADDITIONAL =====
         if additional_breakdown:
             st.markdown("### ➕ Additional Costs")
-            for k, v in additional_breakdown.items():
-                st.markdown(f"- {k}: Rp {v:,.0f}")
-        st.markdown(f"- General Overhead: Rp {total_general_overhead:,.0f}")
-        st.markdown(f"*🧮 Total Cost:* Rp {total_cost:,.0f}")
-        st.markdown(f"*🧮 Freight Cost ({type_cargo.split()[1]}):* Rp {freight_cost_mt:,.0f}")
+            df_add = pd.DataFrame(list(additional_breakdown.items()), columns=["Item", "Amount"])
+            df_add["Amount"] = df_add["Amount"].apply(lambda x: f"Rp {x:,.0f}")
+            st.dataframe(df_add, use_container_width=True, hide_index=True)
 
-        # ===== FREIGHT PRICE CALCULATION USER (Conditional) =====
-        st.subheader("💰 Freight Price Calculation User")
-        if freight_price_input > 0:
-            st.markdown(f"""
-            *Freight Price (Rp/MT):* Rp {freight_price_input:,.0f}  
-            *Revenue:* Rp {revenue_user:,.0f}  
-            *PPH 1.2%:* Rp {pph_user:,.0f}  
-            *Profit:* Rp {profit_user:,.0f}  
-            *Profit %:* {profit_percent_user:.2f} %
-            """)
+        st.divider()
+
+        # ===== PROFIT =====
+        st.markdown("### 💰 Profit Analysis")
+        
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric("Revenue", f"Rp {revenue_user:,.0f}")
+        col2.metric("Profit", f"Rp {profit_user:,.0f}")
+        col3.metric("Profit %", f"{profit_percent_user:.2f}%")
+
+        # warna indikator
+        if profit_user > 0:
+            st.success("✅ Profitable Voyage")
         else:
-            st.info("Masukkan Freight Price untuk melihat hasil perhitungan profit user.")
+            st.error("❌ Loss Voyage")
 
-        st.subheader("⏱️ Time Charter Equivalent (TCE)")
-        st.markdown(f"""
-        *Base Cost (Fuel + FW + Port + Premi):* Rp {tce_base_cost:,.0f}  
-        *TCE Per Day:* Rp {tce_per_day:,.0f} / Day  
-        *TCE Per Month:* Rp {tce_per_month:,.0f} / Month
-        """)
+        st.divider()
 
+        # ===== TCE =====
+        st.markdown("### ⏱️ TCE")
+
+        col1, col2 = st.columns(2)
+        col1.metric("Per Day", f"Rp {tce_per_day:,.0f}")
+        col2.metric("Per Month", f"Rp {tce_per_month:,.0f}")
+
+        st.divider()
 
         # ===== PROFIT SCENARIO =====
         data = []
