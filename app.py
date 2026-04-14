@@ -544,11 +544,6 @@ if distance_pol_pod == 0:
 if next_port and distance_pod_next == 0:
     st.stop()
 
-type_cargo = st.selectbox(
-    "Type Cargo",
-    ["Bauxite (MT)", "Sand (M3)", "Coal (MT)", "Nickel (MT)", "Split (M3)"],
-    key="type_cargo"
-)
 
 # ===== TYPE CARGO =====
 type_cargo = st.selectbox(
