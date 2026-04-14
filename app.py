@@ -22,11 +22,11 @@ st.set_page_config(
 st.markdown("""
 <style>
 .card {
-    background-color: #111827;
+    background: linear-gradient(145deg, #1f2937, #111827);
     padding: 20px;
     border-radius: 15px;
-    box-shadow: 0px 4px 20px rgba(0,0,0,0.3);
-    margin-bottom: 15px;
+    box-shadow: 0px 6px 25px rgba(0,0,0,0.4);
+    text-align:center;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -686,15 +686,20 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         col1, col2, col3 = st.columns(3)
 
         col1.metric("Revenue", f"Rp {revenue_user:,.0f}")
-        col2.metric("Profit", f"Rp {profit_user:,.0f}")
+        profit_color = "normal"
+        if profit_user > 0:
+            profit_color = "normal"
+        else:
+            profit_color = "inverse"
+        col2.metric("Profit", f"Rp {profit_user:,.0f}", delta=None)
         col3.metric("Profit %", f"{profit_percent_user:.2f}%")
 
         # warna indikator
         if profit_user > 0:
-            st.success("✅ Profitable Voyage")
+            st.success("🟢 Profitable Voyage")
         else:
-            st.error("❌ Loss Voyage")
-
+            st.error("🔴 Loss Voyage")
+            
         st.divider()
 
         # ===== TCE =====
