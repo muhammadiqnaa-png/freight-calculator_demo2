@@ -525,10 +525,24 @@ if next_port and distance_pod_next == 0:
             distance_pod_next = r["distance"]
 
 # tampilkan
-st.number_input("Distance POL - POD (NM)", value=distance_pol_pod, disabled=True)
+col1, col2 = st.columns(2)
 
-if next_port:
-    st.number_input("Distance POD - Next Port (NM)", value=distance_pod_next, disabled=True)
+with col1:
+    st.number_input(
+        "Distance POL → POD (NM)",
+        value=distance_pol_pod,
+        disabled=True
+    )
+
+with col2:
+    if next_port:
+        st.number_input(
+            "Distance POD → Next (NM)",
+            value=distance_pod_next,
+            disabled=True
+        )
+    else:
+        st.empty()
 
 # validasi
 if distance_pol_pod == 0:
