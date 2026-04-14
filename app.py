@@ -550,20 +550,36 @@ type_cargo = st.selectbox(
     key="type_cargo"
 )
 
-# ===== AUTO QTY =====
-default_qty = 0
+# ===== TYPE CARGO =====
+type_cargo = st.selectbox(
+    "Type Cargo",
+    ["Bauxite (MT)", "Sand (M3)", "Coal (MT)", "Nickel (MT)", "Split (M3)"],
+    key="type_cargo"
+)
 
+# ===== DEFAULT QTY =====
+default_qty = 0
 if st.session_state.preset_selected in cargo_capacity:
     default_qty = cargo_capacity[st.session_state.preset_selected].get(type_cargo, 0)
 
-# simpan ke session biar bisa update otomatis
+# ===== INIT SESSION (HANYA SEKALI) =====
 if "qyt_cargo" not in st.session_state:
     st.session_state.qyt_cargo = default_qty
 
-# update otomatis kalau user ganti size / cargo
-if st.session_state.qyt_cargo != default_qty:
+# ===== UPDATE HANYA KALAU SIZE / CARGO BERUBAH =====
+if (
+    "last_preset" not in st.session_state or
+    "last_cargo" not in st.session_state or
+    st.session_state.last_preset != st.session_state.preset_selected or
+    st.session_state.last_cargo != type_cargo
+):
     st.session_state.qyt_cargo = default_qty
 
+# simpan kondisi terakhir
+st.session_state.last_preset = st.session_state.preset_selected
+st.session_state.last_cargo = type_cargo
+
+# ===== INPUT (BISA DIEDIT) =====
 qyt_cargo = st.number_input(
     "Cargo Quantity",
     value=st.session_state.qyt_cargo,
