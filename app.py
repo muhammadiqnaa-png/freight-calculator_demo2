@@ -639,8 +639,6 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
 
         # ===== OPERATIONAL SUMMARY =====
         st.markdown("### ⚙️ Operational Summary")
-        col1 = st.columns(1)
-        with col1:
             st.markdown(f"""
             *Sailing Time:* {sailing_time:.2f} Hours    
             *Fuel Consumption:* {total_consumption_fuel:,.0f} Ltr  
