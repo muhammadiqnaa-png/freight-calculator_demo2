@@ -92,22 +92,22 @@ if not st.session_state.logged_in:
 # ===== MASTER ROUTE =====
 if "distance_data" not in st.session_state:
     st.session_state.distance_data = [
-        {"pol": "SIP", "pod": "INDRAMAYU", "distance": 525},
-        {"pol": "SIP", "pod": "LONTAR", "distance": 490},
-        {"pol": "SIP", "pod": "BANGKA", "distance": 275},
-        {"pol": "SIP", "pod": "PELABUHAN RATU", "distance": 640},
-        {"pol": "SIP", "pod": "MERAK", "distance": 475},
-        {"pol": "SIP", "pod": "LABUAN", "distance": 515},
-        {"pol": "SIP", "pod": "REMBANG", "distance": 690},
-        {"pol": "SIP", "pod": "PANGKALAN SUSU", "distance": 540},
-        {"pol": "TEMPIRAI", "pod": "INDRAMAYU", "distance": 375},
-        {"pol": "TEMPIRAI", "pod": "PELABUHAN RATU", "distance": 485},
-        {"pol": "TEMPIRAI", "pod": "MERAK", "distance": 325},
-        {"pol": "TEMPIRAI", "pod": "MARUNDA", "distance": 345},
-        {"pol": "TEMPIRAI", "pod": "REMBANG", "distance": 545},
-        {"pol": "TEMPIRAI", "pod": "AWAR AWAR", "distance": 575},
-        {"pol": "TEMPIRAI", "pod": "LONTAR", "distance": 335},
-        {"pol": "TEMPIRAI", "pod": "PERAWANG", "distance": 425},
+        {"pol": "SIP, Kuala Cenaku", "pod": "Idramayu", "distance": 525},
+        {"pol": "SIP, Kuala Cenaku", "pod": "Lontar", "distance": 490},
+        {"pol": "SIP, Kuala Cenaku", "pod": "Bangka", "distance": 275},
+        {"pol": "SIP, Kuala Cenaku", "pod": "Pelabuhan Ratu", "distance": 640},
+        {"pol": "SIP, Kuala Cenaku", "pod": "Merak", "distance": 475},
+        {"pol": "SIP, Kuala Cenaku", "pod": "Labuan", "distance": 515},
+        {"pol": "SIP, Kuala Cenaku", "pod": "Rembang", "distance": 690},
+        {"pol": "SIP, Kuala Cenaku", "pod": "Pangkalan Susu", "distance": 540},
+        {"pol": "Tempirai, Sungai Lilin", "pod": "Indramayu", "distance": 375},
+        {"pol": "Tempirai, Sungai Lilin", "pod": "Pelabuhan Ratu", "distance": 485},
+        {"pol": "Tempirai, Sungai Lilin", "pod": "Merak", "distance": 325},
+        {"pol": "Tempirai, Sungai Lilin", "pod": "Marunda", "distance": 345},
+        {"pol": "Tempirai, Sungai Lilin", "pod": "Rembang", "distance": 545},
+        {"pol": "Tempirai, Sungai Lilin", "pod": "Awar Awar", "distance": 575},
+        {"pol": "Tempirai, Sungai Lilin", "pod": "Lontar", "distance": 335},
+        {"pol": "Tempirai, Sungai Lilin", "pod": "Perawang", "distance": 425},
         {"pol": "ABN, Samarinda", "pod": "Cirebon", "distance": 710},
         {"pol": "SBL, Palembang", "pod": "BAP, Kendawangan", "distance": 435},
         {"pol": "SBL, Palembang", "pod": "WHW, Kendawangan", "distance": 440},
@@ -116,7 +116,8 @@ if "distance_data" not in st.session_state:
         {"pol": "TIA, Bunati", "pod": "Ciwandan", "distance": 610},
         {"pol": "MBL, Samarinda", "pod": "Southport, Klang Malaysia", "distance": 1435},
         {"pol": "Kideco, Grogot", "pod": "Tanjung Kasam, Batam", "distance": 995},
-        {"pol": "Lampung, Muara Teladas", "pod": "MARUNDA", "distance": 125},
+        {"pol": "Lampung, Muara Teladas", "pod": "Marunda", "distance": 125},
+        {"pol": "Talenta, Sunngai Putting", "pod": "Gresik", "distance": 295}
         
     ]
 
