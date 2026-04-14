@@ -92,7 +92,7 @@ if not st.session_state.logged_in:
 # ===== MASTER ROUTE =====
 if "distance_data" not in st.session_state:
     st.session_state.distance_data = [
-        {"pol": "SIP, Kuala Cenaku", "pod": "Idramayu", "distance": 525},
+        {"pol": "SIP, Kuala Cenaku", "pod": "Indramayu", "distance": 525},
         {"pol": "SIP, Kuala Cenaku", "pod": "Lontar", "distance": 490},
         {"pol": "SIP, Kuala Cenaku", "pod": "Bangka", "distance": 275},
         {"pol": "SIP, Kuala Cenaku", "pod": "Pelabuhan Ratu", "distance": 640},
