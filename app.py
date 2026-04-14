@@ -152,9 +152,9 @@ with st.sidebar.expander("📂 Master Data", expanded=False):
     # =========================
     with st.expander("📋 List Distance", expanded=False):
 
-        if len(st.session_state.distance_data) > 0:
+        if len(st.session_state.distance_data) > 1:
             df_distance = pd.DataFrame(st.session_state.distance_data)
-            st.dataframe(df_distance, use_container_width=True, height=250)
+            st.dataframe(df_distance, use_container_width=True, height=200)
 
             delete_index = st.number_input(
                 "Hapus index",
