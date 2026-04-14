@@ -143,7 +143,6 @@ if "distance_data" not in st.session_state:
         {"pol": "Tempirai, Sungai Lilin", "pod": "Awar Awar", "distance": 575},
         {"pol": "Tempirai, Sungai Lilin", "pod": "Lontar", "distance": 335},
         {"pol": "Tempirai, Sungai Lilin", "pod": "Perawang", "distance": 425},
-        {"pol": "ABN, Samarinda", "pod": "Cirebon", "distance": 710},
         {"pol": "SBL, Palembang", "pod": "Marunda", "distance": 385},
         {"pol": "SBL, Palembang", "pod": "BAP, Kendawangan", "distance": 435},
         {"pol": "SBL, Palembang", "pod": "WHW, Kendawangan", "distance": 440},
@@ -163,6 +162,11 @@ if "distance_data" not in st.session_state:
         {"pol": "Kideco, Grogot", "pod": "Tanjung Kasam, Batam", "distance": 995},
         {"pol": "Lampung, Muara Teladas", "pod": "Marunda", "distance": 125},
         {"pol": "Talenta, Sunngai Putting", "pod": "Gresik", "distance": 295}
+        {"pol": "ABN, Samarinda", "pod": "Cirebon", "distance": 710},
+        {"pol": "SPJ, Suralaya", "pod": "Lontar", "distance": 35},
+        {"pol": "SPJ, Suralaya", "pod": "Labuan", "distance": 40},
+        {"pol": "SPJ, Suralaya", "pod": "Pelabuhan Ratu", "distance": 165},
+    
     ]
 
 # ==========================================================
