@@ -131,8 +131,6 @@ with st.sidebar.expander("⚙️ Setup", expanded=True):
 
     mode = st.selectbox("Mode", ["Owner", "Charter"])
 
-            
-
 # ==========================================================
 # ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
 # - ditaruh di expander sidebar yang default tertutup
@@ -171,7 +169,7 @@ preset_params = {
     }
 }
 
-    # ===== INIT PRESET STATE =====
+# ===== INIT PRESET STATE =====
 if "preset_selected" not in st.session_state:
     st.session_state.preset_selected = "Custom"
 
