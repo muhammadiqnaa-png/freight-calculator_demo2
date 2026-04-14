@@ -230,15 +230,15 @@ if st.session_state.get("apply_preset", False):
 with st.sidebar.expander("📊 Parameter", expanded=False):
 
     # ===== SIZE BARGE =====
-st.markdown("### 🚢 Size Barge")
+    st.markdown("### 🚢 Size Barge")
 
-preset = st.segmented_control(
-    "Pilih Size",
-    ["270 ft", "300 ft", "330 ft", "Custom"],
-    default=st.session_state.preset_selected,
-    key="preset_control",
-    on_change=update_preset
-)
+    preset = st.segmented_control(
+        "Pilih Size",
+        ["270 ft", "300 ft", "330 ft", "Custom"],
+        default=st.session_state.preset_selected,
+        key="preset_control",
+        on_change=update_preset
+    )
 
     # ===== SPEED =====
     with st.expander("🚢 Speed"):
