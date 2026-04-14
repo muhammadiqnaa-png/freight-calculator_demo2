@@ -620,23 +620,20 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         # ===== DISPLAY RESULTS =====
         st.markdown('<div class="card">', unsafe_allow_html=True)
 
-st.subheader("📊 Summary")
+        st.subheader("📊 Summary")
 
-col1, col2, col3 = st.columns(3)
+        col1, col2, col3 = st.columns(3)
+    
+        with col1:
+            st.metric("🚢 Voyage Days", f"{total_voyage_days:.1f}")
 
-with col1:
-    st.metric("🚢 Voyage Days", f"{total_voyage_days:.1f}")
+        with col2:
+            st.metric("⛽ Fuel Cost", f"Rp {cost_fuel:,.0f}")
 
-with col2:
-    st.metric("⛽ Fuel Cost", f"Rp {cost_fuel:,.0f}")
+        with col3:
+            st.metric("💰 Total Cost", f"Rp {total_cost:,.0f}")
 
-with col3:
-    st.metric("💰 Total Cost", f"Rp {total_cost:,.0f}")
-
-st.markdown('</div>', unsafe_allow_html=True)
-
-    except Exception as e:
-        st.error(f"Error: {e}")
+        st.markdown('</div>', unsafe_allow_html=True)
 
         if mode == "Owner":
             st.markdown("### 🏗️ Owner Costs Summary")
