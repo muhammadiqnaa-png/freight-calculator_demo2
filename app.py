@@ -99,6 +99,30 @@ if not st.session_state.logged_in:
             else:
                 st.error("Failed to register. Email may already exist.")
     st.stop()
+
+cargo_capacity = {
+    "270 ft": {
+        "Coal (MT)": 6000,
+        "Nickel (MT)": 5800,
+        "Bauxite (MT)": 6500,
+        "Sand (M3)": 4000,
+        "Split (M3)": 4200
+    },
+    "300 ft": {
+        "Coal (MT)": 7500,
+        "Nickel (MT)": 7200,
+        "Bauxite (MT)": 8000,
+        "Sand (M3)": 5000,
+        "Split (M3)": 5200
+    },
+    "330 ft": {
+        "Coal (MT)": 9000,
+        "Nickel (MT)": 8700,
+        "Bauxite (MT)": 9500,
+        "Sand (M3)": 6000,
+        "Split (M3)": 6200
+    }
+}
     
 # ===== MASTER ROUTE =====
 if "distance_data" not in st.session_state:
@@ -520,8 +544,32 @@ if distance_pol_pod == 0:
 if next_port and distance_pod_next == 0:
     st.stop()
 
-type_cargo = st.selectbox("Type Cargo", ["Bauxite (MT)", "Sand (M3)", "Coal (MT)", "Nickel (MT)", "Split (M3)"])
-qyt_cargo = st.number_input("Cargo Quantity", 0.0)
+type_cargo = st.selectbox(
+    "Type Cargo",
+    ["Bauxite (MT)", "Sand (M3)", "Coal (MT)", "Nickel (MT)", "Split (M3)"],
+    key="type_cargo"
+)
+
+# ===== AUTO QTY =====
+default_qty = 0
+
+if st.session_state.preset_selected in cargo_capacity:
+    default_qty = cargo_capacity[st.session_state.preset_selected].get(type_cargo, 0)
+
+# simpan ke session biar bisa update otomatis
+if "qyt_cargo" not in st.session_state:
+    st.session_state.qyt_cargo = default_qty
+
+# update otomatis kalau user ganti size / cargo
+if st.session_state.qyt_cargo != default_qty:
+    st.session_state.qyt_cargo = default_qty
+
+qyt_cargo = st.number_input(
+    "Cargo Quantity",
+    value=st.session_state.qyt_cargo,
+    key="qyt_cargo"
+)
+
 freight_price_input = st.number_input("Freight Price (Rp/MT)", 0)
 
 # ===== PERHITUNGAN =====
