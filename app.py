@@ -177,7 +177,7 @@ if "distance_data" not in st.session_state:
         {"pol": "Tarahan, Lampung", "pod": "Suralaya", "distance": 60},
         {"pol": "Lampung, Muara Teladas", "pod": "Marunda", "distance": 125},
         {"pol": "Talenta, Sunngai Putting", "pod": "Taboneo", "distance": 60}
-        {"pol": "Talenta, Sunngai Putting", "pod": "Gresik", "distance": 295}
+        {"pol": "Talenta, Sunngai Putting", "pod": "Gresik", "distance": 295},
         {"pol": "ABN, Samarinda", "pod": "Cirebon", "distance": 710},
         {"pol": "TIA, Bunati", "pod": "Ciwandan", "distance": 610},
         {"pol": "MBL, Samarinda", "pod": "Southport, Klang Malaysia", "distance": 1435},
