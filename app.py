@@ -148,47 +148,55 @@ with st.sidebar.expander("➕ Add Distance", expanded=False):
 with st.sidebar.expander("📂 Master Data", expanded=False):
 
     # =========================
-    # 📋 LIST DISTANCE
+    # 📋 LIST DISTANCE (SUB)
     # =========================
-    st.markdown("### 📋 List Distance")
+    with st.expander("📋 List Distance", expanded=False):
 
-    if "distance_data" in st.session_state and len(st.session_state.distance_data) > 0:
+        if len(st.session_state.distance_data) > 0:
+            df_distance = pd.DataFrame(st.session_state.distance_data)
+            st.dataframe(df_distance, use_container_width=True, height=250)
 
-        for i, row in enumerate(st.session_state.distance_data):
-            col1, col2, col3, col4 = st.columns([2,2,2,1])
+            delete_index = st.number_input(
+                "Hapus index",
+                min_value=0,
+                max_value=len(df_distance)-1,
+                step=1
+            )
 
-            col1.write(row["pol"])
-            col2.write(row["pod"])
-            col3.write(row["distance"])
-
-            if col4.button("❌", key=f"delete_distance_{i}"):
-                st.session_state.distance_data.pop(i)
+            if st.button("❌ Delete Selected"):
+                st.session_state.distance_data.pop(delete_index)
                 st.rerun()
-    else:
-        st.info("Belum ada data distance")
-
-    st.divider()
+        else:
+            st.caption("Belum ada data distance")
 
     # =========================
-    # 📜 HISTORY CALCULATE
+    # 📜 HISTORY CALCULATE (SUB)
     # =========================
-    st.markdown("### 📜 History Calculate")
+    with st.expander("📜 History Calculate", expanded=False):
 
-    if "history_calculate" not in st.session_state:
-        st.session_state.history_calculate = []
+        if len(st.session_state.history_calculate) == 0:
+            st.caption("Belum ada history")
+        else:
+            history_limit = st.number_input(
+                "Tampilkan terakhir",
+                1, 20, 5
+            )
 
-    if len(st.session_state.history_calculate) == 0:
-        st.caption("Belum ada history")
-    else:
-        for i, item in enumerate(reversed(st.session_state.history_calculate)):
-            with st.expander(f"📄 {item['name']}"):
-                st.download_button(
-                    label="⬇️ Download",
-                    data=item["data"],
-                    file_name=item["name"],
-                    mime="application/pdf",
-                    key=f"history_{i}"
-                )
+            history_data = list(reversed(st.session_state.history_calculate))[:history_limit]
+
+            for i, item in enumerate(history_data):
+                with st.expander(f"📄 {item['name']}"):
+                    st.download_button(
+                        label="⬇️ Download",
+                        data=item["data"],
+                        file_name=item["name"],
+                        mime="application/pdf",
+                        key=f"history_{i}"
+                    )
+
+            if st.button("🗑️ Clear History"):
+                st.session_state.history_calculate = []
+                st.rerun()
 
 # ==========================================================
 # ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
