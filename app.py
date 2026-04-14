@@ -617,23 +617,19 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         tce_per_month = tce_per_day * 30
 
         st.markdown("## 📊 Summary")
-
         col1, col2, col3 = st.columns(3)
-
         col1.markdown(f"""
         <div class="card">
         <h4>🚢 Voyage Days</h4>
         <h2>{total_voyage_days:.2f}</h2>
         </div>
         """, unsafe_allow_html=True)
-
         col2.markdown(f"""
         <div class="card">
         <h4>💰 Total Cost</h4>
         <h2>Rp {total_cost:,.0f}</h2>
         </div>
         """, unsafe_allow_html=True)
-
         col3.markdown(f"""
         <div class="card">
         <h4>📦 Freight Cost</h4>
@@ -641,17 +637,20 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         </div>
         """, unsafe_allow_html=True)
 
-       # ===== DISPLAY RESULTS =====
-        st.subheader("📋 Calculation Results")
-        st.markdown(f""" 
-        *Total Voyage (Days):* {total_voyage_days:.2f}  
-        *Total Sailing Time (Hour):* {sailing_time:.2f}  
-        *Total Consumption Fuel (Ltr):* {total_consumption_fuel:,.0f}  
-        *Total Consumption Freshwater (Ton):* {total_consumption_fw:,.0f}  
-        *Fuel Cost (Rp):* Rp {cost_fuel:,.0f}  
-        *Freshwater Cost (Rp):* Rp {cost_fw:,.0f}
-        """)
-
+        # ===== OPERATIONAL SUMMARY =====
+        st.markdown("### ⚙️ Operational Summary")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown(f"""
+            *Sailing Time:* {sailing_time:.2f} Hours  
+            *Voyage Duration:* {total_voyage_days:.2f} Days  
+            """)
+        with col2:
+            st.markdown(f"""
+            *Fuel Consumption:* {total_consumption_fuel:,.0f} Ltr  
+            *Freshwater:* {total_consumption_fw:,.0f} Ton  
+            """)
+            
         if mode == "Owner":
             st.markdown("### 🏗️ Owner Costs Summary")
             owner_data = {
