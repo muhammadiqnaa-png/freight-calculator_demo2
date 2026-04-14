@@ -23,9 +23,9 @@ st.markdown("""
 <style>
 .card {
     background: linear-gradient(145deg, #1f2937, #111827);
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0px 6px 25px rgba(0,0,0,0.4);
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0px 6px 15px rgba(0,0,0,0.4);
     text-align:center;
 }
 </style>
