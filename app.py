@@ -189,15 +189,6 @@ def update_preset():
     st.session_state.preset_selected = st.session_state.preset_control
     st.session_state.apply_preset = True
 
-# UI
-preset = st.sidebar.segmented_control(
-    "Size Barge",
-    ["270 ft", "300 ft", "330 ft", "Custom"],
-    default=st.session_state.preset_selected,
-    key="preset_control",
-    on_change=update_preset
-)
-
 # =========================
 # 🚢 VOYAGE INPUT
 # =========================
@@ -237,6 +228,17 @@ if st.session_state.get("apply_preset", False):
 # 📊 PARAMETER
 # =========================
 with st.sidebar.expander("📊 Parameter", expanded=False):
+
+    # ===== SIZE BARGE =====
+st.markdown("### 🚢 Size Barge")
+
+preset = st.segmented_control(
+    "Pilih Size",
+    ["270 ft", "300 ft", "330 ft", "Custom"],
+    default=st.session_state.preset_selected,
+    key="preset_control",
+    on_change=update_preset
+)
 
     # ===== SPEED =====
     with st.expander("🚢 Speed"):
