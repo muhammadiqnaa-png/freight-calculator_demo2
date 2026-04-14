@@ -625,7 +625,7 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         with col2:
             st.metric("💰 Total Cost", f"Rp {total_cost:,.0f}")
         with col3:
-            st.metric("💰 Freight Cost", ({type_cargo.split()[1]}):* Rp {freight_cost_mt:,.0f}")
+            st.metric("💰 Freight Cost", f"Rp {freight_cost_mt:,.0f} / {type_cargo.split()[1]}")
 
        # ===== DISPLAY RESULTS =====
         st.subheader("📋 Calculation Results")
