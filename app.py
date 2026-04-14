@@ -176,6 +176,19 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
                 st.success("Distance saved!")
 
 # =========================
+# 🔁 APPLY PRESET KE PARAMETER
+# =========================
+if st.session_state.preset_selected in preset_params:
+    selected = preset_params[st.session_state.preset_selected]
+
+    for key, value in selected.items():
+        if key not in st.session_state or st.session_state[key] == 0:
+            st.session_state[key] = value
+
+if "preset_selected" not in st.session_state:
+    st.session_state.preset_selected = "Custom"
+
+# =========================
 # 📊 PARAMETER
 # =========================
 with st.sidebar.expander("📊 Parameter", expanded=False):
@@ -420,17 +433,6 @@ preset_params = {
         "port_stay_pol": 5, "port_stay_pod": 5
     }
 }
-
-# =========================
-# 🔁 APPLY PRESET KE PARAMETER
-# =========================
-if st.session_state.preset_selected in preset_params:
-    selected = preset_params[st.session_state.preset_selected]
-
-    for key, value in selected.items():
-        if key not in st.session_state or st.session_state[key] == 0:
-            st.session_state[key] = value
-
 
 # ===== MAIN INPUT =====
 st.title("🚢 Freight Calculator Barge")
