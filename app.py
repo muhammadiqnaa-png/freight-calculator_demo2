@@ -618,15 +618,22 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
 
 
         # ===== DISPLAY RESULTS =====
-        st.subheader("📋 Calculation Results")
-        st.markdown(f""" 
-        *Total Voyage (Days):* {total_voyage_days:.2f}  
-        *Total Sailing Time (Hour):* {sailing_time:.2f}  
-        *Total Consumption Fuel (Ltr):* {total_consumption_fuel:,.0f}  
-        *Total Consumption Freshwater (Ton):* {total_consumption_fw:,.0f}  
-        *Fuel Cost (Rp):* Rp {cost_fuel:,.0f}  
-        *Freshwater Cost (Rp):* Rp {cost_fw:,.0f}
-        """)
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+
+st.subheader("📊 Summary")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.metric("🚢 Voyage Days", f"{total_voyage_days:.1f}")
+
+with col2:
+    st.metric("⛽ Fuel Cost", f"Rp {cost_fuel:,.0f}")
+
+with col3:
+    st.metric("💰 Total Cost", f"Rp {total_cost:,.0f}")
+
+st.markdown('</div>', unsafe_allow_html=True)
 
         if mode == "Owner":
             st.markdown("### 🏗️ Owner Costs Summary")
