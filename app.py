@@ -154,6 +154,7 @@ with st.sidebar.expander("📂 Master Data", expanded=False):
 
         if len(st.session_state.distance_data) > 1:
             df_distance = pd.DataFrame(st.session_state.distance_data)
+            df_distance.index = df_distance.index + 1
             st.dataframe(df_distance, use_container_width=True, height=200)
 
             delete_index = st.number_input(
