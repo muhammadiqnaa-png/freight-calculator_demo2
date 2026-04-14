@@ -177,6 +177,7 @@ if "preset_selected" not in st.session_state:
 # Handler
 def update_preset():
     st.session_state.preset_selected = st.session_state.preset_control
+    st.session_state.apply_preset = True
 
 # UI
 preset = st.sidebar.segmented_control(
@@ -213,15 +214,14 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
                 })
                 st.success("Distance saved!")
 
-# =========================
-# 🔁 APPLY PRESET KE PARAMETER
-# =========================
-if st.session_state.preset_selected in preset_params:
-    selected = preset_params[st.session_state.preset_selected]
+if st.session_state.get("apply_preset", False):
+    if st.session_state.preset_selected in preset_params:
+        selected = preset_params[st.session_state.preset_selected]
 
-    for key, value in selected.items():
-        if key not in st.session_state:
+        for key, value in selected.items():
             st.session_state[key] = value
+
+    st.session_state.apply_preset = False
 
 # =========================
 # 📊 PARAMETER
