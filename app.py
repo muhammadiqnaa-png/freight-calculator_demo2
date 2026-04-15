@@ -635,6 +635,8 @@ def format_rp(x):
     return f"Rp {x:,.0f}"
 
 # ===== PERHITUNGAN =====
+if "calc_ready" not in st.session_state:
+    st.session_state.calc_ready = False
 calc_btn = st.button("🚀 Calculate Freight", use_container_width=True)
 
 if calc_btn:
@@ -1036,11 +1038,19 @@ if calc_btn:
             })
             st.session_state.last_calc = file_name
 
-        st.download_button(
-            label="📥 Download PDF Report",
-            data=pdf_buffer,
-            file_name=file_name,
-            mime="application/pdf"
+        st.session_state.calc_ready = True
+        st.session_state.last_pdf = pdf_buffer
+        st.session_state.last_file_name = file_name
+
+    if st.session_state.get("calc_ready"):
+    st.success("✅ Calculation finished. Download report ready!")
+
+    st.download_button(
+        label="📥 Download PDF Report",
+        data=st.session_state.last_pdf,
+        file_name=st.session_state.last_file_name,
+        mime="application/pdf"
+
         )
     except Exception as e:
         st.error(f"Error: {e}")
