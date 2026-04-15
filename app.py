@@ -812,14 +812,9 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
                 "Port Cost": port_cost,
                 "Other Cost": other_cost
             }
-        
-        st.markdown("### 🏗️ Cost Breakdown")
 
-        def format_rp(x):
-            return f"Rp {x:,.0f}"
-
-        # ===== OWNER COST =====
-        st.markdown("#### ⚙️ Owner / Charter Cost")
+        # ===== Owner Cost / Chater Cost =====
+        st.markdown("#### 🏗️ Cost Breakdown")
 
         core_total = 0
 
