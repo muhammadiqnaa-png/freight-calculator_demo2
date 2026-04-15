@@ -793,7 +793,7 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
 
 
         # ===== Operasional Cost =====
-        c1, c2 = st.columns(2)
+        c1, c2, c3 = st.columns(2)
         
         with c1:
             st.container(border=True)
