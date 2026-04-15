@@ -464,10 +464,11 @@ with st.sidebar.expander("📂 Master Data", expanded=False):
             df_distance.index = df_distance.index + 1
             st.dataframe(df_distance, use_container_width=True, height=200)
 
+        if len(df_distance) > 0:  
             delete_index = st.number_input(
                 "Hapus index",
                 min_value=1,
-                max_value=len(df_distance)-1,
+                max_value=len(df_distance),
                 step=1
             )
 
