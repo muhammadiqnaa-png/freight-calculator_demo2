@@ -271,6 +271,9 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
                     st.toast("✅ Distance berhasil disimpan!")
                     st.rerun()
 
+        if st.session_state.get("save_success"):
+            st.success("✅ Distance berhasil disimpan!")
+
                 else:
                     st.warning("⚠️ Data sudah ada!")
             
