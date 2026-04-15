@@ -847,7 +847,7 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         if freight_price_input > 0:
 
             with st.container(border=True):
-            st.markdown("### 💰 Profit Analysis")
+                st.markdown("### 💰 Profit Analysis")
 
             c1, c2, c3 = st.columns(3)
 
