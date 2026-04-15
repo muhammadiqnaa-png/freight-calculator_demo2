@@ -10,7 +10,11 @@ from reportlab.lib.units import cm
 from datetime import datetime
 import requests
 from streamlit_cookies_manager import EncryptedCookieManager
-from data_routes import distance_data
+import json
+
+def load_distance():
+    with open("distance.json", "r") as f:
+        return json.load(f)
 
 # ==========================================================
 # ⚙️ Page Config (WAJIB paling atas!)
@@ -151,7 +155,7 @@ from data_routes import distance_data
 
 # ===== MASTER ROUTE =====
 if "distance_data" not in st.session_state:
-    st.session_state.distance_data = distance_data.copy()
+    st.session_state.distance_data = load_distance()
 
 # ==========================================================
 # ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
@@ -240,12 +244,21 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
 
         if st.button("💾 Save Distance"):
             if pol_input and pod_input:
-                st.session_state.distance_data.append({
+
+                new_data = {
                     "pol": pol_input.strip().upper(),
                     "pod": pod_input.strip().upper(),
                     "distance": distance_input
-                })
-                st.success("Distance saved!")
+                }
+
+                st.session_state.distance_data.append(new_data)
+
+                # 🔥 SAVE KE JSON
+                with open("distance.json", "w") as f:
+                    json.dump(st.session_state.distance_data, f, indent=2)
+
+                st.success("✅ Data otomatis tersimpan ke JSON!")
+                st.rerun()
 
 if st.session_state.get("apply_preset", False):
     if st.session_state.preset_selected in preset_params:
