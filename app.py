@@ -19,6 +19,13 @@ st.set_page_config(
     page_icon="https://raw.githubusercontent.com/muhammadiqnaa-png/freight-calculator/main/icon-512x512.png",
     layout="wide"
 )
+cookies = EncryptedCookieManager(
+    prefix="freight_app",
+    password="super_secret_key"
+)
+
+if not cookies.ready():
+    st.stop()
 st.markdown("""
 <style>
 .card {
