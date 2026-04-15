@@ -10,6 +10,7 @@ from reportlab.lib.units import cm
 from datetime import datetime
 import requests
 from streamlit_cookies_manager import EncryptedCookieManager
+from data_routes import distance_data
 
 # ==========================================================
 # ⚙️ Page Config (WAJIB paling atas!)
@@ -146,10 +147,11 @@ cargo_capacity = {
     }
 }
     
+from data_routes import distance_data
+
 # ===== MASTER ROUTE =====
 if "distance_data" not in st.session_state:
-    st.session_state.distance_data = [
-    ]
+    st.session_state.distance_data = distance_data.copy()
 
 # ==========================================================
 # ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
