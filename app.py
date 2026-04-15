@@ -16,8 +16,6 @@ DEV_MODE = True
 
 if DEV_MODE and "logged_in" not in st.session_state:
     st.session_state.logged_in = True
-    if "email" not in st.session_state:
-        st.session_state.email = "dev@local"
 
 # ==========================================================
 # ⚙️ Page Config (WAJIB paling atas!)
