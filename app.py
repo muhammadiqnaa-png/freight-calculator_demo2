@@ -246,31 +246,39 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
 
         import json
 
-        if st.button("💾 Save Distance"):
-            if pol_input and pod_input:
+        import json
 
-                new_data = {
-                    "pol": pol_input.strip().upper(),
-                    "pod": pod_input.strip().upper(),
-                    "distance": distance_input
-                }
+if st.button("💾 Save Distance"):
 
-                try:
-                    with open("distance.json", "r") as f:
-                        data = json.load(f)
-                except:
-                    data = []
+    if pol_input and pod_input:
 
-                data.append(new_data)
+        new_data = {
+            "pol": pol_input.strip().upper(),
+            "pod": pod_input.strip().upper(),
+            "distance": distance_input
+        }
 
-                with open("distance.json", "w") as f:
-                    json.dump(data, f, indent=2)
+        try:
+            with open("distance.json", "r") as f:
+                data = json.load(f)
+        except:
+            data = []
 
-                st.session_state.distance_data = data
+        # anti duplikat (bonus penting)
+        if new_data not in data:
+            data.append(new_data)
 
-                # 🔥 FIX UTAMA: pakai flag success
-                st.session_state.save_success = True
+            with open("distance.json", "w") as f:
+                json.dump(data, f, indent=2)
 
+            st.session_state.distance_data = data
+
+            # 🔥 langsung tampil tanpa delay
+            st.toast("✅ Distance saved successfully!")
+            st.success("Distance berhasil disimpan!")
+        else:
+            st.warning("⚠️ Data sudah ada!")
+            
 if st.session_state.get("apply_preset", False):
     if st.session_state.preset_selected in preset_params:
         selected = preset_params[st.session_state.preset_selected]
