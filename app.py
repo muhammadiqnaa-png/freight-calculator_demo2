@@ -825,7 +825,7 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
             st.write(f"**Total : {format_rp(core_total)}**")
 
         # ===== OTHER =====
-        with col4:
+        with c4:
             st.container(border=True)
             st.markdown("#### 🏢 Other & Overhead")
             st.write(f"Other Cost : {format_rp(other_cost)}")
