@@ -796,11 +796,11 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         c1, c2 = st.columns(2)
         
         with c1:
-            st.markdown("#### ⛽ Variable Cost")
             st.container(border=True)
+            st.markdown("#### ⛽ Variable Cost")
             
-            st.write(f"Fuel Consumption : {format_ltr(total_consumption_fuel)}")
-            st.write(f"Freshwater Consumption : {format_ltr(total_consumption_fw)}")
+            st.write(f"Fuel Consumption : {format_rp(total_consumption_fuel)}")
+            st.write(f"Freshwater Consumption : {format_rp(total_consumption_fw)}")
             st.write(f"Fuel Cost : {format_rp(cost_fuel)}")
             st.write(f"Freshwater Cost : {format_rp(cost_fw)}")
             st.write(f"Port Cost : {format_rp(port_cost)}")
@@ -810,9 +810,9 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
 
         # ===== COST BREAKDOWN =====
         with c2:
-            st.markdown("#### 🏗️ Cost Breakdown")
             st.container(border=True)
-    
+            st.markdown("#### 🏗️ Cost Breakdown")
+            
             core_total = 0
             for k, v in owner_data.items():
                 st.write(f"{k} : {format_rp(v)}")
@@ -822,9 +822,9 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
 
         # ===== OTHER =====
         with c3:
-            st.markdown("#### 🏢 Other & Overhead")
             st.container(border=True)
-            
+            st.markdown("#### 🏢 Other & Overhead")
+             
             st.write(f"Other Cost : {format_rp(other_cost)}")
             st.write(f"General Overhead : {format_rp(total_general_overhead)}")
             
