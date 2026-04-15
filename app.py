@@ -812,7 +812,7 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         st.markdown("### 🏗️ Cost Breakdown")
 
         def format_rp(x):
-        return f"Rp {x:,.0f}"
+            return f"Rp {x:,.0f}"
 
         # ===== OWNER COST =====
         st.markdown("#### ⚙️ Owner / Charter Cost")
