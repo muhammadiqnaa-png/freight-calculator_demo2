@@ -240,9 +240,15 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
 
         distance_input = st.number_input("Distance (NM)", 0.0, key="md_distance")
 
+        if st.session_state.get("save_success"):
+            st.toast("✅ Distance berhasil disimpan!")
+            st.session_state.save_success = False
+
         import json
 
-        if st.button("💾 Save Distance", key="save_distance_btn"):
+        save_btn = st.button("💾 Save Distance")
+
+        if save_btn:
 
             if pol_input and pod_input:
 
@@ -258,23 +264,22 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
                 except:
                     data = []
 
+                # anti duplikat
                 if new_data not in data:
                     data.append(new_data)
 
                     with open("distance.json", "w") as f:
                         json.dump(data, f, indent=2)
 
-                    # 🔥 IMPORTANT: force reload session data
+                    # 🔥 IMPORTANT: update session state langsung
                     st.session_state.distance_data = data
 
-                    st.session_state.save_success = True
-                    st.rerun()
+                    # 🔥 FORCE REFRESH STATE VISUAL (INI KUNCI FIX 1x click)
+                    st.session_state["save_success"] = True
+                    st.session_state["force_rerun"] = True
+
                 else:
                     st.warning("⚠️ Data sudah ada!")
-
-                if st.session_state.get("save_success"):
-                    st.toast("✅ Distance berhasil disimpan!")
-                    st.session_state.save_success = False
             
 if st.session_state.get("apply_preset", False):
     if st.session_state.preset_selected in preset_params:
@@ -509,6 +514,7 @@ with st.sidebar.expander("👤 Account", expanded=True):
         st.success("Successfully logged out.")
         st.rerun()
 
+    
 # ===== MAIN INPUT =====
 st.markdown("""
 <h1 style='margin-bottom:0;'>🚢 Freight Calculator</h1>
