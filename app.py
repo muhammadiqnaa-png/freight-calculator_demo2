@@ -791,31 +791,27 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
                 "Other Cost": other_cost
             }
 
-        c1, c2, c3, c4 = st.columns(4)
+        c1, c2 = st.columns(2)
 
         # ===== OPERATIONAL =====
         with col1:
+            st.markdown("#### ⛽ Variable Cost")
             st.container(border=True)
-            st.markdown("#### ⛽ Consumption Voyage")
-            st.write(f"Fuel Consumption : {format_rp(total_consumption_fuel)}")
+            
+            st.write(f"Fuel Consumption : {format_ltr(total_consumption_fuel)}")
+            st.write(f"Freshwater Consumption : {format_ltr(total_consumption_fw)}")
             st.write(f"Fuel Cost : {format_rp(cost_fuel)}")
-            st.write(f"Freshwater Consumption : {format_rp(total_consumption_fw)}")
             st.write(f"Freshwater Cost : {format_rp(cost_fw)}")
-            st.write(f"**Total Cost : {format_rp(cost_fuel + cost_fw)}**")
-
-
-        # ===== OPERATIONAL =====
-        with c2:
-            st.container(border=True)
-            st.markdown("#### ⛽ Operational")
             st.write(f"Port Cost : {format_rp(port_cost)}")
             st.write(f"Premi : {format_rp(premi_cost)}")
-            st.write(f"**Total : {format_rp(port_cost + premi_cost)}**")
+            
+            st.write(f"**Total Cost : {format_rp(cost_fuel + cost_fw + port_cost + premi_cost)}**")
+
 
         # ===== COST BREAKDOWN =====
-        with c3:
-            st.container(border=True)
+        with c2:
             st.markdown("#### 🏗️ Cost Breakdown")
+            st.container(border=True)
     
             core_total = 0
             for k, v in owner_data.items():
@@ -825,11 +821,13 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
             st.write(f"**Total : {format_rp(core_total)}**")
 
         # ===== OTHER =====
-        with c4:
-            st.container(border=True)
+        with c3:
             st.markdown("#### 🏢 Other & Overhead")
+            st.container(border=True)
+            
             st.write(f"Other Cost : {format_rp(other_cost)}")
             st.write(f"General Overhead : {format_rp(total_general_overhead)}")
+            
             st.write(f"**Total : {format_rp(other_cost + total_general_overhead)}**")
 
 
