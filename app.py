@@ -223,10 +223,6 @@ def update_preset():
     st.session_state.preset_selected = st.session_state.preset_control
     st.session_state.apply_preset = True
 
-if st.session_state.get("save_success", False):
-    st.success("✅ Distance berhasil disimpan!")
-    st.session_state.save_success = False
-
 # =========================
 # 🚢 VOYAGE INPUT
 # =========================
@@ -275,6 +271,10 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
                     st.rerun()
                 else:
                     st.warning("⚠️ Data sudah ada!")
+
+if st.session_state.get("save_success"):
+    st.toast("✅ Distance berhasil disimpan!")
+    st.session_state.save_success = False
             
 if st.session_state.get("apply_preset", False):
     if st.session_state.preset_selected in preset_params:
