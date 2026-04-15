@@ -664,6 +664,12 @@ qyt_cargo = st.number_input(
 
 freight_price_input = st.number_input("Freight Price (Rp/MT)", 0)
 
+# =========================
+# 🧮 HELPER FUNCTION
+# =========================
+def format_rp(x):
+    return f"Rp {x:,.0f}"
+
 # ===== PERHITUNGAN =====
 if st.button("🚀 Calculate Freight", use_container_width=True):
     try:
