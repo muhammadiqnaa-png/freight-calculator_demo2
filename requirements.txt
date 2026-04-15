@@ -3,3 +3,4 @@ requests
 pandas
 reportlab
 matplotlib
+streamlit-cookies-manager
