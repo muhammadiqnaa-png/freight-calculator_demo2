@@ -861,22 +861,33 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         # 💹 6. PROFIT SCENARIO
         # =========================
         st.markdown("### 💹 Profit Scenario (0–75%)")
-        
-        st.dataframe(df_profit, use_container_width=True, height=250)
 
-        # ===== PROFIT SCENARIO =====
-        data = []
+        df_profit_clean = []
+        
         for p in range(0, 80, 5):
             freight_persen = freight_cost_mt * (1 + p / 100)
             revenue = freight_persen * qyt_cargo
             pph = revenue * 0.012
             gross_profit = revenue - total_cost - pph
-            data.append([f"{p}%", f"Rp {freight_persen:,.0f}", f"Rp {revenue:,.0f}", f"Rp {pph:,.0f}", f"Rp {gross_profit:,.0f}"])
-        df_profit = pd.DataFrame(data, columns=["Profit %", "Freight (Rp)", "Revenue (Rp)", "PPH 1.2% (Rp)", "Gross Profit (Rp)"])
+        
+            df_profit_clean.append({
+                "Profit %": f"{p}%",
+                "Freight": freight_persen,
+                "Revenue": revenue,
+                "PPH": pph,
+                "Profit": gross_profit
+            })
+        
+        df_profit_clean = pd.DataFrame(df_profit_clean)
+        
+        # tampilan
+        df_display = df_profit_clean.copy()
+        for col in ["Freight", "Revenue", "PPH", "Profit"]:
+            df_display[col] = df_display[col].apply(lambda x: f"Rp {x:,.0f}")
+        
+        st.dataframe(df_display, use_container_width=True, height=250)
 
-        st.subheader("💹 Profit Scenario 0–75%")
-        st.dataframe(df_profit, use_container_width=True)
-
+        
         # ===== PDF GENERATOR =====
         def create_pdf(username):
             buffer = BytesIO()
