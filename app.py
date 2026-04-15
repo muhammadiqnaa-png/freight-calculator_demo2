@@ -116,9 +116,9 @@ cargo_capacity = {
         "Split (M3)": 4300
     },
     "330 ft": {
-        "Coal (MT)": 10000,
-        "Nickel (MT)": 10000,
-        "Bauxite (MT)": 10000,
+        "Coal (MT)": 11500,
+        "Nickel (MT)": 11500,
+        "Bauxite (MT)": 11500,
         "Sand (M3)": 5500,
         "Split (M3)": 6500
     }
@@ -180,6 +180,7 @@ if "distance_data" not in st.session_state:
         {"pol": "Lampung, Muara Teladas", "pod": "Marunda", "distance": 125},
         {"pol": "Talenta, Sungai Putting", "pod": "Taboneo", "distance": 60},
         {"pol": "Talenta, Sungai Putting", "pod": "Gresik", "distance": 295},
+        {"pol": "Talenta, Sungai Putting", "pod": "BAI, Bintan", "distance": 725},
         {"pol": "MBL, Samarinda", "pod": "Southport, Klang Malaysia", "distance": 1435},
         {"pol": "ABN, Samarinda", "pod": "Cirebon", "distance": 710},
         {"pol": "Kideco, Grogot", "pod": "Tanjung Kasam, Batam", "distance": 995},
