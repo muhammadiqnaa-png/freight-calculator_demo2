@@ -246,38 +246,36 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
 
         import json
 
-        import json
+        if st.button("💾 Save Distance"):
 
-if st.button("💾 Save Distance"):
+            if pol_input and pod_input:
 
-    if pol_input and pod_input:
+                new_data = {
+                    "pol": pol_input.strip().upper(),
+                    "pod": pod_input.strip().upper(),
+                    "distance": distance_input
+                }
 
-        new_data = {
-            "pol": pol_input.strip().upper(),
-            "pod": pod_input.strip().upper(),
-            "distance": distance_input
-        }
+                try:
+                    with open("distance.json", "r") as f:
+                        data = json.load(f)
+                except:
+                    data = []
+        
+                # anti duplikat (bonus penting)
+                if new_data not in data:
+                    data.append(new_data)
 
-        try:
-            with open("distance.json", "r") as f:
-                data = json.load(f)
-        except:
-            data = []
+                    with open("distance.json", "w") as f:
+                        json.dump(data, f, indent=2)
 
-        # anti duplikat (bonus penting)
-        if new_data not in data:
-            data.append(new_data)
+                    st.session_state.distance_data = data
 
-            with open("distance.json", "w") as f:
-                json.dump(data, f, indent=2)
-
-            st.session_state.distance_data = data
-
-            # 🔥 langsung tampil tanpa delay
-            st.toast("✅ Distance saved successfully!")
-            st.success("Distance berhasil disimpan!")
-        else:
-            st.warning("⚠️ Data sudah ada!")
+                    # 🔥 langsung tampil tanpa delay
+                    st.toast("✅ Distance saved successfully!")
+                    st.success("Distance berhasil disimpan!")
+                else:
+                    st.warning("⚠️ Data sudah ada!")
             
 if st.session_state.get("apply_preset", False):
     if st.session_state.preset_selected in preset_params:
