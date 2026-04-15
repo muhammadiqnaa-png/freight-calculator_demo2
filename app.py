@@ -272,9 +272,9 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
                 else:
                     st.warning("⚠️ Data sudah ada!")
 
-    if st.session_state.get("save_success"):
-        st.toast("✅ Distance berhasil disimpan!")
-        st.session_state.save_success = False
+                if st.session_state.get("save_success"):
+                    st.toast("✅ Distance berhasil disimpan!")
+                    st.session_state.save_success = False
             
 if st.session_state.get("apply_preset", False):
     if st.session_state.preset_selected in preset_params:
