@@ -108,8 +108,16 @@ if not st.session_state.logged_in:
         password = st.text_input("Password Register", type="password")
         if st.button("Register 📝"):
             ok, data = register_user(email, password)
+            
             if ok:
-                st.success("Registration successful! Please login.")
+                st.session_state.logged_in = True
+                st.session_state.email = email
+                cookies["logged_in"] = "true"
+                cookies["email"] = email
+                cookies.save()
+
+                st.success("Registration successful! Auto login...")
+                st.rerun()
             else:
                 st.error("Failed to register. Email may already exist.")
     st.stop()
