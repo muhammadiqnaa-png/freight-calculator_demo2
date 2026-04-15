@@ -471,10 +471,17 @@ with st.sidebar.expander("📂 Master Data", expanded=False):
                 max_value=len(df_distance),
                 step=1
             )
+            item = st.session_state.distance_data[delete_index - 1]
+            st.warning(f"Delete route: {item['pol']} ➜ {item['pod']} ({item['distance']} NM)")
+            confirm = st.checkbox("Confirm delete")
 
             if st.button("❌ Delete Selected"):
-                st.session_state.distance_data.pop(delete_index - 1)
-                st.rerun()
+                if confirm:
+                    st.session_state.distance_data.pop(delete_index - 1)
+                    st.success("Deleted successfully")
+                    st.rerun()
+                else:
+                    st.error("Please confirm first")
         else:
             st.caption("Belum ada data distance")
 
