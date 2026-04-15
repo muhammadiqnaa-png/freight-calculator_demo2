@@ -779,6 +779,16 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
             
         st.divider()
 
+        # ===== OPERATIONAL =====
+        st.markdown("#### ⛽ Operational")
+
+        st.write(f"Port Cost : {format_rp(port_cost)}")
+        st.write(f"Premi : {format_rp(premi_cost)}")
+
+        operational_total = port_cost + premi_cost
+
+        st.write(f"**Total : {format_rp(operational_total)}**")
+
         # ===== DEFINE OWNER / CHARTER DATA =====
         if mode == "Owner":
             owner_data = {
@@ -827,15 +837,6 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
 
         st.divider()
 
-        # ===== OPERATIONAL =====
-        st.markdown("#### ⛽ Operational")
-
-        st.write(f"Port Cost : {format_rp(port_cost)}")
-        st.write(f"Premi : {format_rp(premi_cost)}")
-
-        operational_total = port_cost + premi_cost
-
-        st.write(f"**Total : {format_rp(operational_total)}**")
 
         # ===== ADDITIONAL =====
         if additional_breakdown:
