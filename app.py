@@ -848,24 +848,20 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
         # ===== PROFIT =====
-        st.markdown("### 💰 Profit Analysis")
-        
-        col1, col2, col3 = st.columns(3)
+        if freight_price_input > 0:
 
-        col1.metric("Revenue", f"Rp {revenue_user:,.0f}")
-        profit_color = "normal"
-        if profit_user > 0:
-            profit_color = "normal"
-        else:
-            profit_color = "inverse"
-        col2.metric("Profit", f"Rp {profit_user:,.0f}", delta=None)
-        col3.metric("Profit %", f"{profit_percent_user:.2f}%")
+            st.markdown("### 💰 Profit Analysis")
+    
+            col1, col2, col3 = st.columns(3)
 
-        # warna indikator
-        if profit_user > 0:
-            st.success("🟢 Profitable Voyage")
-        else:
-            st.error("🔴 Loss Voyage")
+            col1.metric("Revenue", f"Rp {revenue_user:,.0f}")
+            col2.metric("Profit", f"Rp {profit_user:,.0f}")
+            col3.metric("Profit %", f"{profit_percent_user:.2f}%")
+
+            if profit_user > 0:
+                st.success("🟢 Profitable Voyage")
+            else:
+                st.error("🔴 Loss Voyage")
             
         st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
