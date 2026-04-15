@@ -809,18 +809,45 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
                 "Other Cost": other_cost
             }
         
-        # ===== COST BREAKDOWN =====
         st.markdown("### 🏗️ Cost Breakdown")
 
-        cost_dict = owner_data.copy()
-        cost_dict["Fuel"] = cost_fuel
-        cost_dict["Freshwater"] = cost_fw
-        cost_dict["General Overhead"] = total_general_overhead
+        def format_rp(x):
+        return f"Rp {x:,.0f}"
 
-        df_cost = pd.DataFrame(list(cost_dict.items()), columns=["Item", "Amount"])
-        df_cost["Amount"] = df_cost["Amount"].apply(lambda x: f"Rp {x:,.0f}")
+        # ===== OWNER COST =====
+        st.markdown("#### ⚙️ Owner / Charter Cost")
 
-        st.dataframe(df_cost, use_container_width=True, hide_index=True)
+        core_total = 0
+
+        for k, v in owner_data.items():
+            st.write(f"{k} : {format_rp(v)}")
+            core_total += v
+
+        st.write(f"**Total : {format_rp(core_total)}**")
+
+        st.divider()
+
+        # ===== OTHER COST =====
+        st.markdown("#### 🏢 Other & Overhead")
+
+        st.write(f"Other Cost : {format_rp(other_cost)}")
+        st.write(f"General Overhead : {format_rp(total_general_overhead)}")
+
+        other_total = other_cost + total_general_overhead
+
+        st.write(f"**Total : {format_rp(other_total)}**")
+
+        st.divider()
+
+        # ===== OPERATIONAL =====
+        st.markdown("#### ⛽ Operational")
+
+        st.write(f"Fuel : {format_rp(cost_fuel)}")
+        st.write(f"Freshwater : {format_rp(cost_fw)}")
+
+        operational_total = cost_fuel + cost_fw
+
+        st.write(f"**Total : {format_rp(operational_total)}**")
 
         # ===== ADDITIONAL =====
         if additional_breakdown:
