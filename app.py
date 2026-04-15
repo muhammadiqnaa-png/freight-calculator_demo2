@@ -11,13 +11,6 @@ from datetime import datetime
 import requests
 import streamlit as st
 
-# ===== DEV MODE (BIAR TIDAK LOGIN ULANG SAAT NGODING) =====
-DEV_MODE = True
-
-if DEV_MODE and "logged_in" not in st.session_state:
-    st.session_state.logged_in = True
-    st.session_state.email = "dev@local.com"
-
 # ==========================================================
 # ⚙️ Page Config (WAJIB paling atas!)
 # ==========================================================
