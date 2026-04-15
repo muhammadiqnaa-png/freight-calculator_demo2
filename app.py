@@ -878,7 +878,6 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
                 with c2:
                     st.metric("Per Month", f"Rp {tce_per_month:,.0f}")
                 
-         st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
         # ===== PROFIT SCENARIO =====
         data = []
