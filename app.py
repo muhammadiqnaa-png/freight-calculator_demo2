@@ -116,7 +116,7 @@ if not st.session_state.logged_in:
                 cookies["email"] = email
                 cookies.save()
 
-                st.success("Registration successful! Auto login...")
+                st.success("Welcome! 🚀")
                 st.rerun()
             else:
                 st.error("Failed to register. Email may already exist.")
