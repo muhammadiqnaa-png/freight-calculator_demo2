@@ -108,7 +108,7 @@ if not st.session_state.get("logged_in", False):
             else:
                 st.error("Failed to register. Email may already exist.")
     if not DEV_MODE:
-    st.stop()
+        st.stop()
 
 cargo_capacity = {
     "270 ft": {
