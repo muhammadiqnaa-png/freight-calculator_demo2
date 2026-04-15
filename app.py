@@ -841,7 +841,7 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
 
         st.write(f"**Total : {format_rp(other_total)}**")
 
-        st.divider()
+        st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
         # ===== ADDITIONAL =====
         if additional_breakdown:
@@ -850,7 +850,7 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
             df_add["Amount"] = df_add["Amount"].apply(lambda x: f"Rp {x:,.0f}")
             st.dataframe(df_add, use_container_width=True, hide_index=True)
 
-        st.divider()
+        st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
         # ===== PROFIT =====
         st.markdown("### 💰 Profit Analysis")
@@ -872,7 +872,7 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         else:
             st.error("🔴 Loss Voyage")
             
-        st.divider()
+        st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
         # ===== TCE =====
         st.markdown("### ⏱️ TCE")
@@ -881,7 +881,7 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         col1.metric("Per Day", f"Rp {tce_per_day:,.0f}")
         col2.metric("Per Month", f"Rp {tce_per_month:,.0f}")
 
-        st.divider()
+        st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
         # ===== PROFIT SCENARIO =====
         data = []
