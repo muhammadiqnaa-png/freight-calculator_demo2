@@ -95,6 +95,9 @@ if not st.session_state.logged_in:
             if ok:
                 st.session_state.logged_in = True
                 st.session_state.email = email
+                cookies["logged_in"] = "true"
+                cookies["email"] = email
+                cookies.save()
                 st.success("Login successful!")
                 st.rerun()
             else:
