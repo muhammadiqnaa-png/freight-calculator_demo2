@@ -850,6 +850,8 @@ if calc_btn:
         st.subheader("💹 Profit Scenario 0–75%")
         st.dataframe(df_profit, use_container_width=True)
 
+        st.session_state.calc_done = True
+
         # ===== PDF GENERATOR =====
         def create_pdf(username):
             buffer = BytesIO()
