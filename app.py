@@ -183,6 +183,7 @@ if "distance_data" not in st.session_state:
         {"pol": "Hasnur Pendang, Kalteng", "pod": "Indramayu", "distance": 635},
         {"pol": "Hasnur Pendang, Kalteng", "pod": "Marunda", "distance": 705},
         {"pol": "Hasnur Pendang, Kalteng", "pod": "Merak", "distance": 755},
+        {"pol": "SEM, Telang Baru", "pod": "Marunda", "distance": 630},
         {"pol": "Talenta, Sungai Putting", "pod": "Taboneo", "distance": 60},
         {"pol": "Talenta, Sungai Putting", "pod": "Gresik", "distance": 295},
         {"pol": "Talenta, Sungai Putting", "pod": "BAI, Bintan", "distance": 725},
