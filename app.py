@@ -795,7 +795,6 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         c1, c2, c3 = st.columns(3)
         
         with c1:
-            st.container(border=True)
             st.markdown("#### ⛽ Variable Cost")
             
             st.write(f"Fuel Consumption : {format_rp(total_consumption_fuel)}")
@@ -809,7 +808,6 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
 
         # ===== COST BREAKDOWN =====
         with c2:
-            st.container(border=True)
             st.markdown("#### 🏗️ Cost Breakdown")
             
             core_total = 0
@@ -821,7 +819,6 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
 
         # ===== OTHER =====
         with c3:
-            st.container(border=True)
             st.markdown("#### 🏢 Other & Overhead")
              
             st.write(f"Other Cost : {format_rp(other_cost)}")
