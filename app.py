@@ -150,8 +150,6 @@ cargo_capacity = {
         "Split (M3)": 6500
     }
 }
-    
-from data_routes import distance_data
 
 # ===== MASTER ROUTE =====
 if "distance_data" not in st.session_state:
