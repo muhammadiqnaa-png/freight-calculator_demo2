@@ -756,117 +756,113 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
 
         tce_per_month = tce_per_day * 30
 
-       # =========================
-# 📊 1. SUMMARY
-# =========================
-st.markdown("### 📊 Summary")
+        # =========================
+        # 📊 1. SUMMARY
+        # =========================
 
-col1, col2, col3 = st.columns(3)
+        st.markdown("### 📊 Summary")
+        col1, col2, col3 = st.columns(3)
+        col1.metric("🚢 Total Voyage (Days)", f"{total_voyage_days:.2f}")
+        col2.metric("💰 Total Cost", f"Rp {total_cost:,.0f}")
+        col3.metric("📦 Freight Cost", f"Rp {freight_cost_mt:,.0f} / {type_cargo.split()[1]}")
 
-col1.metric("🚢 Total Voyage (Days)", f"{total_voyage_days:.2f}")
-col2.metric("💰 Total Cost", f"Rp {total_cost:,.0f}")
-col3.metric("📦 Freight Cost", f"Rp {freight_cost_mt:,.0f} / {type_cargo.split()[1]}")
+        break_even = total_cost / qyt_cargo if qyt_cargo > 0 else 0
+        st.metric("🎯 Break Even Freight", f"Rp {break_even:,.0f}")
 
-break_even = total_cost / qyt_cargo if qyt_cargo > 0 else 0
-st.metric("🎯 Break Even Freight", f"Rp {break_even:,.0f}")
+        st.divider()
 
-st.divider()
+        # =========================
+        # ⛽ 2. CONSUMPTION VOYAGE
+        # =========================
+        st.markdown("### ⛽ Consumption Voyage")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Fuel Consumption", f"{total_consumption_fuel:,.0f} Ltr")
+            st.metric("Fuel Cost", f"Rp {cost_fuel:,.0f}")
+        with col2:
+            st.metric("Freshwater Consumption", f"{total_consumption_fw:,.0f} Ton")
+            st.metric("Freshwater Cost", f"Rp {cost_fw:,.0f}")
 
-# =========================
-# ⛽ 2. CONSUMPTION VOYAGE
-# =========================
-st.markdown("### ⛽ Consumption Voyage")
+        st.divider()
 
-col1, col2 = st.columns(2)
-
-with col1:
-    st.metric("Fuel Consumption", f"{total_consumption_fuel:,.0f} Ltr")
-    st.metric("Fuel Cost", f"Rp {cost_fuel:,.0f}")
-
-with col2:
-    st.metric("Freshwater Consumption", f"{total_consumption_fw:,.0f} Ton")
-    st.metric("Freshwater Cost", f"Rp {cost_fw:,.0f}")
-
-st.divider()
-
-# =========================
-# 🏗️ 3. COST BREAKDOWN
-# =========================
-st.markdown("### 🏗️ Cost Breakdown")
-
-if mode == "Owner":
-    cost_data = {
-        "Angsuran": charter_cost,
-        "Crew": crew_cost,
-        "Insurance": insurance_cost,
-        "Docking": docking_cost,
-        "Maintenance": maintenance_cost,
-        "Certificate": certificate_cost,
-        "Premi": premi_cost,
-        "Port Cost": port_cost,
-        "General Overhead": total_general_overhead,
-        "Other Cost": other_cost
-    }
-else:
-    cost_data = {
-        "Charter Hire": charter_cost,
-        "Premi": premi_cost,
-        "Port Cost": port_cost,
-        "General Overhead": total_general_overhead,
-        "Other Cost": other_cost
-    }
-
-# tambah fuel & FW
-cost_data["Fuel"] = cost_fuel
-cost_data["Freshwater"] = cost_fw
-
-# dataframe
-df_cost = pd.DataFrame(list(cost_data.items()), columns=["Item", "Amount"])
-df_cost["Amount"] = df_cost["Amount"].apply(lambda x: f"Rp {x:,.0f}")
-
-st.dataframe(df_cost, use_container_width=True, hide_index=True)
-
-total_cost_display = sum(cost_data.values())
-st.metric("TOTAL COST", f"Rp {total_cost_display:,.0f}")
-
-st.divider()
-
-# =========================
-# 💰 4. FREIGHT ANALYSIS (OPTIONAL)
-# =========================
-if freight_price_input > 0:
-    st.markdown("### 💰 Freight Analysis")
-
-    col1, col2, col3 = st.columns(3)
-
-    col1.metric("Revenue", f"Rp {revenue_user:,.0f}")
-    col2.metric("Profit", f"Rp {profit_user:,.0f}")
-    col3.metric("Profit %", f"{profit_percent_user:.2f}%")
-
-    if profit_user > 0:
-        st.success("🟢 Profitable Voyage")
-    else:
-        st.error("🔴 Loss Voyage")
-
-    st.divider()
-
-# =========================
-# ⏱️ 5. TCE
-# =========================
-st.markdown("### ⏱️ TCE")
-
-col1, col2 = st.columns(2)
-col1.metric("TCE / Day", f"Rp {tce_per_day:,.0f}")
-col2.metric("TCE / Month", f"Rp {tce_per_month:,.0f}")
-
-st.divider()
-
-# =========================
-# 💹 6. PROFIT SCENARIO
-# =========================
-st.markdown("### 💹 Profit Scenario (0–75%)")
-
-st.dataframe(df_profit, use_container_width=True, height=250)
+        # =========================
+        # 🏗️ 3. COST BREAKDOWN
+        # =========================
+        st.markdown("### 🏗️ Cost Breakdown")
+        
+        if mode == "Owner":
+            cost_data = {
+                "Angsuran": charter_cost,
+                "Crew": crew_cost,
+                "Insurance": insurance_cost,
+                "Docking": docking_cost,
+                "Maintenance": maintenance_cost,
+                "Certificate": certificate_cost,
+                "Premi": premi_cost,
+                "Port Cost": port_cost,
+                "General Overhead": total_general_overhead,
+                "Other Cost": other_cost
+            }
+        else:
+            cost_data = {
+                "Charter Hire": charter_cost,
+                "Premi": premi_cost,
+                "Port Cost": port_cost,
+                "General Overhead": total_general_overhead,
+                "Other Cost": other_cost
+            }
+        
+        # tambah fuel & FW
+        cost_data["Fuel"] = cost_fuel
+        cost_data["Freshwater"] = cost_fw
+        
+        # dataframe
+        df_cost = pd.DataFrame(list(cost_data.items()), columns=["Item", "Amount"])
+        df_cost["Amount"] = df_cost["Amount"].apply(lambda x: f"Rp {x:,.0f}")
+        
+        st.dataframe(df_cost, use_container_width=True, hide_index=True)
+        
+        total_cost_display = sum(cost_data.values())
+        st.metric("TOTAL COST", f"Rp {total_cost_display:,.0f}")
+        
+        st.divider()
+        
+        # =========================
+        # 💰 4. FREIGHT ANALYSIS (OPTIONAL)
+        # =========================
+        if freight_price_input > 0:
+            st.markdown("### 💰 Freight Analysis")
+        
+            col1, col2, col3 = st.columns(3)
+        
+            col1.metric("Revenue", f"Rp {revenue_user:,.0f}")
+            col2.metric("Profit", f"Rp {profit_user:,.0f}")
+            col3.metric("Profit %", f"{profit_percent_user:.2f}%")
+        
+            if profit_user > 0:
+                st.success("🟢 Profitable Voyage")
+            else:
+                st.error("🔴 Loss Voyage")
+        
+            st.divider()
+        
+        # =========================
+        # ⏱️ 5. TCE
+        # =========================
+        st.markdown("### ⏱️ TCE")
+        
+        col1, col2 = st.columns(2)
+        col1.metric("TCE / Day", f"Rp {tce_per_day:,.0f}")
+        col2.metric("TCE / Month", f"Rp {tce_per_month:,.0f}")
+        
+        st.divider()
+        
+        # =========================
+        # 💹 6. PROFIT SCENARIO
+        # =========================
+        st.markdown("### 💹 Profit Scenario (0–75%)")
+        
+        st.dataframe(df_profit, use_container_width=True, height=250)
 
         # ===== PROFIT SCENARIO =====
         data = []
