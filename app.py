@@ -767,13 +767,17 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
 
         st.divider()
 
-        # ===== OPERATIONAL =====
-        st.markdown("### ⚙️ Operational")
+        st.markdown("### ⛽ Consumption Voyage")
 
-        col1, col2, col3 = st.columns(3)
-        col1.metric("⏱️ Sailing Time", f"{sailing_time:.1f} Hrs")
-        col2.metric("⛽ Fuel", f"{total_consumption_fuel:,.0f} Ltr")
-        col3.metric("💧 Freshwater", f"{total_consumption_fw:,.0f} Ton")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.metric("Fuel Consumption", f"{total_consumption_fuel:,.0f} Ltr")
+            st.metric("Fuel Cost", f"Rp {cost_fuel:,.0f}")
+
+        with col2:
+            st.metric("Freshwater Consumption", f"{total_consumption_fw:,.0f} Ton")
+            st.metric("Freshwater Cost", f"Rp {cost_fw:,.0f}")
 
         st.divider()
 
