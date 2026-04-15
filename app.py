@@ -1043,9 +1043,9 @@ if calc_btn:
         st.session_state.last_file_name = file_name
 
         if st.session_state.get("calc_ready"):
-        st.success("✅ Calculation finished. Download report ready!")
+            st.success("✅ Calculation finished. Download report ready!")
 
-        st.download_button(
+            st.download_button(
             label="📥 Download PDF Report",
             data=st.session_state.last_pdf,
             file_name=st.session_state.last_file_name,
