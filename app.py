@@ -245,6 +245,8 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
 
         import json
 
+        notif = st.empty()
+
         save_btn = st.button("💾 Save Distance")
 
         if save_btn:
@@ -271,12 +273,21 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
 
                     st.session_state.distance_data = data
 
-                    st.toast("✅ Distance berhasil disimpan!")
+                    # 🔥 UI NOTIF BESAR & JELAS
+                    notif.success("✅ Distance berhasil disimpan!")
+
+                    # kasih delay biar kebaca user
+                    import time
+                    time.sleep(0.8)
+
                     st.rerun()
 
                 else:
-                    st.warning("⚠️ Data sudah ada!")
-            
+                    notif.warning("⚠️ Data sudah ada!")
+            else:
+                notif.error("❌ POL & POD wajib diisi!")
+
+
 if st.session_state.get("apply_preset", False):
     if st.session_state.preset_selected in preset_params:
         selected = preset_params[st.session_state.preset_selected]
