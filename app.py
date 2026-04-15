@@ -768,17 +768,27 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         st.divider()
 
         st.markdown("### ⛽ Consumption Voyage")
-
         col1, col2 = st.columns(2)
-
+        
         with col1:
             st.metric("Fuel Consumption", f"{total_consumption_fuel:,.0f} Ltr")
             st.metric("Fuel Cost", f"Rp {cost_fuel:,.0f}")
-
         with col2:
             st.metric("Freshwater Consumption", f"{total_consumption_fw:,.0f} Ton")
             st.metric("Freshwater Cost", f"Rp {cost_fw:,.0f}")
+            
+        st.divider()
 
+        st.markdown("### ⛽ Variable Cost")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.metric("Premi", f"{premi_cost:,.0f}")
+            st.metric("Port Cost", f"Rp {port_cost:,.0f}")
+        with col2:
+            st.metric("Other Cost", f"{other_cost:,.0f}")
+            st.metric("General Overhead", f"Rp {total_general_overhead:,.0f}")
+            
         st.divider()
 
         # ===== DEFINE OWNER / CHARTER DATA =====
@@ -790,9 +800,6 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
                 "Docking": docking_cost,
                 "Maintenance": maintenance_cost,
                 "Certificate": certificate_cost,
-                "Premi": premi_cost,
-                "Port Cost": port_cost,
-                "Other Cost": other_cost
             }
         else:
             owner_data = {
