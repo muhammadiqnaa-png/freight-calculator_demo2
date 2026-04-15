@@ -785,15 +785,34 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
             
         st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
+        col1, col2, col3 = st.columns(3)
+
         # ===== OPERATIONAL =====
-        st.markdown("#### ⛽ Operational")
+        with col1:
+            st.markdown("#### ⛽ Operational")
+            st.write(f"Port Cost : {format_rp(port_cost)}")
+            st.write(f"Premi : {format_rp(premi_cost)}")
+            st.write(f"**Total : {format_rp(port_cost + premi_cost)}**")
 
-        st.write(f"Port Cost : {format_rp(port_cost)}")
-        st.write(f"Premi : {format_rp(premi_cost)}")
+        # ===== COST BREAKDOWN =====
+        with col2:
+            st.markdown("#### 🏗️ Cost Breakdown")
+    
+            core_total = 0
+            for k, v in owner_data.items():
+                st.write(f"{k} : {format_rp(v)}")
+                core_total += v
 
-        operational_total = port_cost + premi_cost
+            st.write(f"**Total : {format_rp(core_total)}**")
 
-        st.write(f"**Total : {format_rp(operational_total)}**")
+        # ===== OTHER =====
+        with col3:
+            st.markdown("#### 🏢 Other & Overhead")
+            st.write(f"Other Cost : {format_rp(other_cost)}")
+            st.write(f"General Overhead : {format_rp(total_general_overhead)}")
+            st.write(f"**Total : {format_rp(other_cost + total_general_overhead)}**")
+
+        
 
         # ===== DEFINE OWNER / CHARTER DATA =====
         if mode == "Owner":
@@ -813,30 +832,6 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
                 "Other Cost": other_cost
             }
 
-        # ===== Owner Cost / Chater Cost =====
-        st.markdown("#### 🏗️ Cost Breakdown")
-
-        core_total = 0
-
-        for k, v in owner_data.items():
-            st.write(f"{k} : {format_rp(v)}")
-            core_total += v
-
-        st.write(f"**Total : {format_rp(core_total)}**")
-
-        st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
-
-        # ===== OTHER COST =====
-        st.markdown("#### 🏢 Other & Overhead")
-
-        st.write(f"Other Cost : {format_rp(other_cost)}")
-        st.write(f"General Overhead : {format_rp(total_general_overhead)}")
-
-        other_total = other_cost + total_general_overhead
-
-        st.write(f"**Total : {format_rp(other_total)}**")
-
-        st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
         # ===== ADDITIONAL =====
         if additional_breakdown:
