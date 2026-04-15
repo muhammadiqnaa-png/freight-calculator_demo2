@@ -246,7 +246,7 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
 
         import json
 
-        if st.button("💾 Save Distance"):
+        if st.button("💾 Save Distance", key="save_distance_btn"):
 
             if pol_input and pod_input:
 
@@ -261,19 +261,18 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
                         data = json.load(f)
                 except:
                     data = []
-        
-                # anti duplikat (bonus penting)
+
                 if new_data not in data:
                     data.append(new_data)
 
                     with open("distance.json", "w") as f:
                         json.dump(data, f, indent=2)
 
+                    # 🔥 IMPORTANT: force reload session data
                     st.session_state.distance_data = data
 
-                    # 🔥 langsung tampil tanpa delay
-                    st.toast("✅ Distance saved successfully!")
-                    st.success("Distance berhasil disimpan!")
+                    st.session_state.save_success = True
+                    st.rerun()
                 else:
                     st.warning("⚠️ Data sudah ada!")
             
