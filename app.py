@@ -240,10 +240,6 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
 
         distance_input = st.number_input("Distance (NM)", 0.0, key="md_distance")
 
-        if st.session_state.get("save_success"):
-            st.toast("✅ Distance berhasil disimpan!")
-            st.session_state.save_success = False
-
         import json
 
         save_btn = st.button("💾 Save Distance")
@@ -276,7 +272,9 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
 
                     # 🔥 FORCE REFRESH STATE VISUAL (INI KUNCI FIX 1x click)
                     st.session_state["save_success"] = True
-                    st.session_state["force_rerun"] = True
+                    st.toast("✅ Distance berhasil disimpan!")
+                    st.session_state.save_success = False
+                    st.rerun()
 
                 else:
                     st.warning("⚠️ Data sudah ada!")
@@ -644,8 +642,12 @@ def format_rp(x):
 if "calc_ready" not in st.session_state:
     st.session_state.calc_ready = False
 calc_btn = st.button("🚀 Calculate Freight", use_container_width=True)
+# RESET STATE supaya tidak nyangkut download lama
+st.session_state.calc_ready = False
+st.session_state.last_pdf = None
+st.session_state.last_file_name = None
 
-if calc_btn:
+if calc_btn and distance_pol_pod > 0:
     try:
         # Waktu sailing (hour) based on speed inputs (hours)
         sailing_time = (
