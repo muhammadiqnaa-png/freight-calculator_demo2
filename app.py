@@ -71,9 +71,13 @@ def register_user(email, password):
 # ===== LOGIN =====
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+params = st.query_params
+if params.get("login") == "true":
+    st.session_state.logged_in = True
+    st.session_state.email = params.get("email", "User")
 
 # 🚀 SKIP LOGIN KALAU DEV MODE
-if not st.session_state.get("logged_in", False) :
+if not st.session_state.get("logged_in", False):
     st.markdown("<h2 style='text-align:center;'>🔐 Login Freight Calculator</h2>", unsafe_allow_html=True)
     tab_login, tab_register = st.tabs(["Login", "Register"])
 
@@ -85,6 +89,8 @@ if not st.session_state.get("logged_in", False) :
             if ok:
                 st.session_state.logged_in = True
                 st.session_state.email = email
+                st.query_params["login"] = "true"
+                st.query_params["email"] = email
                 st.success("Login successful!")
                 st.rerun()
             else:
@@ -515,9 +521,10 @@ with st.sidebar.expander("👤 Account", expanded=True):
     st.write(f"📧 {st.session_state.email}")
 
     if st.button("Log Out"):
-        st.session_state.logged_in = False
-        st.success("Successfully logged out.")
-        st.rerun()
+    st.session_state.logged_in = False
+    st.query_params.clear()
+    st.success("Successfully logged out.")
+    st.rerun()
 
 # ===== MAIN INPUT =====
 st.markdown("""
