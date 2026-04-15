@@ -260,20 +260,15 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
                 except:
                     data = []
 
-                # anti duplikat
                 if new_data not in data:
                     data.append(new_data)
 
                     with open("distance.json", "w") as f:
                         json.dump(data, f, indent=2)
 
-                    # 🔥 IMPORTANT: update session state langsung
                     st.session_state.distance_data = data
 
-                    # 🔥 FORCE REFRESH STATE VISUAL (INI KUNCI FIX 1x click)
-                    st.session_state["save_success"] = True
                     st.toast("✅ Distance berhasil disimpan!")
-                    st.session_state.save_success = False
                     st.rerun()
 
                 else:
