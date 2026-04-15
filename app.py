@@ -634,7 +634,9 @@ def format_rp(x):
     return f"Rp {x:,.0f}"
 
 # ===== PERHITUNGAN =====
-if st.button("🚀 Calculate Freight", use_container_width=True):
+calc_btn = st.button("🚀 Calculate Freight", use_container_width=True)
+
+if calc_btn:
     try:
         # Waktu sailing (hour) based on speed inputs (hours)
         sailing_time = (
