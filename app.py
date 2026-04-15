@@ -785,6 +785,24 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
             
         st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
+        # ===== DEFINE OWNER / CHARTER DATA =====
+        if mode == "Owner":
+            owner_data = {
+                "Angsuran": charter_cost,
+                "Crew": crew_cost,
+                "Insurance": insurance_cost,
+                "Docking": docking_cost,
+                "Maintenance": maintenance_cost,
+                "Certificate": certificate_cost,
+            }
+        else:
+            owner_data = {
+                "Charter Hire": charter_cost,
+                "Premi": premi_cost,
+                "Port Cost": port_cost,
+                "Other Cost": other_cost
+            }
+
         col1, col2, col3 = st.columns(3)
 
         # ===== OPERATIONAL =====
@@ -811,26 +829,6 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
             st.write(f"Other Cost : {format_rp(other_cost)}")
             st.write(f"General Overhead : {format_rp(total_general_overhead)}")
             st.write(f"**Total : {format_rp(other_cost + total_general_overhead)}**")
-
-        
-
-        # ===== DEFINE OWNER / CHARTER DATA =====
-        if mode == "Owner":
-            owner_data = {
-                "Angsuran": charter_cost,
-                "Crew": crew_cost,
-                "Insurance": insurance_cost,
-                "Docking": docking_cost,
-                "Maintenance": maintenance_cost,
-                "Certificate": certificate_cost,
-            }
-        else:
-            owner_data = {
-                "Charter Hire": charter_cost,
-                "Premi": premi_cost,
-                "Port Cost": port_cost,
-                "Other Cost": other_cost
-            }
 
 
         # ===== ADDITIONAL =====
