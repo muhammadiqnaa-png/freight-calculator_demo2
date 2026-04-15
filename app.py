@@ -806,10 +806,11 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
                 "Other Cost": other_cost
             }
 
-        col1, col2, col3 = st.columns(3)
+        c1, c2, c3 = st.columns(3)
 
         # ===== OPERATIONAL =====
         with col1:
+            st.container(border=True)
             st.markdown("#### ⛽ Operational")
             st.write(f"Port Cost : {format_rp(port_cost)}")
             st.write(f"Premi : {format_rp(premi_cost)}")
@@ -817,6 +818,7 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
 
         # ===== COST BREAKDOWN =====
         with col2:
+            st.container(border=True)
             st.markdown("#### 🏗️ Cost Breakdown")
     
             core_total = 0
@@ -828,6 +830,7 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
 
         # ===== OTHER =====
         with col3:
+            st.container(border=True)
             st.markdown("#### 🏢 Other & Overhead")
             st.write(f"Other Cost : {format_rp(other_cost)}")
             st.write(f"General Overhead : {format_rp(total_general_overhead)}")
