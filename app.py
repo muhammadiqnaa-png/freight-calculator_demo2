@@ -773,21 +773,6 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
 
         st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
-        with st.container(border=True):
-            st.markdown("### ⛽ Consumption Voyage")
-
-            c1, c2 = st.columns(2)
-
-            with c1:
-                st.metric("Fuel Consumption", f"{total_consumption_fuel:,.0f} Ltr")
-                st.metric("Fuel Cost", f"Rp {cost_fuel:,.0f}")
-
-            with c2:
-                st.metric("Freshwater Consumption", f"{total_consumption_fw:,.0f} Ton")
-                st.metric("Freshwater Cost", f"Rp {cost_fw:,.0f}")
-            
-        st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
-
         # ===== DEFINE OWNER / CHARTER DATA =====
         if mode == "Owner":
             owner_data = {
@@ -806,10 +791,21 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
                 "Other Cost": other_cost
             }
 
-        c1, c2, c3 = st.columns(3)
+        c1, c2, c3, c4 = st.columns(4)
 
         # ===== OPERATIONAL =====
         with col1:
+            st.container(border=True)
+            st.markdown("#### ⛽ Consumption Voyage")
+            st.write(f"Fuel Consumption : {format_rp(total_consumption_fuel)}")
+            st.write(f"Fuel Cost : {format_rp(cost_fuel)}")
+            st.write(f"Freshwater Consumption : {format_rp(total_consumption_fw)}")
+            st.write(f"Freshwater Cost : {format_rp(cost_fw)}")
+            st.write(f"**Total Cost : {format_rp(cost_fuel + cost_fw)}**")
+
+
+        # ===== OPERATIONAL =====
+        with c2:
             st.container(border=True)
             st.markdown("#### ⛽ Operational")
             st.write(f"Port Cost : {format_rp(port_cost)}")
@@ -817,7 +813,7 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
             st.write(f"**Total : {format_rp(port_cost + premi_cost)}**")
 
         # ===== COST BREAKDOWN =====
-        with col2:
+        with c3:
             st.container(border=True)
             st.markdown("#### 🏗️ Cost Breakdown")
     
@@ -829,7 +825,7 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
             st.write(f"**Total : {format_rp(core_total)}**")
 
         # ===== OTHER =====
-        with col3:
+        with col4:
             st.container(border=True)
             st.markdown("#### 🏢 Other & Overhead")
             st.write(f"Other Cost : {format_rp(other_cost)}")
