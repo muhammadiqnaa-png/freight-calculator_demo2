@@ -230,6 +230,9 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
 
     with st.expander("➕ Add Distance", expanded=False):
 
+        if st.session_state.get("save_success"):
+            st.success("✅ Distance berhasil disimpan!")
+
         col1, col2 = st.columns(2)
 
         with col1:
@@ -270,9 +273,6 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
 
                     st.toast("✅ Distance berhasil disimpan!")
                     st.rerun()
-
-        if st.session_state.get("save_success"):
-            st.success("✅ Distance berhasil disimpan!")
 
                 else:
                     st.warning("⚠️ Data sudah ada!")
