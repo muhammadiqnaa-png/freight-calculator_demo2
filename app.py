@@ -846,13 +846,19 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         # ===== PROFIT =====
         if freight_price_input > 0:
 
+            with st.container(border=True):
             st.markdown("### 💰 Profit Analysis")
-    
-            col1, col2, col3 = st.columns(3)
 
-            col1.metric("Revenue", f"Rp {revenue_user:,.0f}")
-            col2.metric("Profit", f"Rp {profit_user:,.0f}")
-            col3.metric("Profit %", f"{profit_percent_user:.2f}%")
+            c1, c2, c3 = st.columns(3)
+
+            with c1:
+                st.metric("Revenue", f"Rp {revenue_user:,.0f}")
+
+            with c2:
+                st.metric("Profit", f"Rp {profit_user:,.0f}")
+
+            with c3:
+                st.metric("Profit %", f"{profit_percent_user:.2f}%")
 
             if profit_user > 0:
                 st.success("🟢 Profitable Voyage")
