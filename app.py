@@ -791,10 +791,11 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
                 "Other Cost": other_cost
             }
 
-        c1, c2 = st.columns(2)
 
-        # ===== OPERATIONAL =====
-        with col1:
+        # ===== Operasional Cost =====
+        c1, c2 = st.columns(2)
+        
+        with c1:
             st.markdown("#### ⛽ Variable Cost")
             st.container(border=True)
             
@@ -806,7 +807,6 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
             st.write(f"Premi : {format_rp(premi_cost)}")
             
             st.write(f"**Total Cost : {format_rp(cost_fuel + cost_fw + port_cost + premi_cost)}**")
-
 
         # ===== COST BREAKDOWN =====
         with c2:
