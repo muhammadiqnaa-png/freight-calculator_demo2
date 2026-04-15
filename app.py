@@ -11,6 +11,15 @@ from datetime import datetime
 import requests
 import streamlit as st
 
+# ===== DEV MODE (BIAR TIDAK LOGIN ULANG SAAT NGODING) =====
+DEV_MODE = True
+
+if DEV_MODE:
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = True
+    if "email" not in st.session_state:
+        st.session_state.email = "dev@local"
+
 # ==========================================================
 # ⚙️ Page Config (WAJIB paling atas!)
 # ==========================================================
@@ -72,7 +81,7 @@ def register_user(email, password):
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-if not st.session_state.logged_in:
+if not st.session_state.get("logged_in", False):
     st.markdown("<h2 style='text-align:center;'>🔐 Login Freight Calculator</h2>", unsafe_allow_html=True)
     tab_login, tab_register = st.tabs(["Login", "Register"])
 
@@ -98,6 +107,7 @@ if not st.session_state.logged_in:
                 st.success("Registration successful! Please login.")
             else:
                 st.error("Failed to register. Email may already exist.")
+    if not DEV_MODE:
     st.stop()
 
 cargo_capacity = {
