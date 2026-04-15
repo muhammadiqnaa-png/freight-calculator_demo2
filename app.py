@@ -289,6 +289,7 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
                     "distance": distance_input
                 })
                 st.success("Distance saved!")
+                st.rerun()
 
 if st.session_state.get("apply_preset", False):
     if st.session_state.preset_selected in preset_params:
