@@ -773,15 +773,18 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
 
         st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
-        st.markdown("### ⛽ Consumption Voyage")
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.metric("Fuel Consumption", f"{total_consumption_fuel:,.0f} Ltr")
-            st.metric("Fuel Cost", f"Rp {cost_fuel:,.0f}")
-        with col2:
-            st.metric("Freshwater Consumption", f"{total_consumption_fw:,.0f} Ton")
-            st.metric("Freshwater Cost", f"Rp {cost_fw:,.0f}")
+        with st.container(border=True):
+            st.markdown("### ⛽ Consumption Voyage")
+
+            c1, c2 = st.columns(2)
+
+            with c1:
+                st.metric("Fuel Consumption", f"{total_consumption_fuel:,.0f} Ltr")
+                st.metric("Fuel Cost", f"Rp {cost_fuel:,.0f}")
+
+            with c2:
+                st.metric("Freshwater Consumption", f"{total_consumption_fw:,.0f} Ton")
+                st.metric("Freshwater Cost", f"Rp {cost_fw:,.0f}")
             
         st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
