@@ -1023,10 +1023,13 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         file_name = f"Freight Report {port_pol} - {port_pod} {datetime.now():%Y%m%d}.pdf"
         pdf_bytes = pdf_buffer.getvalue()
 
-        st.session_state.history_calculate.append({
-            "name": file_name,
-            "data": pdf_bytes
-        })
+        # prevent duplicate insert on rerun
+        if "last_calc" not in st.session_state or st.session_state.last_calc != file_name:
+            st.session_state.history_calculate.append({
+                "name": file_name,
+                "data": pdf_bytes
+            })
+            st.session_state.last_calc = file_name
 
         st.download_button(
             label="📥 Download PDF Report",
