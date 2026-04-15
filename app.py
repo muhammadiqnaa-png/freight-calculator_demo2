@@ -71,13 +71,8 @@ def register_user(email, password):
 # ===== LOGIN =====
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
-params = st.query_params
-if params.get("login") == "true":
-    st.session_state.logged_in = True
-    st.session_state.email = params.get("email", "User")
 
-# 🚀 SKIP LOGIN KALAU DEV MODE
-if not st.session_state.get("logged_in", False):
+if not st.session_state.logged_in:
     st.markdown("<h2 style='text-align:center;'>🔐 Login Freight Calculator</h2>", unsafe_allow_html=True)
     tab_login, tab_register = st.tabs(["Login", "Register"])
 
@@ -89,8 +84,6 @@ if not st.session_state.get("logged_in", False):
             if ok:
                 st.session_state.logged_in = True
                 st.session_state.email = email
-                st.query_params["login"] = "true"
-                st.query_params["email"] = email
                 st.success("Login successful!")
                 st.rerun()
             else:
@@ -105,6 +98,7 @@ if not st.session_state.get("logged_in", False):
                 st.success("Registration successful! Please login.")
             else:
                 st.error("Failed to register. Email may already exist.")
+    st.stop()
 
 cargo_capacity = {
     "270 ft": {
@@ -155,6 +149,7 @@ if "distance_data" not in st.session_state:
         {"pol": "PUS, Jambi", "pod": "Rembang", "distance": 650},
         {"pol": "PUS, Jambi", "pod": "Awar Awar", "distance": 685},
         {"pol": "EWF, Jambi", "pod": "Ketapang", "distance": 425},
+        {"pol": "EWF, Jambi", "pod": "Ketapang", "distance": 425},
         {"pol": "EWF, Jambi", "pod": "Lontar", "distance": 445},
         {"pol": "EWF, Jambi", "pod": "Indramayu", "distance": 485},
         {"pol": "EWF, Jambi", "pod": "Pangkalan Susu", "distance": 565},
@@ -183,13 +178,12 @@ if "distance_data" not in st.session_state:
         {"pol": "Tarahan, Lampung", "pod": "Awar Awar", "distance": 430},
         {"pol": "Tarahan, Lampung", "pod": "Pacitan", "distance": 480},
         {"pol": "Lampung, Muara Teladas", "pod": "Marunda", "distance": 125},
-        {"pol": "Hasnur Pendang, Kalteng", "pod": "Gresik", "distance": 435},
         {"pol": "Hasnur Pendang, Kalteng", "pod": "Celukan Bawang", "distance": 475},
-        {"pol": "Hasnur Pendang, Kalteng", "pod": "Cirebon", "distance": 600},
-        {"pol": "Hasnur Pendang, Kalteng", "pod": "Indramayu", "distance": 635},
         {"pol": "Hasnur Pendang, Kalteng", "pod": "Marunda", "distance": 705},
+        {"pol": "Hasnur Pendang, Kalteng", "pod": "Indramayu", "distance": 635},
         {"pol": "Hasnur Pendang, Kalteng", "pod": "Merak", "distance": 755},
-        {"pol": "SEM, Telang Baru", "pod": "Marunda", "distance": 630},
+        {"pol": "Hasnur Pendang, Kalteng", "pod": "Cirebon", "distance": 600},
+        {"pol": "Hasnur Pendang, Kalteng", "pod": "Gresik", "distance": 435},
         {"pol": "Talenta, Sungai Putting", "pod": "Taboneo", "distance": 60},
         {"pol": "Talenta, Sungai Putting", "pod": "Gresik", "distance": 295},
         {"pol": "Talenta, Sungai Putting", "pod": "BAI, Bintan", "distance": 725},
@@ -296,7 +290,6 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
                     "distance": distance_input
                 })
                 st.success("Distance saved!")
-                st.rerun()
 
 if st.session_state.get("apply_preset", False):
     if st.session_state.preset_selected in preset_params:
