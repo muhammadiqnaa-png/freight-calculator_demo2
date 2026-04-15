@@ -240,6 +240,8 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
 
         distance_input = st.number_input("Distance (NM)", 0.0, key="md_distance")
 
+        import json
+
         if st.button("💾 Save Distance"):
             if pol_input and pod_input:
 
@@ -249,13 +251,24 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
                     "distance": distance_input
                 }
 
-                st.session_state.distance_data.append(new_data)
+                # ambil data lama
+                try:
+                    with open("distance.json", "r") as f:
+                        data = json.load(f)
+                except:
+                    data = []
 
-                # 🔥 SAVE KE JSON
+                # tambah data baru
+                data.append(new_data)
+
+                # SIMPAN KE FILE (INI YANG PENTING)
                 with open("distance.json", "w") as f:
-                    json.dump(st.session_state.distance_data, f, indent=2)
+                    json.dump(data, f, indent=2)
 
-                st.success("✅ Data otomatis tersimpan ke JSON!")
+                # update session
+                st.session_state.distance_data = data
+
+                st.success("✅ Saved ke JSON berhasil!")
                 st.rerun()
 
 if st.session_state.get("apply_preset", False):
