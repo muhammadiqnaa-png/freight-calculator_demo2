@@ -521,10 +521,9 @@ with st.sidebar.expander("👤 Account", expanded=True):
     st.write(f"📧 {st.session_state.email}")
 
     if st.button("Log Out"):
-    st.session_state.logged_in = False
-    st.query_params.clear()
-    st.success("Successfully logged out.")
-    st.rerun()
+        st.session_state.logged_in = False
+        st.success("Successfully logged out.")
+        st.rerun()
 
 # ===== MAIN INPUT =====
 st.markdown("""
