@@ -771,7 +771,7 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         col2.metric("💰 Total Cost", f"Rp {total_cost:,.0f}")
         col3.metric("📦Freight Cost", f"Rp {freight_cost_mt:,.0f} / {type_cargo.split()[1]}")
 
-        st.divider()
+        st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
         st.markdown("### ⛽ Consumption Voyage")
         col1, col2 = st.columns(2)
@@ -783,7 +783,7 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
             st.metric("Freshwater Consumption", f"{total_consumption_fw:,.0f} Ton")
             st.metric("Freshwater Cost", f"Rp {cost_fw:,.0f}")
             
-        st.divider()
+        st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
         # ===== OPERATIONAL =====
         st.markdown("#### ⛽ Operational")
@@ -829,7 +829,7 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
 
         st.write(f"**Total : {format_rp(core_total)}**")
 
-        st.divider()
+        st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
         # ===== OTHER COST =====
         st.markdown("#### 🏢 Other & Overhead")
@@ -842,7 +842,6 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         st.write(f"**Total : {format_rp(other_total)}**")
 
         st.divider()
-
 
         # ===== ADDITIONAL =====
         if additional_breakdown:
