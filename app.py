@@ -529,6 +529,11 @@ with st.sidebar.expander("👤 Account", expanded=True):
 
     if st.button("Log Out"):
         st.session_state.logged_in = False
+
+        cookies["logged_in"] = ""
+        cookies["email"] = ""
+        cookies.save()
+
         st.success("Successfully logged out.")
         st.rerun()
 
