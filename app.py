@@ -867,16 +867,16 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
             
         st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
-        with st.container(border=True):
-            st.markdown("### ⏱️ TCE (Time Charter Equivalent)")
+            with st.container(border=True):
+                st.markdown("### ⏱️ TCE (Time Charter Equivalent)")
 
-            c1, c2 = st.columns(2)
+                c1, c2 = st.columns(2)
 
-            with c1:
-                st.metric("Per Day", f"Rp {tce_per_day:,.0f}")
+                with c1:
+                    st.metric("Per Day", f"Rp {tce_per_day:,.0f}")
 
-            with c2:
-                st.metric("Per Month", f"Rp {tce_per_month:,.0f}")
+                with c2:
+                    st.metric("Per Month", f"Rp {tce_per_month:,.0f}")
                 
          st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
