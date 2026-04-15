@@ -77,7 +77,11 @@ def register_user(email, password):
 
 # ===== LOGIN =====
 if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+    if cookies.get("logged_in") == "true":
+        st.session_state.logged_in = True
+        st.session_state.email = cookies.get("email")
+    else:
+        st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
     st.markdown("<h2 style='text-align:center;'>🔐 Login Freight Calculator</h2>", unsafe_allow_html=True)
