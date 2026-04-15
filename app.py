@@ -779,18 +779,6 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
             
         st.divider()
 
-        st.markdown("### ⛽ Variable Cost")
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.metric("Premi", f"{premi_cost:,.0f}")
-            st.metric("Port Cost", f"Rp {port_cost:,.0f}")
-        with col2:
-            st.metric("Other Cost", f"{other_cost:,.0f}")
-            st.metric("General Overhead", f"Rp {total_general_overhead:,.0f}")
-            
-        st.divider()
-
         # ===== DEFINE OWNER / CHARTER DATA =====
         if mode == "Owner":
             owner_data = {
@@ -842,10 +830,10 @@ if st.button("🚀 Calculate Freight", use_container_width=True):
         # ===== OPERATIONAL =====
         st.markdown("#### ⛽ Operational")
 
-        st.write(f"Fuel : {format_rp(cost_fuel)}")
-        st.write(f"Freshwater : {format_rp(cost_fw)}")
+        st.write(f"Port Cost : {format_rp(port_cost)}")
+        st.write(f"Premi : {format_rp(premi_cost)}")
 
-        operational_total = cost_fuel + cost_fw
+        operational_total = port_cost + premi_cost
 
         st.write(f"**Total : {format_rp(operational_total)}**")
 
