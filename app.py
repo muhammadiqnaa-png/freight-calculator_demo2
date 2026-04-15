@@ -223,6 +223,10 @@ def update_preset():
     st.session_state.preset_selected = st.session_state.preset_control
     st.session_state.apply_preset = True
 
+if st.session_state.get("save_success", False):
+    st.success("✅ Distance berhasil disimpan!")
+    st.session_state.save_success = False
+
 # =========================
 # 🚢 VOYAGE INPUT
 # =========================
@@ -251,25 +255,21 @@ with st.sidebar.expander("🚢 Voyage Input", expanded=False):
                     "distance": distance_input
                 }
 
-                # ambil data lama
                 try:
                     with open("distance.json", "r") as f:
                         data = json.load(f)
                 except:
                     data = []
 
-                # tambah data baru
                 data.append(new_data)
 
-                # SIMPAN KE FILE (INI YANG PENTING)
                 with open("distance.json", "w") as f:
                     json.dump(data, f, indent=2)
 
-                # update session
                 st.session_state.distance_data = data
 
-                st.success("✅ Saved ke JSON berhasil!")
-                st.rerun()
+                # 🔥 FIX UTAMA: pakai flag success
+                st.session_state.save_success = True
 
 if st.session_state.get("apply_preset", False):
     if st.session_state.preset_selected in preset_params:
