@@ -81,7 +81,8 @@ def register_user(email, password):
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-if not st.session_state.get("logged_in", False):
+# 🚀 SKIP LOGIN KALAU DEV MODE
+if not st.session_state.get("logged_in", False) and not DEV_MODE:
     st.markdown("<h2 style='text-align:center;'>🔐 Login Freight Calculator</h2>", unsafe_allow_html=True)
     tab_login, tab_register = st.tabs(["Login", "Register"])
 
