@@ -492,6 +492,7 @@ with st.sidebar.expander("📂 Master Data", expanded=False):
 
             if st.button("🗑️ Clear History"):
                 st.session_state.history_calculate = []
+                st.session_state.last_calc = None
                 st.rerun()
 
 with st.sidebar.expander("👤 Account", expanded=True):
