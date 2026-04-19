@@ -3,4 +3,5 @@ requests
 pandas
 reportlab
 matplotlib
+openpyxl
 streamlit-cookies-manager
