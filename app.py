@@ -1,5 +1,4 @@
 import streamlit as st
-import math
 import pandas as pd
 from io import BytesIO
 from reportlab.lib.pagesizes import A4
@@ -9,12 +8,80 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 from datetime import datetime
 import requests
-from streamlit_cookies_manager import EncryptedCookieManager
 import json
+import os
+from streamlit_cookies_manager import EncryptedCookieManager
 
-def load_distance():
-    with open("distance.json", "r") as f:
+cookies = EncryptedCookieManager(
+    prefix="freight_app",
+    password="abc123"
+)
+
+if not cookies.ready():
+    st.stop()
+
+# ===== INTRO STATE =====
+if "hide_intro" not in st.session_state:
+    st.session_state.hide_intro = False
+
+# ambil dari cookies (persist)
+if cookies.get("hide_intro") == "true":
+    st.session_state.hide_intro = True
+
+DATA_FILE = "distance_data.json"
+
+def find_distance(pol, pod):
+    data = load_distances()
+
+    pol = (pol or "").strip().upper()
+    pod = (pod or "").strip().upper()
+
+    for route, distance in data.items():
+        try:
+            p, d = route.split(" - ")
+
+            p = p.strip().upper()
+            d = d.strip().upper()
+
+            # ✅ normal match
+            if p == pol and d == pod:
+                return distance
+
+            # 🔥 reverse match (INI KUNCI FIX LU)
+            if p == pod and d == pol:
+                return distance
+
+        except:
+            continue
+
+    return 0
+
+def load_distances():
+    if not os.path.exists(DATA_FILE):
+        return {}
+
+    with open(DATA_FILE, "r") as f:
         return json.load(f)
+
+
+def save_distances(data):
+    with open(DATA_FILE, "w") as f:
+        json.dump(data, f, indent=2)
+
+def get_all_ports():
+    data = load_distances()
+    ports = set()
+
+    for route in data.keys():
+        try:
+            pol, pod = route.split(" - ")
+            ports.add(pol.upper())
+            ports.add(pod.upper())
+        except:
+            continue
+
+    return sorted(list(ports))
+
 
 # ==========================================================
 # ⚙️ Page Config (WAJIB paling atas!)
@@ -24,24 +91,201 @@ st.set_page_config(
     page_icon="https://raw.githubusercontent.com/muhammadiqnaa-png/freight-calculator/main/icon-512x512.png",
     layout="wide"
 )
-cookies = EncryptedCookieManager(
-    prefix="freight_app",
-    password="super_secret_key"
-)
 
-if not cookies.ready():
-    st.stop()
 st.markdown("""
 <style>
-.card {
-    background: linear-gradient(145deg, #1f2937, #111827);
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0px 6px 15px rgba(0,0,0,0.4);
-    text-align:center;
+
+/* Base font */
+html, body, [class*="css"]  {
+    font-size: 13px !important;
 }
+
+/* Label */
+label {
+    font-size: 12px !important;
+}
+
+/* Input text & number */
+input, select {
+    font-size: 13px !important;
+}
+
+/* Button */
+button {
+    font-size: 13px !important;
+    padding: 6px 10px !important;
+}
+
+/* Metric / big text */
+h1, h2, h3 {
+    font-size: 16px !important;
+}
+
+/* Caption kecil */
+.small-text {
+    font-size: 11px !important;
+    color: #666;
+}
+
 </style>
 """, unsafe_allow_html=True)
+
+st.markdown("""
+<style>
+
+/* 🔥 BUTTON CALCULATE UTAMA */
+div.stButton > button {
+    background: linear-gradient(135deg, #6495ED, #FFFFFF, #6495ED);
+    color: Black;
+    font-weight: bold;
+    border-radius: 12px;
+    height: 48px;
+    font-size: 14px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+}
+
+/* 🔥 EFFECT HOVER */
+div.stButton > button:hover {
+    background: linear-gradient(135deg, #6495ED, #FFFFFF, #6495ED);
+    color: Black;
+    font-weight: bold;
+    border-radius: 12px;
+    height: 48px;
+    font-size: 14px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+}
+
+/* 🔥 BIAR ADA JARAK DI HP */
+div.stButton {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<style>
+
+/* ===== FIX RESULT BOX DARK MODE ===== */
+
+div[data-testid="stAlert"] {
+    color: white !important;
+}
+
+/* SUCCESS */
+div[data-testid="stAlert"][kind="success"] {
+    background-color: #1b5e20 !important;
+    border-left: 5px solid #00e676 !important;
+}
+
+/* WARNING */
+div[data-testid="stAlert"][kind="warning"] {
+    background-color: #ff8f00 !important;
+    border-left: 5px solid #ffd54f !important;
+}
+
+/* ERROR */
+div[data-testid="stAlert"][kind="error"] {
+    background-color: #b71c1c !important;
+    border-left: 5px solid #ff5252 !important;
+}
+
+/* FORCE TEXT ALWAYS VISIBLE */
+html, body, [class*="css"] {
+    color: #f5f5f5 !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<style>
+
+/* ===== LOGIN BUTTON (BIRU) ===== */
+div.stButton > button[kind="primary"] {
+    background: #2563eb !important;
+    color: white !important;
+    border-radius: 10px !important;
+    height: 42px !important;
+    font-weight: 600 !important;
+    border: none !important;
+}
+
+/* hover login */
+div.stButton > button[kind="primary"]:hover {
+    background: #1d4ed8 !important;
+}
+
+/* ===== CREATE ACCOUNT (KOTAK POLOS) ===== */
+div.stButton > button[kind="secondary"] {
+    background: transparent !important;   /* ❌ tidak ada warna */
+    color: #2563eb !important;
+    border: 1px solid #cbd5e1 !important; /* kotak tetap ada */
+    border-radius: 10px !important;
+    height: 42px !important;
+    font-weight: 500 !important;
+    box-shadow: none !important;
+}
+
+/* hover tetap soft */
+div.stButton > button[kind="secondary"]:hover {
+    background: #f8fafc !important;
+    border-color: #2563eb !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<style>
+
+/* ===== CONTAINER ===== */
+div[role="radiogroup"] {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+/* ===== DEFAULT OPTION ===== */
+div[role="radiogroup"] label {
+    flex: 1;
+    text-align: center;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 12px;
+    color: #334155;
+}
+
+/* hide radio dot */
+div[role="radiogroup"] input {
+    display: none;
+}
+
+/* 🔥 ACTIVE (SELECTED) */
+div[role="radiogroup"] label:has(input:checked) {
+    background: #2563eb !important;
+    color: white !important;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(37,99,235,0.35);
+    transform: scale(1.05);
+    border: none;
+}
+
+/* hover */
+div[role="radiogroup"] label:hover {
+    background: #e2e8f0;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 
 # ==========================================================
 # 🔧 PWA Support — biar bisa di-install di HP
@@ -80,80 +324,221 @@ def register_user(email, password):
     res = requests.post(REGISTER_URL, json={"email": email, "password": password, "returnSecureToken": True})
     return res.ok, res.json()
 
-# ===== LOGIN =====
+
+# ✅ AUTO LOGIN DARI COOKIE (WAJIB DI ATAS)
+if cookies.get("logged_in") == "true":
+    st.session_state.logged_in = True
+    st.session_state.email = cookies.get("email")
+
+if "page" not in st.session_state:
+    st.session_state.page = "login"
+
+if "register_success" not in st.session_state:
+    st.session_state.register_success = False
+
+# ===== SESSION INIT =====
 if "logged_in" not in st.session_state:
-    if cookies.get("logged_in") == "true":
-        st.session_state.logged_in = True
-        st.session_state.email = cookies.get("email")
-    else:
-        st.session_state.logged_in = False
+    st.session_state.logged_in = False
 
-if not st.session_state.logged_in:
-    st.markdown("<h2 style='text-align:center;'>🔐 Login Freight Calculator</h2>", unsafe_allow_html=True)
-    tab_login, tab_register = st.tabs(["Login", "Register"])
+if "show_register" not in st.session_state:
+    st.session_state.show_register = False
 
-    with tab_login:
-        email = st.text_input("Email")
-        password = st.text_input("Password", type="password")
-        if st.button("Login 🚀"):
-            ok, data = login_user(email, password)
-            if ok:
-                st.session_state.logged_in = True
-                st.session_state.email = email
-                cookies["logged_in"] = "true"
-                cookies["email"] = email
-                cookies.save()
-                st.success("Login successful!")
-                st.rerun()
-            else:
-                st.error("Email or password incorrect!")
+if "email" not in st.session_state:
+    st.session_state.email = ""
 
-    with tab_register:
-        email = st.text_input("Email Register")
-        password = st.text_input("Password Register", type="password")
-        if st.button("Register 📝"):
-            ok, data = register_user(email, password)
-            
-            if ok:
-                st.session_state.logged_in = True
-                st.session_state.email = email
-                cookies["logged_in"] = "true"
-                cookies["email"] = email
-                cookies.save()
+# ===== DELETE STATE INIT =====
+if "delete_success" not in st.session_state:
+    st.session_state.delete_success = False
 
-                st.success("Welcome! 🚀")
-                st.rerun()
-            else:
-                st.error("Failed to register. Email may already exist.")
+if "confirm_delete" not in st.session_state:
+    st.session_state.confirm_delete = False
+
+if "last_route" not in st.session_state:
+    st.session_state.last_route = ""
+
+# ===== POPUP INFO =====
+if "show_info" not in st.session_state:
+    st.session_state.show_info = False
+
+# ==========================================================
+# 🚀 INTRO / ONBOARDING SCREEN (FINAL VERSION)
+# ==========================================================
+if not st.session_state.hide_intro:
+
+    # 🔥 Biar posisi lebih tengah (mobile friendly)
+    st.markdown("""
+    <style>
+    .block-container {
+        padding-top: 5vh;
+        padding-bottom: 5vh;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # ===== UI INTRO =====
+    st.markdown("""
+    <div style="
+        text-align:center;
+        padding:50px 25px;
+    ">
+
+    <h1 style="
+        font-size:28px;
+        font-weight:800;
+        margin-bottom:5px;
+    ">
+        🚢 Welcome Freight Calculator
+    </h1>
+
+    <p style="
+        font-size:13px;
+        color:#64748B;
+        margin-bottom:20px;
+    ">
+        Cost, Freight & Profit Analysis Tool
+    </p>
+
+    <div style="
+        display:grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap:12px;
+        margin-top:10px;
+        font-size:12px;
+    ">
+
+    <div style="
+        background:linear-gradient(135deg,#e0f2fe,#f8fafc);
+        padding:12px;
+        border-radius:12px;
+        font-weight:500;
+    ">
+        ⚡ Cepat
+    </div>
+
+    <div style="
+        background:linear-gradient(135deg,#e0f2fe,#f8fafc);
+        padding:12px;
+        border-radius:12px;
+        font-weight:500;
+    ">
+        🎯 Akurat
+    </div>
+
+    <div style="
+        background:linear-gradient(135deg,#e0f2fe,#f8fafc);
+        padding:12px;
+        border-radius:12px;
+        font-weight:500;
+    ">
+        💰 Hitung untung/rugi
+    </div>
+
+    <div style="
+        background:linear-gradient(135deg,#e0f2fe,#f8fafc);
+        padding:12px;
+        border-radius:12px;
+        font-weight:500;
+    ">
+        🤝🏻 Nego lebih percaya diri
+    </div>
+
+    </div>
+
+    <div style="
+        margin-top:30px;
+        font-size:11px;
+        color:#94a3b8;
+    ">
+        Built with ❤️ by <b style="color:#2563eb;">Muhammad Iqna</b>
+    </div>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ===== CHECKBOX =====
+    dont_show = st.checkbox("Jangan tampilkan lagi")
+
+    # ===== BUTTON =====
+    if st.button("🚀 Get Started", use_container_width=True):
+
+        if dont_show:
+            cookies["hide_intro"] = "true"
+            cookies.save()
+
+        st.session_state.hide_intro = True
+        st.session_state.page = "login"
+        st.rerun()
+
     st.stop()
 
-cargo_capacity = {
-    "270 ft": {
-        "Coal (MT)": 5500,
-        "Nickel (MT)": 5500,
-        "Bauxite (MT)": 5500,
-        "Sand (M3)": 3500,
-        "Split (M3)": 3500
-    },
-    "300 ft": {
-        "Coal (MT)": 7500,
-        "Nickel (MT)": 7500,
-        "Bauxite (MT)": 7500,
-        "Sand (M3)": 4300,
-        "Split (M3)": 4300
-    },
-    "330 ft": {
-        "Coal (MT)": 11500,
-        "Nickel (MT)": 11500,
-        "Bauxite (MT)": 11500,
-        "Sand (M3)": 5500,
-        "Split (M3)": 6500
-    }
-}
+# ===== AUTH PAGE CONTROLLER =====
+if not st.session_state.logged_in:
 
-# ===== MASTER ROUTE =====
-if "distance_data" not in st.session_state:
-    st.session_state.distance_data = load_distance()
+    # =========================
+    # PAGE: LOGIN
+    # =========================
+    if st.session_state.page == "login":
+
+        st.markdown("<h2 style='text-align:center;'>🔐 Login Freight Calculator Barge</h2>", unsafe_allow_html=True)
+        
+        if st.session_state.register_success:
+            st.success("🎉 Registrasi berhasil! Silakan login untuk melanjutkan.")
+            st.session_state.register_success = False
+
+        email = st.text_input("Email", key="login_email")
+        password = st.text_input("Password", type="password", key="login_pass")
+
+        if st.button("LOGIN", type="primary", use_container_width=True):
+            ok, data = login_user(email, password)
+
+            if ok:
+                st.session_state.logged_in = True
+                st.session_state.email = email
+
+                cookies["logged_in"] = "true"
+                cookies["email"] = email
+                cookies.save()
+
+                st.rerun()
+            else:
+                st.error("Email atau password salah")
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        if st.button("Create New Account", type="secondary", use_container_width=True):
+            st.session_state.page = "register"
+            st.rerun()
+
+        st.stop()
+
+
+    # =========================
+    # PAGE: REGISTER
+    # =========================
+    if st.session_state.page == "register":
+
+        st.markdown("<h2 style='text-align:center;'>🆕Create Account Freight Calculator Barge</h2>", unsafe_allow_html=True)
+
+        reg_email = st.text_input("Email", key="reg_email")
+        reg_password = st.text_input("Password", type="password", key="reg_pass")
+
+        if st.button("Create New Account", use_container_width=True):
+            ok, data = register_user(reg_email, reg_password)
+
+            if ok:
+                st.session_state.register_success = True
+                st.session_state.page = "login"
+                st.rerun()
+            else:
+                st.error("Register gagal")
+
+        if st.button("← Back to Login"):
+            st.session_state.page = "login"
+            st.rerun()
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        st.stop()
 
 # ==========================================================
 # ⚙️ PRESET PARAMETER KAPAL (non-intrusive)
@@ -191,12 +576,12 @@ preset_params = {
         "port_cost_pol": 35000000, "port_cost_pod": 35000000, "asist_tug": 0,
         "port_stay_pol": 5, "port_stay_pod": 5
     },
-     "Custom": {
+    "Custom": {
         "speed_laden": 0, "speed_ballast": 0,
         "consumption": 0, "price_fuel": 0,
         "consumption_fw": 0, "price_fw": 0,
         "charter": 0, "crew": 0, "insurance": 0,
-        "docking": 0, "maintenance": 0,
+        "docking": 000, "maintenance": 0,
         "certificate": 0, "premi_nm": 0, "other_cost": 0,
         "port_cost_pol": 0, "port_cost_pod": 0, "asist_tug": 0,
         "port_stay_pol": 0, "port_stay_pod": 0
@@ -204,430 +589,618 @@ preset_params = {
 }
 
 
-if "history_calculate" not in st.session_state:
-    st.session_state.history_calculate = []
+cargo_qty_default = {
+    "270 ft": {
+        "Coal (MT)": 5500,
+        "Nickel (MT)": 5500,
+        "Bauxite (MT)": 5500,
+        "Sand (M3)": 3500,
+        "Split (M3)": 3500
+    },
+    "300 ft": {
+        "Coal (MT)": 7500,
+        "Nickel (MT)": 7500,
+        "Bauxite (MT)": 7500,
+        "Sand (M3)": 4700,
+        "Split (M3)": 5000
+    },
+    "330 ft": {
+        "Coal (MT)": 11500,
+        "Nickel (MT)": 11500,
+        "Bauxite (MT)": 11500,
+        "Sand (M3)": 6000,
+        "Split (M3)": 6500
+    }
+}
 
-# =========================
-# ⚙️ SETUP
-# =========================
-with st.sidebar.expander("⚙️ Setup", expanded=True):
+def get_default_cargo(barge, cargo_type):
+    return float(cargo_qty_default.get(barge, {}).get(cargo_type, 0))
 
-    mode = st.selectbox("Mode", ["Owner", "Charter"])
+# ==== PRESET SEGMEN ====
 
-# ===== INIT PRESET STATE =====
+# Default state
 if "preset_selected" not in st.session_state:
     st.session_state.preset_selected = "Custom"
 
-# Handler
-def update_preset():
-    st.session_state.preset_selected = st.session_state.preset_control
-    st.session_state.apply_preset = True
 
-# =========================
-# 🚢 VOYAGE INPUT
-# =========================
-with st.sidebar.expander("🚢 Voyage Input", expanded=False):
+def get_pods_by_pol(pol):
+    data = load_distances()
+    pol = (pol or "").strip().upper()
 
-    with st.expander("➕ Add Distance", expanded=False):
+    pods = set()
 
-        if st.session_state.get("save_success"):
-            st.success("✅ Distance berhasil disimpan!")
+    for route in data.keys():
+        try:
+            p, d = route.split(" - ")
 
-        col1, col2 = st.columns(2)
+            p = p.strip().upper()
+            d = d.strip().upper()
 
-        with col1:
-            pol_input = st.text_input("POL", key="md_pol")
+            # ✅ normal direction
+            if p == pol:
+                pods.add(d)
 
-        with col2:
-            pod_input = st.text_input("POD", key="md_pod")
+            # 🔥 reverse direction (INI KUNCINYA)
+            elif d == pol:
+                pods.add(p)
 
-        distance_input = st.number_input("Distance (NM)", 0.0, key="md_distance")
+        except:
+            continue
 
-        import json
+    return sorted(list(pods))
 
-        notif = st.empty()
+def get_next_by_pod(pod):
+    data = load_distances()
+    pod = (pod or "").strip().upper()
 
-        save_btn = st.button("💾 Save Distance")
+    next_ports = set()
 
-        if save_btn:
+    for route in data.keys():
+        try:
+            p, d = route.split(" - ")
 
-            if pol_input and pod_input:
+            p = p.strip().upper()
+            d = d.strip().upper()
 
-                new_data = {
-                    "pol": pol_input.strip().upper(),
-                    "pod": pod_input.strip().upper(),
-                    "distance": distance_input
-                }
+            # maju
+            if p == pod:
+                next_ports.add(d)
 
-                try:
-                    with open("distance.json", "r") as f:
-                        data = json.load(f)
-                except:
-                    data = []
+            # 🔥 balik
+            elif d == pod:
+                next_ports.add(p)
 
-                if new_data not in data:
-                    data.append(new_data)
+        except:
+            continue
 
-                    with open("distance.json", "w") as f:
-                        json.dump(data, f, indent=2)
-
-                    st.session_state.distance_data = data
-
-                    # 🔥 UI NOTIF BESAR & JELAS
-                    notif.success("✅ Distance berhasil disimpan!")
-
-                    # kasih delay biar kebaca user
-                    import time
-                    time.sleep(0.8)
-
-                    st.rerun()
-
-                else:
-                    notif.warning("⚠️ Data sudah ada!")
-            else:
-                notif.error("❌ POL & POD wajib diisi!")
+    return sorted(list(next_ports))
 
 
-if st.session_state.get("apply_preset", False):
-    if st.session_state.preset_selected in preset_params:
-        selected = preset_params[st.session_state.preset_selected]
+# ==== APPLY PRESET (ONLY ONCE) ====
+if "preset_applied" not in st.session_state:
+    st.session_state.preset_applied = False
 
-        for key, value in selected.items():
-            st.session_state[key] = value
 
-    st.session_state.apply_preset = False
+def apply_preset():
+    selected = st.session_state.get("preset_control")
 
-# =========================
-# 📊 PARAMETER
-# =========================
-with st.sidebar.expander("📊 Parameter", expanded=False):
+    if selected not in preset_params:
+        return
 
-    # ===== SIZE BARGE =====
-    st.markdown("### 🚢 Size Barge")
+    chosen = preset_params.get(selected)
+    if not chosen:
+        return
 
-    preset = st.segmented_control(
-        "Pilih Size",
-        ["270 ft", "300 ft", "330 ft", "Custom"],
-        default=st.session_state.preset_selected,
-        key="preset_control",
-        on_change=update_preset
-    )
+    for k, v in chosen.items():
+        st.session_state[k] = v
 
-    # ===== SPEED =====
-    with st.expander("🚢 Speed"):
-        for label, key in [
-            ("Speed Laden (knot)", "speed_laden"),
-            ("Speed Ballast (knot)", "speed_ballast"),
-        ]:
-            st.number_input(label, step=0.1, format="%.1f", key=key)
+st.sidebar.markdown("### 🚢 Barge Class")
 
-        speed_laden = st.session_state.speed_laden
-        speed_ballast = st.session_state.speed_ballast
+options = ["270 ft", "300 ft", "330 ft", "Custom"]
 
-    # ===== FUEL =====
-    with st.expander("⛽ Fuel"):
-        consumption = st.number_input(
-            "Consumption Fuel (liter/hour)",
-            value=st.session_state.get("consumption", 0),
-            key="consumption"
-        )
+if "preset_control" not in st.session_state:
+    st.session_state.preset_control = "270 ft"
 
-        price_fuel = st.number_input(
-            "Price Fuel (Rp/Ltr)",
-            value=st.session_state.get("price_fuel", 0),
-            key="price_fuel"
-        )
-    
-    # ===== FRESHWATER =====
-    with st.expander("💧 Freshwater"):
-        consumption_fw = st.number_input(
-            "Consumption Freshwater (Ton/Day)",
-            value=st.session_state.get("consumption_fw", 0)
-        )
-        price_fw = st.number_input(
-            "Price Freshwater (Rp/Ton)",
-            value=st.session_state.get("price_fw", 0)
-        )
+cols = st.sidebar.columns(4)
 
-    # ===== OWNER / CHARTER =====
-    if mode == "Owner":
-        with st.expander("🏗️ Owner Cost"):
-            charter = st.number_input("Angsuran (Rp/Month)", value=st.session_state.get("charter", 0))
-            crew = st.number_input("Crew (Rp/Month)", value=st.session_state.get("crew", 0))
-            insurance = st.number_input("Insurance (Rp/Month)", value=st.session_state.get("insurance", 0))
-            docking = st.number_input("Docking (Rp/Month)", value=st.session_state.get("docking", 0))
-            maintenance = st.number_input("Maintenance (Rp/Month)", value=st.session_state.get("maintenance", 0))
-            certificate = st.number_input("Certificate (Rp/Month)", value=st.session_state.get("certificate", 0))
-            premi_nm = st.number_input("Premi (Rp/NM)", value=st.session_state.get("premi_nm", 0))
-            other_cost = st.number_input("Other Cost (Rp)", value=st.session_state.get("other_cost", 0))
+for i, opt in enumerate(options):
+
+    # 🔥 ACTIVE STYLE
+    is_active = st.session_state.preset_control == opt
+
+    if is_active:
+        btn_type = "primary"
     else:
-        with st.expander("🏗️ Charter Cost"):
-            charter = st.number_input("Charter Hire (Rp/Month)", value=st.session_state.get("charter", 0))
-            premi_nm = st.number_input("Premi (Rp/NM)", value=st.session_state.get("premi_nm", 0))
-            other_cost = st.number_input("Other Cost (Rp)", value=st.session_state.get("other_cost", 0))
+        btn_type = "secondary"
 
-    # ===== PORT COST =====
-    with st.expander("⚓ Port Cost"):
-        port_cost_pol = st.number_input("Port Cost POL (Rp)", value=st.session_state.get("port_cost_pol", 0))
-        port_cost_pod = st.number_input("Port Cost POD (Rp)", value=st.session_state.get("port_cost_pod", 0))
-        asist_tug = st.number_input("Asist Tug (Rp)", value=st.session_state.get("asist_tug", 0))
+    if cols[i].button(
+        opt,
+        key=f"barge_{opt}",
+        type=btn_type,
+        use_container_width=True
+    ):
+        st.session_state.preset_control = opt
+        st.rerun()
+        
+selected = st.session_state.preset_control
 
-    # ===== GENERAL OVERHEAD =====
-    with st.expander("🏢 General Overhead"):
-        opex_office = st.number_input("Opex (Rp/Month)", value=st.session_state.get("opex_office", 0))
-        depreciation_kapal = st.number_input("Depreciation Kapal (Rp/Month)", value=st.session_state.get("depreciation_kapal", 0))
+if selected in preset_params:
+    for k, v in preset_params[selected].items():
+        st.session_state[k] = v
 
-    # ===== PORT STAY =====
-    with st.expander("🕓 Port Stay"):
-        port_stay_pol = st.number_input("POL (Days)", value=st.session_state.get("port_stay_pol", 0))
-        port_stay_pod = st.number_input("POD (Days)", value=st.session_state.get("port_stay_pod", 0))
+st.session_state.preset_selected = st.session_state.preset_control
 
-    # ===== ADDITIONAL COST =====
-    with st.expander("➕ Additional Cost"):
 
-        if "additional_costs" not in st.session_state:
-            st.session_state.additional_costs = []
+# ===== MODE =====
+mode = st.sidebar.selectbox("Mode", ["Owner", "Charter"])
 
-        add_new = st.button("➕ Add Additional Cost")
-        if add_new:
-            st.session_state.additional_costs.append({
-                "name": "",
-                "price": 0,
-                "unit": "Ltr",
-                "subtype": "Day",
-                "consumption": 0
-            })
 
-        updated_costs = []
-        unit_options = ["Ltr", "Ton", "Month", "Voyage", "MT", "M3", "Day"]
+with st.sidebar.expander("➕ Add Distance"):
 
-        for i, cost in enumerate(st.session_state.additional_costs):
-            st.markdown(f"*Additional Cost {i+1}*")
+    pol_new = st.text_input("POL", key="new_pol")
+    pod_new = st.text_input("POD", key="new_pod")
+    distance_new = st.number_input("Distance (NM)", min_value=0.0, key="new_distance")
+
+    if st.button("💾 Save Distance"):
+
+        if pol_new and pod_new and distance_new > 0:
+
+            data = load_distances()
+
+            key = f"{pol_new.upper()} - {pod_new.upper()}"
+
+            if key in data:
+                st.warning("⚠️ Route sudah ada!")
+            else:
+                data[key] = distance_new
+                save_distances(data)
+
+                st.success("✅ Distance berhasil disimpan!")
+        else:
+            st.error("❌ Semua field wajib diisi!")
+
+
+with st.sidebar.expander("📋 Saved Distance"):
+
+    data = load_distances()
+
+    # ===== NOTIF (MUNCUL SETELAH DELETE) =====
+    if st.session_state.delete_success:
+        st.success("Distance berhasil dihapus 🚀")
+        st.session_state.delete_success = False
+
+    if not data:
+        st.info("Belum ada data distance")
+
+    else:
+        routes = list(data.keys())
+
+        selected_route = st.selectbox(
+            "Pilih route",
+            routes
+        )
+
+        # ===== RESET CONFIRM KALAU GANTI ROUTE =====
+        if st.session_state.last_route != selected_route:
+            st.session_state.confirm_delete = False
+            st.session_state.last_route = selected_route
+
+        st.caption(f"Distance: {data[selected_route]:,.0f} NM")
+
+        # ===== STEP 1: BUTTON DELETE =====
+        if not st.session_state.confirm_delete:
+            if st.button("🗑️ Delete Distance", use_container_width=True):
+                st.session_state.confirm_delete = True
+                st.rerun()
+
+        # ===== STEP 2: KONFIRMASI =====
+        else:
+            st.warning("⚠️ Yakin mau hapus data ini?")
 
             col1, col2 = st.columns(2)
 
             with col1:
-                name = st.text_input(f"Name {i+1}", cost.get("name", ""), key=f"name_{i}")
-                price = st.number_input(f"Price {i+1} (Rp)", cost.get("price", 0), key=f"price_{i}")
+                if st.button("❌ Cancel", use_container_width=True):
+                    st.session_state.confirm_delete = False
+                    st.rerun()
 
             with col2:
-                unit = st.selectbox(
-                    f"Unit {i+1}",
-                    unit_options,
-                    index=unit_options.index(cost.get("unit", "Ltr")) if cost.get("unit", "Ltr") in unit_options else 0,
-                    key=f"unit_{i}"
-                )
+                if st.button("✅ Confirm Delete", use_container_width=True):
 
-                subtype = "Day"
-                if unit in ["Ltr", "Ton"]:
-                    subtype = st.selectbox(
-                        f"Type {i+1}",
-                        ["Day", "Hour"],
-                        index=["Day", "Hour"].index(cost.get("subtype", "Day")),
-                        key=f"subtype_{i}"
-                    )
+                    del data[selected_route]
+                    save_distances(data)
 
-                additional_consumption = 0
-                if unit in ["Ltr", "Ton"]:
-                    additional_consumption = st.number_input(
-                        f"Consumption {i+1} ({unit}/{subtype})",
-                        cost.get("consumption", 0),
-                        key=f"additional_consumption_{i}"
-                    )
+                    # 🔥 TRIGGER NOTIF
+                    st.session_state.delete_success = True
+                    st.session_state.confirm_delete = False
 
-            remove = st.button(f"❌ Remove {i+1}", key=f"remove_{i}")
-
-            if not remove:
-                updated_costs.append({
-                    "name": name,
-                    "price": price,
-                    "unit": unit,
-                    "subtype": subtype,
-                    "consumption": additional_consumption
-                })
-
-        st.session_state.additional_costs = updated_costs
-
-# =========================
-# 📂 MASTER DATA
-# =========================
-
-with st.sidebar.expander("📂 Master Data", expanded=False):
-
-    # =========================
-    # 📋 LIST DISTANCE (SUB)
-    # =========================
-    with st.expander("📋 List Distance", expanded=False):
-
-        if len(st.session_state.distance_data) > 1:
-            df_distance = pd.DataFrame(st.session_state.distance_data)
-            df_distance.index = df_distance.index + 1
-            st.dataframe(df_distance, use_container_width=True, height=200)
-
-        if len(df_distance) > 0:  
-            delete_index = st.number_input(
-                "Hapus index",
-                min_value=1,
-                max_value=len(df_distance),
-                step=1
-            )
-            item = st.session_state.distance_data[delete_index - 1]
-            st.warning(f"Delete route: {item['pol']} ➜ {item['pod']} ({item['distance']} NM)")
-            confirm = st.checkbox("Confirm delete")
-
-            if st.button("❌ Delete Selected"):
-                if confirm:
-                    st.session_state.distance_data.pop(delete_index - 1)
-                    st.success("Deleted successfully")
                     st.rerun()
-                else:
-                    st.error("Please confirm first")
-        else:
-            st.caption("Belum ada data distance")
 
-    # =========================
-    # 📜 HISTORY CALCULATE (SUB)
-    # =========================
-    with st.expander("📜 History Calculate", expanded=False):
-
-        if len(st.session_state.history_calculate) == 0:
-            st.caption("Belum ada history")
-        else:
-            history_limit = st.number_input(
-                "Tampilkan terakhir",
-                1, 20, 5
-            )
-
-            history_data = list(reversed(st.session_state.history_calculate))[:history_limit]
-
-            for i, item in enumerate(history_data):
-                with st.expander(f"📄 {item['name']}"):
-                    st.download_button(
-                        label="⬇️ Download",
-                        data=item["data"],
-                        file_name=item["name"],
-                        mime="application/pdf",
-                        key=f"history_{i}"
-                    )
-
-            if st.button("🗑️ Clear History"):
-                st.session_state.history_calculate = []
-                st.session_state.last_calc = None
-                st.rerun()
-
-with st.sidebar.expander("👤 Account", expanded=True):
-
-    st.write(f"📧 {st.session_state.email}")
-
-    if st.button("Log Out"):
-        st.session_state.logged_in = False
-
-        cookies["logged_in"] = ""
-        cookies["email"] = ""
-        cookies.save()
-
-        st.success("Successfully logged out.")
-        st.rerun()
-
+# ===== SIDEBAR PARAMETERS =====
+with st.sidebar.expander("⚙️ Operational Input", expanded=False):
     
-# ===== MAIN INPUT =====
-st.markdown("""
-<h1 style='margin-bottom:0;'>🚢 Freight Calculator</h1>
-<p style='color:gray; margin-top:0;'>Professional Barge Cost & Profit Analysis</p>
-<hr>
-""", unsafe_allow_html=True)
+    speed_laden = st.number_input(
+        "Speed Laden (knot)",
+        value=float(st.session_state.get("speed_laden", 0)),
+        step=0.1,
+        format="%.2f"
+    )
+    speed_ballast = st.number_input(
+        "Speed Ballast (knot)",
+        value=float(st.session_state.get("speed_ballast", 0)),
+        step=0.1,
+        format="%.2f"
+    )
+    consumption = st.number_input("Fuel Consumption (L/hr)", value=st.session_state.get("consumption", 0))
+    price_fuel = st.number_input("Fuel Price (Rp/L)", value=st.session_state.get("price_fuel", 0))
 
-# ambil data dari master route
-pol_list = sorted(list(set([r["pol"] for r in st.session_state.distance_data])))
-pod_list = sorted(list(set([r["pod"] for r in st.session_state.distance_data])))
+    consumption_fw = st.number_input("FW Consumption (Ton/Day)", value=st.session_state.get("consumption_fw", 0))
+    price_fw = st.number_input("FW Price (Rp/Ton)", value=st.session_state.get("price_fw", 0))
 
-col1, col2, col3 = st.columns(3)
+if mode == "Owner":
+    with st.sidebar.expander("🏗️ Cost (Owner)", expanded=False):
+        charter = st.number_input("Angsuran (Rp/Month)", value=st.session_state.get("charter", 0))
+        crew = st.number_input("Crew (Rp/Month)", value=st.session_state.get("crew", 0))
+        insurance = st.number_input("Insurance (Rp/Month)", value=st.session_state.get("insurance", 0))
+        docking = st.number_input("Docking (Rp/Month)", value=st.session_state.get("docking", 0))
+        maintenance = st.number_input("Maintenance (Rp/Month)", value=st.session_state.get("maintenance", 0))
+        certificate = st.number_input("Certificate (Rp/Month)", value=st.session_state.get("certificate", 0))
+        premi_nm = st.number_input("Premi (Rp/NM)", value=st.session_state.get("premi_nm", 0))
+        other_cost = st.number_input("Other Cost (Rp)", value=st.session_state.get("other_cost", 0))
+else:
+    with st.sidebar.expander("🏗️ Cost (Charter)", expanded=False):
+        charter = st.number_input("Charter Hire (Rp/Month)", value=st.session_state.get("charter", 0))
+        premi_nm = st.number_input("Premi (Rp/NM)", value=st.session_state.get("premi_nm", 0))
+        other_cost = st.number_input("Other Cost (Rp)", value=st.session_state.get("other_cost", 0))
 
-with col1:
-    port_pol = st.selectbox("Port Of Loading", pol_list)
+with st.sidebar.expander("⚓ Port Cost"):
+    port_cost_pol = st.number_input("Port Cost POL (Rp)", value=st.session_state.get("port_cost_pol", 0))
+    port_cost_pod = st.number_input("Port Cost POD (Rp)", value=st.session_state.get("port_cost_pod", 0))
+    asist_tug = st.number_input("Asist Tug (Rp)", value=st.session_state.get("asist_tug", 0))
 
-with col2:
-    port_pod = st.selectbox("Port Of Discharge", pod_list)
-
-with col3:
-    next_port = st.selectbox(
-        "Next Port (Optional)",
-        [None] + pol_list,
-        format_func=lambda x: "Pilih (Optional)" if x is None else x
+with st.sidebar.expander("🏢 General Overhead"):
+    opex_office = st.number_input(
+        "Opex (Rp/Month)",
+        value=st.session_state.get("opex_office", 0)
+    )
+    depreciation_kapal = st.number_input(
+        "Depreciation Kapal (Rp/Month)",
+        value=st.session_state.get("depreciation_kapal", 0)
     )
 
-# ===== AUTO DISTANCE =====
-distance_pol_pod = 0
-distance_pod_next = 0
+with st.sidebar.expander("🕓 Port Stay"):
+    port_stay_pol = st.number_input("POL (Days)", value=st.session_state.get("port_stay_pol", 0))
+    port_stay_pod = st.number_input("POD (Days)", value=st.session_state.get("port_stay_pod", 0))
 
-for r in st.session_state.distance_data:
+# ===== ADDITIONAL COST =====
+with st.sidebar.expander("➕ Additional Cost"):
+    if "additional_costs" not in st.session_state:
+        st.session_state.additional_costs = []
 
-    # POL → POD
-    if r["pol"] == port_pol and r["pod"] == port_pod:
-        distance_pol_pod = r["distance"]
+    add_new = st.button("➕ Add Additional Cost")
+    if add_new:
+        st.session_state.additional_costs.append({
+            "name": "",
+            "price": 0,
+            "unit": "Ltr",
+            "subtype": "Day",
+            "consumption": 0
+        })
 
-    # POD → NEXT
-    if next_port and r["pol"] == port_pod and r["pod"] == next_port:
-        distance_pod_next = r["distance"]
+    updated_costs = []
+    unit_options = ["Ltr", "Ton", "Month", "Voyage", "MT", "M3", "Day"]
 
-# auto reverse (NEXT → POD)
-if next_port and distance_pod_next == 0:
-    for r in st.session_state.distance_data:
-        if r["pol"] == next_port and r["pod"] == port_pod:
-            distance_pod_next = r["distance"]
+    for i, cost in enumerate(st.session_state.additional_costs):
+        st.markdown(f"**Additional Cost {i+1}**")
+        col1, col2 = st.columns(2)
+        with col1:
+            name = st.text_input(f"Name {i+1}", cost.get("name", ""), key=f"name_{i}")
+            price = st.number_input(f"Price {i+1} (Rp)", cost.get("price", 0), key=f"price_{i}")
+        with col2:
+            unit = st.selectbox(
+                f"Unit {i+1}",
+                unit_options,
+                index=unit_options.index(cost.get("unit", "Ltr")) if cost.get("unit", "Ltr") in unit_options else 0,
+                key=f"unit_{i}"
+            )
+            subtype = "Day"
+            if unit in ["Ltr", "Ton"]:
+                subtype = st.selectbox(
+                    f"Type {i+1}",
+                    ["Day", "Hour"],
+                    index=["Day", "Hour"].index(cost.get("subtype", "Day")),
+                    key=f"subtype_{i}"
+                )
+            additional_consumption = 0
+            if unit in ["Ltr", "Ton"]:
+                additional_consumption = st.number_input(
+                    f"Consumption {i+1} ({unit}/{subtype})",
+                    cost.get("consumption", 0),
+                    key=f"additional_consumption_{i}"
+                )
 
-# tampilkan
+        remove = st.button(f"❌ Remove {i+1}", key=f"remove_{i}")
+        if not remove:
+            updated_costs.append({
+                "name": name,
+                "price": price,
+                "unit": unit,
+                "subtype": subtype,
+                "consumption": additional_consumption
+            })
+    st.session_state.additional_costs = updated_costs
+
+# ===== LOGOUT =====
+st.sidebar.markdown("### Account")
+st.sidebar.write(f"**{st.session_state.email}**")
+if st.sidebar.button("**Log Out**"):
+    st.session_state.logged_in = False
+    st.session_state.page = "login"
+
+    # 🔥 RESET INTRO
+    st.session_state.hide_intro = False
+    cookies["hide_intro"] = "false"
+
+    # 🔥 CLEAR LOGIN COOKIE
+    cookies["logged_in"] = "false"
+    cookies["email"] = ""
+
+    cookies.save()
+
+    st.success("Successfully logged out.")
+    st.rerun()
+
+# ===== HEADER WITH INFO BUTTON =====
+col1, col2 = st.columns([9,1])
+
+with col1:
+    st.markdown("""
+    <div style="
+        width: 100%;
+        background: linear-gradient(135deg, #6495ED, #FFFFFF, #6495ED);
+        padding: 20px 14px;
+        border-radius: 16px;
+        text-align: center;
+        color: Black;
+        margin-bottom: 10px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.45);
+    ">
+    <div style="
+            font-size: 35px;
+            font-weight: 900;
+    ">
+            🚢 Freight Calculator
+    </div>
+
+    <div style="
+            font-size: 12px;
+            margin-top: 6px;
+            color: #64748B;
+    ">
+            Shipping Cost & Profit Tool
+    </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col2:
+    if "show_info" not in st.session_state:
+        st.session_state.show_info = False
+
+    if st.button("ℹ️", help="Info & Tutorial", use_container_width=True):
+        st.session_state.show_info = not st.session_state.show_info
+
+
+# ===== POPUP INFO SAFE VERSION =====
+if st.session_state.show_info:
+
+    # ✅ CEK: apakah st.modal tersedia
+    if hasattr(st, "modal"):
+
+        with st.modal("ℹ️ Info & Tutorial"):
+
+            tab1, tab2 = st.tabs(["📊 Tentang", "📘 Cara Pakai"])
+
+            with tab1:
+                st.markdown("""
+                ### 🚢 Freight Calculator Barge
+
+                Aplikasi untuk menghitung:
+                • Total biaya voyage  
+                • Freight per ton  
+                • Profit / loss  
+                • TCE  
+                """)
+
+            with tab2:
+                st.markdown("""
+                ### 📘 Cara Pakai
+
+                1. Pilih Barge Class
+                2. Pilih POL & POD
+                3. Isi cargo & freight
+                4. Klik CALCULATE
+                """)
+
+    # ❌ kalau modal tidak ada → pakai fallback
+    else:
+
+        st.markdown("## ℹ️ Info & Tutorial")
+
+        tab1, tab2, tab3 = st.tabs(["📊 Tentang", "📘 Cara Pakai", "⚠️ Catatan"])
+
+        with tab1:
+            st.markdown("""
+            ### 🚢 Freight Calculator Barge
+        
+            Aplikasi ini adalah tools untuk menghitung **biaya operasional kapal tongkang (barge)** secara otomatis berdasarkan rute, cargo, dan parameter kapal.
+        
+            ---
+        
+            ### 🎯 Fungsi Utama:
+            - Menghitung total voyage cost (biaya perjalanan kapal)
+            - Menghitung freight cost per MT / M³
+            - Analisa profit / loss berdasarkan freight rate
+            - Menghitung TCE (Time Charter Equivalent)
+            - Simulasi beberapa skenario profit
+        
+            ---
+        
+            ### ⚙️ Parameter yang digunakan:
+            - Speed laden & ballast  
+            - Fuel consumption & harga fuel  
+            - Fresh water consumption  
+            - Port cost (POL & POD)  
+            - Crew, insurance, maintenance  
+            - Additional cost (custom input)  
+            - Cargo quantity & jenis cargo  
+        
+            ---
+        
+            ### 📄 Output aplikasi:
+            - Total cost voyage  
+            - Freight cost per unit  
+            - Profit & margin  
+            - Breakdown cost detail  
+            - PDF report otomatis  
+            """)
+
+        with tab2:
+            st.markdown("""
+            ### 📘 Cara Menggunakan Aplikasi
+        
+            Ikuti langkah berikut agar hasil perhitungan akurat:
+        
+            ---
+        
+            ### 1. Pilih Barge Class
+            - 270 ft / 300 ft / 330 ft / Custom  
+            - Ini akan otomatis mengisi parameter standar kapal  
+        
+            ---
+        
+            ### 2. Tentukan Rute
+            - Pilih Loading Port (POL)  
+            - Pilih Discharge Port (POD)  
+            - Distance akan otomatis muncul jika tersedia  
+        
+            ---
+        
+            ### 3. Input Cargo
+            - Pilih jenis cargo:
+              - Coal (MT)
+              - Nickel (MT)
+              - Bauxite (MT)
+              - Sand / Split (M³)
+            - Masukkan quantity sesuai kebutuhan  
+        
+            ---
+        
+            ### 4. Input Freight Rate
+            - Masukkan harga freight (Rp per MT)
+            - Digunakan untuk simulasi revenue & profit  
+        
+            ---
+        
+            ### 5. Klik CALCULATE
+            Sistem akan menghitung:
+            - Total voyage cost
+            - Fuel & freshwater cost
+            - Port cost & operational cost
+            - Profit / loss
+            - TCE (per day & per month)
+        
+            ---
+        
+            ### 6. Download Report (PDF)
+            - Hasil bisa langsung di-download
+            - Cocok untuk:
+              - Negotiation
+              - Reporting
+              - Analisa voyage
+            """)
+
+
+        with tab3:
+            st.markdown("""
+            ### ⚠️ Catatan Penting
+        
+            - Data distance harus tersedia agar otomatis terisi  
+            - Jika tidak ada, bisa input manual di Add Distance
+            - Parameter bisa di edit sesuai biaya akurat
+            - Semua hasil adalah simulasi berdasarkan input user  
+            - Gunakan data real untuk hasil lebih akurat  
+            - Aplikasi ini untuk analisa & perencanaan voyage  
+            """)
+                    
+
+        if st.button("❌ Tutup"):
+            st.session_state.show_info = False
+            st.rerun()
+            
+
+# ===== MAIN INPUT =====
+st.markdown("### 🚢 Voyage Input")
+
+# ===== POL =====
+all_ports = get_all_ports()
+
+port_pol = st.selectbox("Loading Port (POL)", [""] + all_ports)
+
+# ===== POD (muncul setelah POL dipilih) =====
+if port_pol:
+    pods = get_pods_by_pol(port_pol)
+    port_pod = st.selectbox("Discharge Port (POD)", [""] + pods)
+else:
+    port_pod = ""
+
+# ===== NEXT PORT (muncul setelah POD dipilih) =====
+if port_pod:
+    next_ports = get_next_by_pod(port_pod)
+    next_port = st.selectbox("Next Port (Optional)", [""] + next_ports)
+else:
+    next_port = ""
+
+st.markdown("### 📏 Distance")
+
 col1, col2 = st.columns(2)
 
 with col1:
-    st.number_input(
-        "Distance POL → POD (NM)",
-        value=distance_pol_pod,
-        disabled=True
-    )
+    if port_pol and port_pod:
+        auto_distance = find_distance(port_pol, port_pod)
+    else:
+        auto_distance = 0
+
+    st.text_input("POL → POD (NM)", value=str(auto_distance), disabled=True)
 
 with col2:
-    if next_port:
-        st.number_input(
-            "Distance POD → Next (NM)",
-            value=distance_pod_next,
-            disabled=True
-        )
-    else:
-        st.empty()
+        # hanya hitung kalau NEXT PORT dipilih
+        if port_pod and next_port:
+            auto_distance_return = find_distance(port_pod, next_port)
+            st.text_input("POD → NEXT (NM)", value=str(auto_distance_return), disabled=True)
 
-# validasi
-if distance_pol_pod == 0:
-    st.error(f"❌ Distance {port_pol} → {port_pod} belum ada di master data!")
+st.markdown("### 📦 Type Cargo & Quantity")
 
-if next_port and distance_pod_next == 0:
-    st.error(f"❌ Distance {port_pod} → {next_port} belum ada di master data!")
-
-# stop hanya kalau data wajib kosong
-if distance_pol_pod == 0:
-    st.stop()
-
-if next_port and distance_pod_next == 0:
-    st.stop()
-
+col1, col2 = st.columns(2)
 
 # ===== TYPE CARGO =====
-type_cargo = st.selectbox(
-    "Type Cargo",
-    ["Bauxite (MT)", "Sand (M3)", "Coal (MT)", "Nickel (MT)", "Split (M3)"],
-    key="type_cargo"
-)
+with col1:
+    type_cargo = st.selectbox(
+        "Type",
+        ["Bauxite (MT)", "Sand (M3)", "Coal (MT)", "Nickel (MT)", "Split (M3)"],
+        key="type_cargo",
+        label_visibility="collapsed"
+    )
 
 # ===== DEFAULT QTY =====
 default_qty = 0
-if st.session_state.preset_selected in cargo_capacity:
-    default_qty = cargo_capacity[st.session_state.preset_selected].get(type_cargo, 0)
+if st.session_state.preset_selected in cargo_qty_default:
+    default_qty = cargo_qty_default[st.session_state.preset_selected].get(type_cargo, 0)
 
-# ===== INIT SESSION (HANYA SEKALI) =====
+# ===== INIT =====
 if "qyt_cargo" not in st.session_state:
     st.session_state.qyt_cargo = default_qty
 
-# ===== UPDATE HANYA KALAU SIZE / CARGO BERUBAH =====
+# ===== AUTO UPDATE =====
 if (
     "last_preset" not in st.session_state or
     "last_cargo" not in st.session_state or
@@ -636,41 +1209,55 @@ if (
 ):
     st.session_state.qyt_cargo = default_qty
 
-# simpan kondisi terakhir
 st.session_state.last_preset = st.session_state.preset_selected
 st.session_state.last_cargo = type_cargo
 
-# ===== INPUT (BISA DIEDIT) =====
-qyt_cargo = st.number_input(
-    "Cargo Quantity",
-    value=st.session_state.qyt_cargo,
-    key="qyt_cargo"
+# ===== QTY =====
+with col2:
+    unit = type_cargo.split()[1]
+
+    qyt_cargo = st.number_input(
+        f"Qty ({unit})",
+        value=st.session_state.qyt_cargo,
+        key="qyt_cargo",
+        label_visibility="collapsed"
+    )
+
+st.markdown("### 💸 Freight Pricing")
+
+freight_price_input = st.number_input("Freight Rate (Rp/MT)", 0)
+
+
+# ===== BUTTON =====
+st.markdown("<br>", unsafe_allow_html=True)
+
+calculate = st.button(
+    "**🚀 CALCULATE NOW**",
+    use_container_width=True,
+    type="primary"
 )
-
-freight_price_input = st.number_input("Freight Price (Rp/MT)", 0)
-
-# =========================
-# 🧮 HELPER FUNCTION
-# =========================
-def format_rp(x):
-    return f"Rp {x:,.0f}"
+        
 
 # ===== PERHITUNGAN =====
-if "calc_ready" not in st.session_state:
-    st.session_state.calc_ready = False
-calc_btn = st.button("🚀 Calculate Freight", use_container_width=True)
-# RESET STATE supaya tidak nyangkut download lama
-st.session_state.calc_ready = False
-st.session_state.last_pdf = None
-st.session_state.last_file_name = None
 
-if calc_btn and distance_pol_pod > 0:
+
+if calculate:
     try:
+        distance_pol_pod = find_distance(port_pol, port_pod)
+
+        # 🔥 FIX: hanya hitung kalau NEXT PORT dipilih
+        if next_port and next_port.strip():
+            distance_pod_pol = find_distance(port_pod, next_port)
+        else:
+            distance_pod_pol = 0
+
+        pol_pod_hour = distance_pol_pod / speed_laden if speed_laden else 0
+        pod_pol_hour = distance_pod_pol / speed_ballast if speed_ballast else 0
+        pol_pod_day = pol_pod_hour / 24
+        pod_pol_day = pod_pol_hour / 24
+            
         # Waktu sailing (hour) based on speed inputs (hours)
-        sailing_time = (
-            (distance_pol_pod / speed_laden) +
-            ((distance_pod_next / speed_ballast) if next_port else 0)
-        )
+        sailing_time = (distance_pol_pod / speed_laden) + (distance_pod_pol / speed_ballast)
         # total voyage in days (sailing hours converted to days + port stays)
         total_voyage_days = (sailing_time / 24) + (port_stay_pol + port_stay_pod)
         total_voyage_days_round = int(total_voyage_days) if total_voyage_days % 1 < 0.5 else int(total_voyage_days) + 1
@@ -691,6 +1278,27 @@ if calc_btn and distance_pol_pod > 0:
         total_general_overhead = ((opex_office + depreciation_kapal) / 30) * total_voyage_days
         premi_cost = distance_pol_pod * premi_nm
         port_cost = port_cost_pol + port_cost_pod + asist_tug
+
+        # ===== COST DICTIONARY =====
+        if mode == "Owner":
+            owner_data = {
+                "Angsuran": charter_cost,
+                "Crew": crew_cost,
+                "Insurance": insurance_cost,
+                "Docking": docking_cost,
+                "Maintenance": maintenance_cost,
+                "Certificate": certificate_cost,
+                "Premi": premi_cost,
+                "Port Costs": port_cost,
+                "Other Cost": other_cost
+            }
+        else:
+            owner_data = {
+                "Charter Hire": charter_cost,
+                "Premi": premi_cost,
+                "Port Costs": port_cost,
+                "Other Cost": other_cost
+            }
 
         # ===== ADDITIONAL COST CALCULATION =====
         additional_total = 0
@@ -755,115 +1363,117 @@ if calc_btn and distance_pol_pod > 0:
 
         tce_per_month = tce_per_day * 30
 
-        st.markdown("## 📊 Summary")
-
-        # ===== TOP KPI =====
-        col1, col2, col3 = st.columns(3)
-
-        col1.metric("🚢 Voyage Days", f"{total_voyage_days:.2f}")
-        col2.metric("💰 Total Cost", f"Rp {total_cost:,.0f}")
-        col3.metric("📦Freight Cost", f"Rp {freight_cost_mt:,.0f} / {type_cargo.split()[1]}")
-
-        st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
-
-        # ===== DEFINE OWNER / CHARTER DATA =====
-        if mode == "Owner":
-            owner_data = {
-                "Angsuran": charter_cost,
-                "Crew": crew_cost,
-                "Insurance": insurance_cost,
-                "Docking": docking_cost,
-                "Maintenance": maintenance_cost,
-                "Certificate": certificate_cost,
-            }
-        else:
-            owner_data = {
-                "Charter Hire": charter_cost,
-                "Premi": premi_cost,
-                "Port Cost": port_cost,
-                "Other Cost": other_cost
-            }
-
-        # ===== Operasional Cost =====
-        c1, c2, c3 = st.columns(3)
+        # ===== OUTPUT RINGKAS (MOBILE FRIENDLY) =====
         
-        with c1:
-            st.markdown("#### ⛽ Variable Cost")
-            
-            st.write(f"Fuel Consumption : {format_rp(total_consumption_fuel)}")
-            st.write(f"Freshwater Consumption : {format_rp(total_consumption_fw)}")
-            st.write(f"Fuel Cost : {format_rp(cost_fuel)}")
-            st.write(f"Freshwater Cost : {format_rp(cost_fw)}")
-            st.write(f"Port Cost : {format_rp(port_cost)}")
-            st.write(f"Premi : {format_rp(premi_cost)}")
-            
-            st.write(f"**Total Cost : {format_rp(cost_fuel + cost_fw + port_cost + premi_cost)}**")
+        st.markdown(f"""
+        <div style="
+            background:linear-gradient(135deg, #f8fafc, #eef5ff);
+            padding:12px;
+            border-radius:12px;
+            margin-bottom:10px;
+            color:#0f172a;
+            border-left:5px solid #93c5fd;
+            box-shadow:0 4px 12px rgba(0,0,0,0.4);
+        ">
+        <h4 style="color:#93c5fd;">🚢 Voyage Summary</h4>
 
-        # ===== COST BREAKDOWN =====
-        with c2:
-            st.markdown("#### 🏗️ Cost Breakdown")
-            
-            core_total = 0
-            for k, v in owner_data.items():
-                st.write(f"{k} : {format_rp(v)}")
-                core_total += v
+        • Cargo Type: <b>{type_cargo}</b><br>
+        • Route: <b>{port_pol} → {port_pod}</b><br>
+        • Distance POL → POD: <b>{distance_pol_pod:,.0f} NM</b><br>
+        • Total Cargo: <b>{qyt_cargo:,.0f} {type_cargo.split()[1]}</b><br>
+        • Total Voyage: <b>{total_voyage_days:.1f} Days</b>
+        <span style="font-size:11px; color:#bbb;">
+        (sailing POL→POD {pol_pod_day:.1f} Days - POD→POL {pod_pol_day:.1f} Days)
+        </span><br>
+        • Freight Cost: <b style="color:#0f172a;">Rp {freight_cost_mt:,.0f}</b>
 
-            st.write(f"**Total : {format_rp(core_total)}**")
+        </div>
+        """, unsafe_allow_html=True)
 
-        # ===== OTHER =====
-        with c3:
-            st.markdown("#### 🏢 Other & Overhead")
-             
-            st.write(f"Other Cost : {format_rp(other_cost)}")
-            st.write(f"General Overhead : {format_rp(total_general_overhead)}")
-            
-            st.write(f"**Total : {format_rp(other_cost + total_general_overhead)}**")
+        st.markdown(f"""
+        <div style="
+            background:linear-gradient(135deg, #f8fafc, #eef5ff);
+            padding:12px;
+            border-radius:12px;
+            margin-bottom:10px;
+            color:#0f172a;;
+            border-left:5px solid #ff9800;
+            box-shadow:0 4px 12px rgba(0,0,0,0.4);
+        ">
+        <h4 style="color:#ff9800;">⛽ Fuel & Water</h4>
 
+        • Fuel Consumption: <b>{total_consumption_fuel:,.0f} Ltr</b><br>
+        • Fuel Cost: <b>Rp {cost_fuel:,.0f}</b><br>
+        
+        • Freshwater Consumption: <b>{total_consumption_fw:,.0f} Ton</b><br>
+        • FW Cost: <b>Rp {cost_fw:,.0f}</b>
 
-        # ===== ADDITIONAL =====
+        </div>
+        """, unsafe_allow_html=True)
+
+        
+        st.subheader("🏗️ Cost Summary")
+
+        # =========================
+        # 1. BREAKDOWN COST ONLY
+        # =========================
+        for k, v in owner_data.items():
+            st.write(f"• {k}: Rp {v:,.0f}")
+
+        # =========================
+        # 2. ADDITIONAL COST (sekali saja)
+        # =========================
         if additional_breakdown:
-            st.markdown("### ➕ Additional Costs")
-            df_add = pd.DataFrame(list(additional_breakdown.items()), columns=["Item", "Amount"])
-            df_add["Amount"] = df_add["Amount"].apply(lambda x: f"Rp {x:,.0f}")
-            st.dataframe(df_add, use_container_width=True, hide_index=True)
+            st.markdown("➕ Additional Costs")
+            for k, v in additional_breakdown.items():
+                st.write(f"• {k}: Rp {v:,.0f}")
 
-        st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
+        # =========================
+        # 3. GENERAL OVERHEAD (sekali saja)
+        # =========================
+        st.write(f"• General Overhead: Rp {total_general_overhead:,.0f}")
 
-        # ===== PROFIT =====
+        # =========================
+        # 4. SUMMARY (WAJIB SINGLE OUTPUT)
+        # =========================
+        st.success(f"💰 Total Cost: Rp {total_cost:,.0f}")
+        st.warning(f"📦 Freight Cost: Rp {freight_cost_mt:,.0f} / {type_cargo.split()[1]}")
+
+
+        # ===== FREIGHT PRICE CALCULATION USER (Conditional) =====
         if freight_price_input > 0:
+            st.markdown(f"""
+            <div style="
+                background:#e8f5e9;
+                padding:12px;
+                border-radius:12px;
+                margin-bottom:10px;
+            ">
+            <h4>💰 Profit</h4>
+            • Revenue: <b>Rp {revenue_user:,.0f}</b><br>
+            • Profit: <b>Rp {profit_user:,.0f}</b><br>
+            • Margin: <b>{profit_percent_user:.2f}%</b>
+            </div>
+            """, unsafe_allow_html=True)
 
-            with st.container(border=True):
-                st.markdown("### 💰 Profit Analysis")
+        st.markdown(f"""
+        <div style="
+            background:linear-gradient(135deg, #f8fafc, #eef5ff);
+            padding:12px;
+            border-radius:12px;
+            margin-bottom:10px;
+            color:black;
+            border-left:5px solid #03a9f4;
+            box-shadow:0 4px 12px rgba(0,0,0,0.4);
+        ">
+        <h4 style="color:#03a9f4;">⏱️ TCE (Time Charter Equivalent)</h4>
 
-            c1, c2, c3 = st.columns(3)
+        • Per Day: <b>Rp {tce_per_day:,.0f}</b><br>
+        • Per Month: <b>Rp {tce_per_month:,.0f}</b>
 
-            with c1:
-                st.metric("Revenue", f"Rp {revenue_user:,.0f}")
+        </div>
+        """, unsafe_allow_html=True)
 
-            with c2:
-                st.metric("Profit", f"Rp {profit_user:,.0f}")
-
-            with c3:
-                st.metric("Profit %", f"{profit_percent_user:.2f}%")
-
-            if profit_user > 0:
-                st.success("🟢 Profitable Voyage")
-            else:
-                st.error("🔴 Loss Voyage")
-            
-        st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
-
-        with st.container(border=True):
-            st.markdown("### ⏱️ TCE (Time Charter Equivalent)")
-
-            c1, c2 = st.columns(2)
-
-            with c1:
-                st.metric("Per Day", f"Rp {tce_per_day:,.0f}")
-
-            with c2:
-                st.metric("Per Month", f"Rp {tce_per_month:,.0f}")
-                
 
         # ===== PROFIT SCENARIO =====
         data = []
@@ -876,9 +1486,7 @@ if calc_btn and distance_pol_pod > 0:
         df_profit = pd.DataFrame(data, columns=["Profit %", "Freight (Rp)", "Revenue (Rp)", "PPH 1.2% (Rp)", "Gross Profit (Rp)"])
 
         st.subheader("💹 Profit Scenario 0–75%")
-        st.dataframe(df_profit, use_container_width=True)
-
-        st.session_state.calc_done = True
+        st.dataframe(df_profit, use_container_width=True, height=250)
 
         # ===== PDF GENERATOR =====
         def create_pdf(username):
@@ -1023,22 +1631,8 @@ if calc_btn and distance_pol_pod > 0:
             ]))
             elements += [t_profit, Spacer(1, 4)]
 
-            elements.append(Spacer(1, 10))
-
-            note_text = f"""
-            <b>Note:</b><br/>
-            - Speed Laden : {speed_laden} knot<br/>
-            - Speed Ballast : {speed_ballast} knot<br/>
-            - Fuel Price : Rp {price_fuel:,.0f} / Ltr<br/>
-            - Port Stay POL : {port_stay_pol} Days<br/>
-            - Port Stay POD : {port_stay_pod} Days
-            """
-
-            elements.append(Paragraph(note_text, styles['NormalSmall']))
-            elements.append(Spacer(1, 6))
-
             # ===== FOOTER =====
-            footer_text = f"Generated by {username} | https://freight-calculator-app.streamlit.app/"
+            footer_text = f"Generated by {username} | https://freight-calculator-mobile.streamlit.app"
             elements.append(Paragraph(footer_text, styles['NormalSmall']))
 
             # Tanggal generated di bawah footer
@@ -1052,30 +1646,15 @@ if calc_btn and distance_pol_pod > 0:
 
         # ===== GENERATE PDF & DOWNLOAD BUTTON =====
         pdf_buffer = create_pdf(username=st.session_state.email)
-        file_name = f"Freight Report {port_pol} - {port_pod} {datetime.now():%Y%m%d}.pdf"
-        pdf_bytes = pdf_buffer.getvalue()
+        selected_barge = st.session_state.get("preset_selected", "Custom")
+        file_name = f"Freight Report {selected_barge} {port_pol}-{port_pod} ({datetime.now():%d%m%Y}).pdf"
 
-        # prevent duplicate insert on rerun
-        if "last_calc" not in st.session_state or st.session_state.last_calc != file_name:
-            st.session_state.history_calculate.append({
-                "name": file_name,
-                "data": pdf_bytes
-            })
-            st.session_state.last_calc = file_name
-
-        st.session_state.calc_ready = True
-        st.session_state.last_pdf = pdf_buffer
-        st.session_state.last_file_name = file_name
-
-        if st.session_state.get("calc_ready"):
-            st.success("✅ Calculation finished. Download report ready!")
-
-            st.download_button(
+        st.download_button(
             label="📥 Download PDF Report",
-            data=st.session_state.last_pdf,
-            file_name=st.session_state.last_file_name,
+            data=pdf_buffer,
+            file_name=file_name,
             mime="application/pdf"
+        )
 
-            )
     except Exception as e:
         st.error(f"Error: {e}")
