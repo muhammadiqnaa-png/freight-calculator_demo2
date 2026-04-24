@@ -1734,7 +1734,9 @@ if calculate:
             ]
             t_voyage = Table(voyage_data, colWidths=[9*cm, 9*cm])
             t_voyage.setStyle(TableStyle([
-                ('GRID', (0, 0), (-1, -1), 0.3, colors.grey),
+                ('LINEBELOW', (0, 0), (-1, -1), 0.2, colors.lightgrey),
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
                 ('BACKGROUND', (0, 0), (-1, -1), colors.whitesmoke),
                 ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
                 ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
