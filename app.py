@@ -1822,6 +1822,7 @@ if calculate:
             # =========================
             # 🔥 FINAL TOTAL
             # =========================
+            calc_data = []
             calc_data.append(["", ""])
             calc_data.append(["TOTAL COST", f"Rp {total_cost:,.0f}"])
             calc_data.append([f"Freight Cost ({type_cargo.split()[1]})", f"Rp {freight_cost_mt:,.0f}"])
