@@ -1687,6 +1687,7 @@ if calculate:
         st.dataframe(df_profit, use_container_width=True, height=250)
 
         # ===== PDF GENERATOR =====
+        
         def create_pdf(username):
             buffer = BytesIO()
             doc = SimpleDocTemplate(
