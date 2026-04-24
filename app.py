@@ -1836,10 +1836,10 @@ if calculate:
                 ]
                 t_fpc = Table(fpc_data, colWidths=[9*cm, 9*cm])
                 t_fpc.setStyle(TableStyle([
-                    ('GRID', (0, 0), (-1, -1), 0.3, colors.grey),
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.whitesmoke),
-                    ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                    ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                    ('LINEBELOW', (0, 0), (-1, -1), 0.2, colors.lightgrey),
+                    ('TOPPADDING', (0, 0), (-1, -1), 6),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                    ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
                     ('FONTSIZE', (0, 0), (-1, -1), 8),
                 ]))
                 elements += [t_fpc, Spacer(1, 4)]
