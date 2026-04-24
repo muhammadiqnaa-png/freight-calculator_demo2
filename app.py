@@ -1810,10 +1810,16 @@ if calculate:
 
             t_calc = Table(calc_data, colWidths=[9*cm, 9*cm])
             t_calc.setStyle(TableStyle([
-                ('GRID', (0, 0), (-1, -1), 0.3, colors.grey),
-                ('BACKGROUND', (0, -2), (-1, -1), colors.lightgrey),
-                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#eef2ff")),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor("#1e3a8a")),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                
+                ('LINEBELOW', (0, 0), (-1, -1), 0.2, colors.lightgrey),
+                
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                
+                ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
                 ('FONTSIZE', (0, 0), (-1, -1), 8),
             ]))
             elements += [t_calc, Spacer(1, 4)]
