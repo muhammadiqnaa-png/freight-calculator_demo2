@@ -1744,24 +1744,66 @@ if calculate:
 
             # ===== OPERATIONAL COST =====
             elements.append(Paragraph("Operational & Cost Summary", styles['SubHeader']))
-            calc_data = [
-                ["Total Sailing Time (Hour)", f"{sailing_time:.2f}"],
-                ["Total Consumption Fuel (Ltr)", f"{total_consumption_fuel:,.0f}"],
-                ["Total Consumption Freshwater (Ton)", f"{total_consumption_fw:,.0f}"],
-                ["Fuel Cost (Rp)", f"{fmt_rp(cost_fuel)}{pct_of_total(cost_fuel)}"],
-                ["Freshwater Cost (Rp)", f"{fmt_rp(cost_fw)}{pct_of_total(cost_fw)}"],
-                ["Total General Overhead (Voyage)", fmt_rp(total_general_overhead) + pct_of_total(total_general_overhead)],
-            ]
+            calc_data = []
 
+            # =========================
+            # 🟠 VARIABLE COST
+            # =========================
+            calc_data.append(["VARIABLE COST", ""])
+            
+            calc_data.append(["Fuel Cost", fmt_rp(cost_fuel) + pct_of_total(cost_fuel)])
+            calc_data.append(["Fresh Water Cost", fmt_rp(cost_fw) + pct_of_total(cost_fw)])
+            calc_data.append(["Premi", fmt_rp(premi_cost) + pct_of_total(premi_cost)])
+            calc_data.append(["Port Cost", fmt_rp(port_cost) + pct_of_total(port_cost)])
+            
+            variable_total = cost_fuel + cost_fw + premi_cost + port_cost
+            calc_data.append(["Total Variable Cost", fmt_rp(variable_total)])
+            
+            # =========================
+            # 🟣 OWNER / CHARTER
+            # =========================
+            calc_data.append(["", ""])
+            calc_data.append(["OWNER / CHARTER COST", ""])
+            
             for k, v in owner_data.items():
-                calc_data.append([k, f"{fmt_rp(v)}{pct_of_total(v)}"])
-
+                calc_data.append([k, fmt_rp(v) + pct_of_total(v)])
+            
+            # 🔥 pastikan owner_total sudah ada di atas
+            calc_data.append(["Total Owner Cost", fmt_rp(owner_total)])
+            
+            # =========================
+            # 🔵 OPEX
+            # =========================
+            calc_data.append(["", ""])
+            calc_data.append(["OPEX COST", ""])
+            
+            calc_data.append(["General Overhead", fmt_rp(total_general_overhead) + pct_of_total(total_general_overhead)])
+            calc_data.append(["Depreciation", fmt_rp(depreciation_cost) + pct_of_total(depreciation_cost)])
+            calc_data.append(["Other Cost", fmt_rp(other_cost) + pct_of_total(other_cost)])
+            
+            opex_total = total_general_overhead + depreciation_cost + other_cost
+            calc_data.append(["Total OPEX", fmt_rp(opex_total)])
+            
+            # =========================
+            # 🌸 ADDITIONAL COST
+            # =========================
             if additional_breakdown:
-                calc_data.append(["--- Additional Costs ---", ""])
+                calc_data.append(["", ""])
+                calc_data.append(["ADDITIONAL COST", ""])
+            
                 for k, v in additional_breakdown.items():
-                    calc_data.append([k, f"{fmt_rp(v)}{pct_of_total(v)}"])
-
-            calc_data.append(["Total Cost (Rp)", f"Rp {total_cost:,.0f}"])
+                    calc_data.append([k, fmt_rp(v) + pct_of_total(v)])
+            
+                calc_data.append([
+                    "Total Additional",
+                    fmt_rp(sum(additional_breakdown.values()))
+                ])
+            
+            # =========================
+            # 🔥 FINAL TOTAL
+            # =========================
+            calc_data.append(["", ""])
+            calc_data.append(["TOTAL COST", f"Rp {total_cost:,.0f}"])
             calc_data.append([f"Freight Cost ({type_cargo.split()[1]})", f"Rp {freight_cost_mt:,.0f}"])
 
             t_calc = Table(calc_data, colWidths=[9*cm, 9*cm])
