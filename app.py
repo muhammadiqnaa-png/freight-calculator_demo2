@@ -1223,10 +1223,38 @@ with col2:
         label_visibility="collapsed"
     )
 
-st.markdown("### 💸 Freight Pricing")
+st.markdown("### 💸 Freight Costumer")
 
 freight_price_input = st.number_input("Freight Rate (Rp/MT)", 0)
 
+st.markdown("### 🎯 Target Profit")
+
+col_mode, col_input = st.columns([1, 3])
+
+with col_mode:
+    margin_type = st.selectbox(
+        "Mode",
+        ["%", "Rp"],
+        label_visibility="collapsed"
+    )
+
+with col_input:
+    target_margin = st.number_input(
+        "Input",
+        min_value=0.0,
+        step=0.1,
+        label_visibility="collapsed"
+    )
+
+if margin_type == "%":
+    st.caption("📌 Mode % = Target profit dihitung dari Freight Cost dengan persen")
+else:
+    st.caption("📌 Mode Rp = Target profit dihitung dari Freight Cost dengan nominal")
+
+
+if not port_pol or not port_pod:
+    st.error("⚠️ Pilih POL & POD")
+    st.stop()
 
 # ===== BUTTON =====
 st.markdown("<br>", unsafe_allow_html=True)
@@ -1275,7 +1303,8 @@ if calculate:
         docking_cost = (docking / 30) * total_voyage_days if mode == "Owner" else 0
         maintenance_cost = (maintenance / 30) * total_voyage_days if mode == "Owner" else 0
         certificate_cost = (certificate / 30) * total_voyage_days if mode == "Owner" else 0
-        total_general_overhead = ((opex_office + depreciation_kapal) / 30) * total_voyage_days
+        total_general_overhead = (opex_office / 30) * total_voyage_days
+        depreciation_cost = (depreciation_kapal / 30) * total_voyage_days
         premi_cost = distance_pol_pod * premi_nm
         port_cost = port_cost_pol + port_cost_pod + asist_tug
 
@@ -1347,6 +1376,44 @@ if calculate:
 
         freight_cost_mt = total_cost / qyt_cargo if qyt_cargo > 0 else 0
 
+        # ===== IDEAL PRICE CALC =====
+        ideal_freight = 0
+        ideal_revenue = 0
+        ideal_pph = 0
+        ideal_profit = 0
+        
+        margin_value_rp = 0
+        margin_value_pct = 0
+
+        # ===== FIX TARGET MARGIN TEXT =====
+        if margin_type == "%":
+            target_margin_text = f"{target_margin:.1f} %"
+            margin_value_rp = freight_cost_mt * (target_margin / 100) if freight_cost_mt else 0
+        else:
+            target_margin_text = f"Rp {target_margin:,.0f}"
+            margin_value_rp = target_margin
+        
+        if float(target_margin or 0) > 0:
+        
+            # ===== HITUNG IDEAL FREIGHT =====
+            if margin_type == "%":
+                ideal_freight = freight_cost_mt * (1 + target_margin / 100)
+        
+                margin_value_pct = target_margin
+                margin_value_rp = freight_cost_mt * (target_margin / 100)
+        
+            else:  # Rp
+                ideal_freight = freight_cost_mt + target_margin
+        
+                margin_value_rp = target_margin
+                margin_value_pct = (target_margin / freight_cost_mt) * 100
+        
+            # ===== OUTPUT CALC =====
+            ideal_revenue = ideal_freight * qyt_cargo
+            ideal_pph = ideal_revenue * 0.012
+            ideal_profit = ideal_revenue - total_cost
+
+    
         # ===== REVENUE CALC =====
         revenue_user = freight_price_input * qyt_cargo
         pph_user = revenue_user * 0.012
@@ -1375,86 +1442,217 @@ if calculate:
             border-left:5px solid #93c5fd;
             box-shadow:0 4px 12px rgba(0,0,0,0.4);
         ">
-        <h4 style="color:#93c5fd;">🚢 Voyage Summary</h4>
+            <h4 style="color:#93c5fd;">🚢 Voyage Summary</h4>
 
-        • Cargo Type: <b>{type_cargo}</b><br>
-        • Route: <b>{port_pol} → {port_pod}</b><br>
-        • Distance POL → POD: <b>{distance_pol_pod:,.0f} NM</b><br>
-        • Total Cargo: <b>{qyt_cargo:,.0f} {type_cargo.split()[1]}</b><br>
-        • Total Voyage: <b>{total_voyage_days:.1f} Days</b>
+        • Cargo Type : <b>{type_cargo}</b><br>
+        • Route : <b>{port_pol} → {port_pod}</b><br>
+        • Distance POL → POD : <b>{distance_pol_pod:,.0f} NM</b><br>
+        • Total Cargo : <b>{qyt_cargo:,.0f} {type_cargo.split()[1]}</b><br>
+        • Total Voyage : <b>{total_voyage_days:.1f} Days</b>
         <span style="font-size:11px; color:#bbb;">
         (sailing POL→POD {pol_pod_day:.1f} Days - POD→POL {pod_pol_day:.1f} Days)
         </span><br>
-        • Freight Cost: <b style="color:#0f172a;">Rp {freight_cost_mt:,.0f}</b>
-
+        • Freight Cost : <b style="color:#0f172a;">Rp {freight_cost_mt:,.0f}</b>
+        
+        {"• <b>Recommended Freight</b> : <b style='color:#f97316;'>Rp {:,.0f}</b><br>".format(ideal_freight) 
+         if float(target_margin or 0) > 0 else ""}
+        
         </div>
         """, unsafe_allow_html=True)
 
-        st.markdown(f"""
-        <div style="
-            background:linear-gradient(135deg, #f8fafc, #eef5ff);
-            padding:12px;
-            border-radius:12px;
-            margin-bottom:10px;
-            color:#0f172a;;
-            border-left:5px solid #ff9800;
-            box-shadow:0 4px 12px rgba(0,0,0,0.4);
-        ">
-        <h4 style="color:#ff9800;">⛽ Fuel & Water</h4>
-
-        • Fuel Consumption: <b>{total_consumption_fuel:,.0f} Ltr</b><br>
-        • Fuel Cost: <b>Rp {cost_fuel:,.0f}</b><br>
-        
-        • Freshwater Consumption: <b>{total_consumption_fw:,.0f} Ton</b><br>
-        • FW Cost: <b>Rp {cost_fw:,.0f}</b>
-
-        </div>
-        """, unsafe_allow_html=True)
-
-        
-        st.subheader("🏗️ Cost Summary")
-
-        # =========================
-        # 1. BREAKDOWN COST ONLY
-        # =========================
-        for k, v in owner_data.items():
-            st.write(f"• {k}: Rp {v:,.0f}")
-
-        # =========================
-        # 2. ADDITIONAL COST (sekali saja)
-        # =========================
-        if additional_breakdown:
-            st.markdown("➕ Additional Costs")
-            for k, v in additional_breakdown.items():
-                st.write(f"• {k}: Rp {v:,.0f}")
-
-        # =========================
-        # 3. GENERAL OVERHEAD (sekali saja)
-        # =========================
-        st.write(f"• General Overhead: Rp {total_general_overhead:,.0f}")
-
-        # =========================
-        # 4. SUMMARY (WAJIB SINGLE OUTPUT)
-        # =========================
-        st.success(f"💰 Total Cost: Rp {total_cost:,.0f}")
-        st.warning(f"📦 Freight Cost: Rp {freight_cost_mt:,.0f} / {type_cargo.split()[1]}")
-
-
-        # ===== FREIGHT PRICE CALCULATION USER (Conditional) =====
+            
         if freight_price_input > 0:
+
+            profit_color = "#16a34a" if profit_user >= 0 else "#dc2626"
+            status = "PROFIT ✅" if profit_user >= 0 else "LOSS ❌"
+
             st.markdown(f"""
             <div style="
-                background:#e8f5e9;
+                background:linear-gradient(135deg, #f0fdf4, #ecfdf5);
                 padding:12px;
                 border-radius:12px;
                 margin-bottom:10px;
+                color:#052e16;
+                border-left:5px solid {profit_color};
+                box-shadow:0 4px 12px rgba(0,0,0,0.35);
             ">
-            <h4>💰 Profit</h4>
+            <h4 style="color:{profit_color};">💼 Budget Customer</h4>
+
+            • Freight Input User: <b>Rp {freight_price_input:,.0f} / {type_cargo.split()[1]}</b><br>
             • Revenue: <b>Rp {revenue_user:,.0f}</b><br>
-            • Profit: <b>Rp {profit_user:,.0f}</b><br>
-            • Margin: <b>{profit_percent_user:.2f}%</b>
+            • PPH 1.2%: <b>Rp {pph_user:,.0f}</b><br>
+            • Total Cost : <b>Rp {total_cost:,.0f}</b><br>
+            • Profit: <b style="color:{profit_color};">Rp {profit_user:,.0f} ({profit_percent_user:.2f}%)</b><br>
+            • Status: <b style="color:{profit_color};">{status}</b>
+
             </div>
             """, unsafe_allow_html=True)
+
+        st.markdown(f"""
+        <div style="
+            background:linear-gradient(135deg, #fff7ed, #fffbeb);
+            padding:12px;
+            border-radius:12px;
+            margin-bottom:10px;
+            color:#0f172a;
+            border-left:5px solid #f97316;
+            box-shadow:0 4px 12px rgba(0,0,0,0.2);
+        ">
+
+        <h4 style="color:#f97316;">⛽ Variable Cost</h4>
+
+        • Fuel Cost : <b>Rp {cost_fuel:,.0f}</b> ({total_consumption_fuel:,.0f} Ltr)<br>
+        • FW Cost : <b>Rp {cost_fw:,.0f}</b> ({total_consumption_fw:,.0f} Ton)<br>
+        • Premi : <b>Rp {premi_cost:,.0f}</b><br>
+        • Port Cost : <b>Rp {port_cost:,.0f}</b><br>
+
+        <hr style="margin:2px 0; opacity:0.2;">
+
+        <b>Total Variable Cost :</b> 
+        <b>Rp {(cost_fuel + cost_fw + premi_cost + port_cost):,.0f}</b>
+
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # ===== OWNER / CHARTER TOTAL =====
+        if mode == "Owner":
+            owner_total = (
+                charter_cost +
+                crew_cost +
+                insurance_cost +
+                docking_cost +
+                maintenance_cost +
+                certificate_cost
+            )
+        else:
+            owner_total = charter_cost
+        
+        
+        # ===== TAMPILAN =====
+        if mode == "Owner":
+        
+            st.markdown(f"""
+            <div style="
+            background:linear-gradient(135deg, #f5f3ff, #ede9fe);
+            padding:12px;
+            border-radius:12px;
+            margin-bottom:10px;
+            border-left:5px solid #7c3aed;
+            ">
+            <h4 style="color:#7c3aed;">🏗️ Owner Cost</h4>
+            • Installment : <b>Rp {charter_cost:,.0f}</b><br>
+            • Crew : <b>Rp {crew_cost:,.0f}</b><br>
+            • Insurance : <b>Rp {insurance_cost:,.0f}</b><br>
+            • Docking : <b>Rp {docking_cost:,.0f}</b><br>
+            • Maintenance : <b>Rp {maintenance_cost:,.0f}</b><br>
+            • Certificate : <b>Rp {certificate_cost:,.0f}</b><br>
+            <hr style="margin:2px 0; opacity:0.2;">
+            <b>Total : Rp {owner_total:,.0f}</b>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        else:
+        
+            st.markdown(f"""
+            <div style="
+            background:linear-gradient(135deg, #f5f3ff, #ede9fe);
+            padding:12px;
+            border-radius:12px;
+            margin-bottom:10px;
+            border-left:5px solid #7c3aed;
+            ">
+            <h4 style="color:#7c3aed;">🏗️ Charter Cost</h4>
+            • Charter Hire : <b>Rp {charter_cost:,.0f}</b><br>
+            <hr style="margin:2px 0; opacity:0.2;">
+            <b>Total : Rp {owner_total:,.0f}</b>
+            </div>
+            """, unsafe_allow_html=True)
+    
+
+        st.markdown(f"""
+        <div style="
+            background:linear-gradient(135deg, #f8fafc, #f1f5f9);
+            padding:12px;
+            border-radius:12px;
+            margin-bottom:10px;
+            border-left:5px solid #64748b;
+        ">
+        <h4 style="color:#64748b;">🏢 General & Administrative Cost (G&A)</h4>
+        
+        • General Overhead : <b>Rp {total_general_overhead:,.0f}</b><br>
+        • Depreciation Kapal : <b>Rp {depreciation_cost:,.0f}</b><br>
+        • Other Cost : <b>Rp {other_cost:,.0f}</b><br>
+        
+        <hr style="margin:2px 0; opacity:0.2;">
+        
+        <b>Total Opex : Rp {(total_general_overhead + depreciation_cost + other_cost):,.0f}</b>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if additional_breakdown:
+
+            add_total = sum(additional_breakdown.values())
+
+            items_html = ""
+        
+            for k, v in additional_breakdown.items():
+                items_html += f"""
+            <div style="margin-bottom:4px;">
+                    • {k} : <b>Rp {v:,.0f}</b>
+            </div>
+            """
+        
+            st.markdown(f"""
+            <div style="
+                background: linear-gradient(135deg, #fdf2f8, #ffffff);
+                padding:12px;
+                border-radius:12px;
+                margin-bottom:10px;
+                border-left:5px solid #ec4899;
+                box-shadow:0 4px 12px rgba(0,0,0,0.08);
+                color:#0f172a;
+            ">
+            <h4 style="color:#ec4899;">➕ Additional Cost</h4>
+        
+            {items_html}
+        
+            <hr style="margin:2px 0; opacity:0.2;">
+            
+            <b>Total Additional Cost : Rp {add_total:,.0f}</b>
+            </div>
+            """, unsafe_allow_html=True)
+            
+
+        variable_total = cost_fuel + cost_fw + premi_cost + port_cost
+        opex_total = total_general_overhead + depreciation_cost + other_cost
+        additional_total = sum(additional_breakdown.values()) if additional_breakdown else 0
+
+        summary_total = total_cost
+        
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, #eff6ff, #ffffff);
+            padding:16px;
+            border-radius:14px;
+            margin-bottom:10px;
+            color:#0f172a;
+            border-left:5px solid #2563eb;
+            box-shadow:0 6px 16px rgba(0,0,0,0.08);
+        ">
+        <h4 style="color:#2563eb;">📊 Summary Cost</h4>
+        
+        • Variable Cost : <b>Rp {variable_total:,.0f}</b><br>
+        • Owner/Charter : <b>Rp {owner_total:,.0f}</b><br>
+        • Opex Cost : <b>Rp {opex_total:,.0f}</b><br>
+        • Additional Cost : <b>Rp {additional_total:,.0f}</b><br>
+        
+        <hr style="margin:2px 0; opacity:0.2;">
+        
+        <h3 style="margin:0; color:#0f172a;">
+            Total : Rp {summary_total:,.0f}
+        </h3>
+        </div>
+        """, unsafe_allow_html=True)
 
         st.markdown(f"""
         <div style="
@@ -1632,7 +1830,7 @@ if calculate:
             elements += [t_profit, Spacer(1, 4)]
 
             # ===== FOOTER =====
-            footer_text = f"Generated by {username} |"
+            footer_text = f"Generated by {username} | https://freight-calculator-mobile.streamlit.app"
             elements.append(Paragraph(footer_text, styles['NormalSmall']))
 
             # Tanggal generated di bawah footer
