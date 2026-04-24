@@ -1810,9 +1810,8 @@ if calculate:
 
             t_calc = Table(calc_data, colWidths=[9*cm, 9*cm])
             t_calc.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#eef2ff")),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor("#1e3a8a")),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor("#e0f2fe")),
+                ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
                 
                 ('LINEBELOW', (0, 0), (-1, -1), 0.2, colors.lightgrey),
                 
@@ -1855,10 +1854,10 @@ if calculate:
 
             t_tce = Table(tce_data, colWidths=[9*cm, 9*cm])
             t_tce.setStyle(TableStyle([
-                ('GRID', (0, 0), (-1, -1), 0.3, colors.grey),
-                ('BACKGROUND', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                ('LINEBELOW', (0, 0), (-1, -1), 0.2, colors.lightgrey),
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
                 ('FONTSIZE', (0, 0), (-1, -1), 8),
             ]))
 
@@ -1870,7 +1869,9 @@ if calculate:
             profit_table = [df_profit.columns.to_list()] + df_profit.values.tolist()
             t_profit = Table(profit_table, colWidths=[3*cm, 3.8*cm, 3.8*cm, 3.8*cm, 3.8*cm])
             t_profit.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#0d47a1")),
+                ('LINEBELOW', (0, 0), (-1, -1), 0.2, colors.lightgrey),
+                ('TOPPADDING', (0, 0), (-1, -1), 5),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
                 ('GRID', (0, 0), (-1, -1), 0.25, colors.grey),
                 ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
